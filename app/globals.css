@@ -47,3 +47,32 @@ body {
     @apply text-slate-900;
   }
 }
+
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+
+  #invoice-container, #invoice-container * {
+    visibility: visible;
+  }
+
+  #invoice-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hide print buttons specifically if they aren't already */
+  .print\:hidden {
+    display: none !important;
+  }
+}

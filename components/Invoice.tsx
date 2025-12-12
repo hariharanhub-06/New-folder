@@ -14,7 +14,7 @@ export default function Invoice({ order }: InvoiceProps) {
     const total = order.totalAmount;
 
     return (
-        <div className="max-w-4xl mx-auto bg-white p-12 shadow-lg">
+        <div id="invoice-container" className="max-w-4xl mx-auto bg-white p-12 shadow-lg">
             {/* Header with Tuxedo Logo */}
             <div className="flex items-start gap-4 mb-8">
                 {/* Tuxedo Logo */}
