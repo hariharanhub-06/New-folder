@@ -16,6 +16,7 @@ export interface Product {
     isActive: boolean;
     size?: string;
     sizes?: ProductSize[];
+    discountPercentage?: number;  // Individual product discount
     createdAt?: string;
     updatedAt?: string;
 }
@@ -60,4 +61,12 @@ export interface Discount {
     quantity: number;
     price: number;
     active: boolean;
+}
+
+export interface ProductDiscount {
+    id: string;
+    productId: string;
+    discountPercentage: number;
+    active: boolean;
+    createdAt?: string;
 }

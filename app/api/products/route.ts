@@ -45,6 +45,13 @@ export async function GET(request: Request) {
             sizesMap.get(r.product_id).push({ size: r.size, stock: r.stock, id: r.id });
         });
 
+        // Fetch product discounts
+        const discountRes = await pool.query('SELECT product_id, discount_percentage FROM product_discounts WHERE active = true');
+        const discountsMap = new Map();
+        discountRes.rows.forEach(r => {
+            discountsMap.set(r.product_id, r.discount_percentage);
+        });
+
         const products = rows.map((row: any) => ({
             id: row.id,
             name: row.name,
@@ -57,6 +64,7 @@ export async function GET(request: Request) {
             isActive: row.is_active,
             size: row.size,
             sizes: sizesMap.get(row.id) || [],
+            discountPercentage: discountsMap.get(row.id) || undefined,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
         }));
