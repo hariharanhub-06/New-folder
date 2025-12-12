@@ -7,8 +7,13 @@ import {
     deleteProduct,
     toggleProductStatus as toggleStatusDb,
     updateOrderStatus as updateOrderStatusDb,
-    getProduct
+    getProduct,
+    createDiscount,
+    deleteDiscount
 } from "./db";
+
+// ... existing code ...
+
 import { Product } from "./types";
 
 // Helper to parse FormData to Product
@@ -90,9 +95,17 @@ export async function updateOrderStatus(orderId: string, status: string, logisti
 }
 
 export async function addDiscount(formData: FormData) {
-    // Placeholder
+    const category = formData.get("category") as string;
+    const quantity = parseInt(formData.get("quantity") as string);
+    const price = parseFloat(formData.get("price") as string);
+
+    if (!category || !quantity || !price) return;
+
+    await createDiscount({ category, quantity, price });
+    revalidatePath("/admin/discounts");
 }
 
 export async function removeDiscount(id: string) {
-    // Placeholder
+    await deleteDiscount(id);
+    revalidatePath("/admin/discounts");
 }

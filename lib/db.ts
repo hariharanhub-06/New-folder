@@ -124,6 +124,18 @@ export async function getDiscounts(): Promise<Discount[]> {
     })) as Discount[];
 }
 
+export async function createDiscount(discount: Omit<Discount, 'id' | 'active' | 'createdAt'>) {
+    const id = crypto.randomUUID();
+    await pool.query(
+        'INSERT INTO discounts (id, category, quantity, price) VALUES ($1, $2, $3, $4)',
+        [id, discount.category, discount.quantity, discount.price]
+    );
+}
+
+export async function deleteDiscount(id: string) {
+    await pool.query('DELETE FROM discounts WHERE id = $1', [id]);
+}
+
 export async function getOrderById(id: string): Promise<Order | null> {
     const orderRes = await pool.query('SELECT * FROM orders WHERE id = $1', [id]);
     const order = orderRes.rows[0];
