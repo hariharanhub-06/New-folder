@@ -9,6 +9,7 @@ import {
     Menu,
     X,
     Loader2,
+    Settings
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import AutoRefresh from "@/components/AutoRefresh";
@@ -32,6 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: "/admin/products", label: "Products", icon: Package },
         { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
         { href: "/admin/discounts", label: "Discounts", icon: Tag },
+        { href: "/admin/settings", label: "Settings", icon: Settings },
     ];
 
     // Reset navigation state when pathname changes
