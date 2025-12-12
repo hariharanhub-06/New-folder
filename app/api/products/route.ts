@@ -3,8 +3,36 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 
 // GET: Fetch all active products
-export async function GET() {
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
     try {
+        if (id) {
+            const res = await db.query('SELECT * FROM products WHERE id = $1', [id]);
+            const row = res.rows[0];
+
+            if (!row) {
+                return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+            }
+
+            const product = {
+                id: row.id,
+                name: row.name,
+                description: row.description,
+                price: parseFloat(row.price),
+                category: row.category,
+                stock: row.stock,
+                imageUrl: row.image_url,
+                images: row.images ? JSON.parse(row.images) : [],
+                isActive: row.is_active,
+                size: row.size,
+                createdAt: row.created_at,
+                updatedAt: row.updated_at,
+            };
+            return NextResponse.json(product);
+        }
+
         const res = await db.query(`
             SELECT * FROM products 
             WHERE is_active = true
