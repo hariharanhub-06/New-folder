@@ -25,6 +25,7 @@ export async function POST(request: Request) {
         await db.query(`
             UPDATE orders 
             SET status = 'Payment Confirmed',
+                transaction_id = $1,
                 cashfree_payment_id = $1, 
                 cashfree_order_id = $2
             WHERE id = $3

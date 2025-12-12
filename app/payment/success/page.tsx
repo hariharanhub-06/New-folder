@@ -68,7 +68,7 @@ function PaymentSuccessContent() {
                     </div>
                     <h1 className="text-3xl font-bold text-slate-900">Payment Successful!</h1>
                     <p className="text-slate-500">
-                        Transaction ID: <span className="font-mono font-medium text-slate-900">{order.transactionId}</span>
+                        Transaction ID: <span className="font-mono font-medium text-slate-900">{order.transactionId || order.cashfreePaymentId}</span>
                     </p>
                     <p className="text-slate-600">
                         Thank you for your purchase. Your order has been confirmed.
@@ -77,7 +77,7 @@ function PaymentSuccessContent() {
                     <div className="flex justify-center gap-4 pt-4">
                         <button
                             onClick={() => window.print()}
-                            className="flex items-center gap-2 px-6 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                            className="flex items-center gap-2 px-6 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors font-medium shadow-sm"
                         >
                             <Download className="w-4 h-4" />
                             Download Invoice
