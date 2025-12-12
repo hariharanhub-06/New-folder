@@ -9,12 +9,12 @@ export async function GET() {
         const discounts = res.rows.map((row: any) => ({
             id: row.id,
             discountType: row.discount_type || 'bundle',
-            targetType: row.target_type || 'category',
-            category: row.category,
-            productId: row.product_id,
-            quantity: row.quantity,
+            targetType: row.target_type || (row.category ? 'category' : 'product'),
+            category: row.category || undefined,
+            productId: row.product_id || undefined,
+            quantity: row.quantity || undefined,
             price: row.price ? parseFloat(row.price) : undefined,
-            percentage: row.percentage,
+            percentage: row.percentage || undefined,
             active: row.active,
             createdAt: row.created_at
         }));
