@@ -54,6 +54,13 @@ body {
     size: auto;
   }
 
+  html,
+  body {
+    height: auto;
+    overflow: hidden;
+    background: white;
+  }
+
   body * {
     visibility: hidden;
   }
@@ -68,15 +75,16 @@ body {
     left: 0;
     top: 0;
     width: 21cm;
-    /* Force standard A4 width */
-    max-width: 100%;
     margin: 0;
-    padding: 20px !important;
-    /* Override large paddings */
+    padding: 15px !important;
+    /* Slightly reduced padding */
     box-shadow: none !important;
+    border: none !important;
+    overflow: hidden;
+    /* Clip anything extra */
   }
 
-  /* Hide print buttons specifically if they aren't already */
+  /* Hide print buttons specifically */
   .print\:hidden {
     display: none !important;
   }
