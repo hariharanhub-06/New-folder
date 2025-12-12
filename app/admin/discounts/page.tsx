@@ -68,9 +68,15 @@ export default function DiscountsPage() {
             if (res.ok) {
                 loadData();
                 e.currentTarget.reset();
+                alert('Discount created successfully!');
+            } else {
+                const errorData = await res.json();
+                console.error('Error response:', errorData);
+                alert(`Failed to create discount: ${errorData.error || errorData.details || 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error creating discount:', error);
+            alert(`Network error: ${error}`);
         }
     }
 
@@ -111,8 +117,8 @@ export default function DiscountsPage() {
                                         type="button"
                                         onClick={() => setDiscountType('bundle')}
                                         className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${discountType === 'bundle'
-                                                ? 'bg-indigo-600 text-white'
-                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                             }`}
                                     >
                                         <Tag className="w-4 h-4 inline mr-1" />
@@ -122,8 +128,8 @@ export default function DiscountsPage() {
                                         type="button"
                                         onClick={() => setDiscountType('percentage')}
                                         className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${discountType === 'percentage'
-                                                ? 'bg-green-600 text-white'
-                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            ? 'bg-green-600 text-white'
+                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                             }`}
                                     >
                                         <Percent className="w-4 h-4 inline mr-1" />
@@ -139,8 +145,8 @@ export default function DiscountsPage() {
                                         type="button"
                                         onClick={() => setTargetType('category')}
                                         className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${targetType === 'category'
-                                                ? 'bg-purple-600 text-white'
-                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                             }`}
                                     >
                                         Category
@@ -149,8 +155,8 @@ export default function DiscountsPage() {
                                         type="button"
                                         onClick={() => setTargetType('product')}
                                         className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${targetType === 'product'
-                                                ? 'bg-purple-600 text-white'
-                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                             }`}
                                     >
                                         Product
@@ -237,8 +243,8 @@ export default function DiscountsPage() {
                                             <p className="text-slate-900 font-bold mb-2">{label}</p>
                                             <div className="flex items-center gap-2 mb-2">
                                                 <span className={`px-2 py-1 text-xs font-medium rounded ${discount.discountType === 'bundle'
-                                                        ? 'bg-indigo-50 text-indigo-700'
-                                                        : 'bg-green-50 text-green-700'
+                                                    ? 'bg-indigo-50 text-indigo-700'
+                                                    : 'bg-green-50 text-green-700'
                                                     }`}>
                                                     {discount.discountType === 'bundle' ? 'Bundle' : `${discount.percentage}% OFF`}
                                                 </span>
