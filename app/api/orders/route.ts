@@ -83,15 +83,16 @@ export async function POST(request: Request) {
 
             for (const item of order.items) {
                 await client.query(`
-                    INSERT INTO order_items (id, order_id, product_id, name, quantity, price)
-                    VALUES ($1, $2, $3, $4, $5, $6)
+                    INSERT INTO order_items (id, order_id, product_id, name, quantity, price, size)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
                 `, [
                     crypto.randomUUID(),
                     orderId,
                     item.productId || null,
                     item.name,
                     item.quantity,
-                    item.price
+                    item.price,
+                    (item as any).size || null  // Save size if provided
                 ]);
             }
 

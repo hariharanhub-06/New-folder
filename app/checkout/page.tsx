@@ -135,7 +135,8 @@ export default function CheckoutPage() {
                     productId: item.id,
                     name: item.name,
                     quantity: item.quantity,
-                    price: item.price
+                    price: item.price,
+                    size: item.selectedSize  // Include selected size
                 })),
                 shippingCost: shippingCost + paymentGatewayFee,
                 totalAmount: grandTotal,

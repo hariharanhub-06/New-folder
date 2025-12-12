@@ -15,16 +15,26 @@ interface ProductCardProps {
 const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCardProps) {
     const { addToCart, items } = useCart();
 
-    // Get current quantity in cart for this product
-    const cartItem = items.find(item => item.id === product.id);
-    const quantityInCart = cartItem?.quantity || 0;
+    // Check if product has size variants
+    const hasSizes = product.sizes && product.sizes.length > 0;
+
+    // Get current quantity in cart for this product (all sizes combined if has sizes)
+    const cartItems = items.filter(item => item.id === product.id);
+    const quantityInCart = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const canAddMore = quantityInCart < product.stock;
     const isOutOfStock = product.stock === 0;
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent opening modal
-        if (canAddMore) {
-            addToCart(product);
+
+        // If product has sizes, open the modal to select size
+        if (hasSizes) {
+            onSelect?.(product);
+        } else {
+            // For products without sizes, add directly
+            if (canAddMore) {
+                addToCart(product);
+            }
         }
     };
 
@@ -69,9 +79,9 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
                 {/* Quick Add Button */}
                 <button
                     onClick={handleAddToCart}
-                    disabled={!canAddMore}
+                    disabled={!canAddMore && !hasSizes}
                     className="absolute bottom-2 right-2 bg-white text-slate-900 p-1.5 rounded-full shadow-lg translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-amber-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed active:scale-90"
-                    title={!canAddMore ? (isOutOfStock ? 'Out of stock' : 'Maximum quantity in cart') : 'Add to cart'}
+                    title={hasSizes ? 'Select size' : (!canAddMore ? (isOutOfStock ? 'Out of stock' : 'Maximum quantity in cart') : 'Add to cart')}
                 >
                     <ShoppingBag className="w-3.5 h-3.5" />
                 </button>
@@ -80,7 +90,11 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
             <div className="p-2.5">
                 <div className="flex justify-between items-start mb-0.5">
                     <div className="text-[9px] font-bold text-amber-600 uppercase tracking-wider">{product.category}</div>
-                    {product.size && (
+                    {hasSizes ? (
+                        <span className="text-[9px] font-medium text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">
+                            {product.sizes.length} sizes
+                        </span>
+                    ) : product.size && (
                         <span className="text-[9px] font-medium text-slate-500 bg-slate-100 px-1 py-0.5 rounded">
                             {product.size}
                         </span>
@@ -99,9 +113,9 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
                     </div>
                     <button
                         onClick={handleAddToCart}
-                        disabled={!canAddMore}
+                        disabled={!canAddMore && !hasSizes}
                         className="bg-slate-900 text-white p-1.5 rounded-full hover:bg-amber-500 hover:text-slate-900 transition-all duration-300 shadow-md hover:shadow-amber-500/50 group disabled:opacity-50 disabled:cursor-not-allowed active:scale-90"
-                        title={!canAddMore ? (isOutOfStock ? 'Out of stock' : 'Maximum quantity in cart') : 'Add to cart'}
+                        title={hasSizes ? 'Select size' : (!canAddMore ? (isOutOfStock ? 'Out of stock' : 'Maximum quantity in cart') : 'Add to cart')}
                     >
                         <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                     </button>
