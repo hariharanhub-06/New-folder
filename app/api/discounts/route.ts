@@ -29,20 +29,34 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const data = await request.json();
+        console.log('Received discount data:', data);
+
         const id = crypto.randomUUID();
 
         const { discountType, targetType, category, productId, quantity, price, percentage } = data;
 
+        console.log('Inserting discount:', {
+            id,
+            discountType,
+            targetType,
+            category: category || null,
+            productId: productId || null,
+            quantity: quantity || null,
+            price: price || null,
+            percentage: percentage || null
+        });
+
         await pool.query(
             `INSERT INTO discounts (id, discount_type, target_type, category, product_id, quantity, price, percentage, active) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [id, discountType, targetType, category || null, productId || null, quantity || null, price || null, percentage || null, true]
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)`,
+            [id, discountType, targetType, category || null, productId || null, quantity || null, price || null, percentage || null]
         );
 
         return NextResponse.json({ success: true, id });
     } catch (error: any) {
         console.error('Error creating discount:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('Error details:', error.message, error.stack);
+        return NextResponse.json({ error: error.message, details: error.toString() }, { status: 500 });
     }
 }
 
