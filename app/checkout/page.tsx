@@ -268,16 +268,21 @@ export default function CheckoutPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-medium text-slate-900">{item.name}</h3>
+                                        {item.selectedSize && (
+                                            <span className="inline-block mt-1 px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-medium rounded">
+                                                Size: {item.selectedSize}
+                                            </span>
+                                        )}
                                         <div className="flex items-center mt-1 space-x-2">
                                             <button
-                                                onClick={() => decrementFromCart(item.id)}
+                                                onClick={() => decrementFromCart(item.id, item.selectedSize)}
                                                 className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
                                             >
                                                 -
                                             </button>
                                             <span className="text-sm text-slate-500 w-4 text-center">{item.quantity}</span>
                                             <button
-                                                onClick={() => addToCart(item)}
+                                                onClick={() => addToCart(item, item.selectedSize)}
                                                 className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
                                             >
                                                 +
@@ -288,7 +293,7 @@ export default function CheckoutPage() {
                                 <div className="flex items-center space-x-4">
                                     <p className="font-medium text-slate-900">₹{(item.price * item.quantity).toFixed(2)}</p>
                                     <button
-                                        onClick={() => removeFromCart(item.id)}
+                                        onClick={() => removeFromCart(item.id, item.selectedSize)}
                                         className="text-red-500 hover:text-red-600 p-1"
                                     >
                                         <Trash2 className="w-4 h-4" />
