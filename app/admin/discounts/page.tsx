@@ -1,12 +1,13 @@
-import { getDiscounts } from '@/lib/db';
+import { getDiscounts, getUniqueCategories } from '@/lib/db';
 import { addDiscount, removeDiscount } from '@/lib/actions';
 import { Trash2, Plus, Tag } from 'lucide-react';
-import { PRODUCT_CATEGORIES } from '@/lib/constants';
+// import { PRODUCT_CATEGORIES } from '@/lib/constants'; // No longer needed
 
 export const dynamic = 'force-dynamic';
 
 export default async function DiscountsPage() {
     const discounts = await getDiscounts();
+    const categories = await getUniqueCategories();
 
     return (
         <div className="space-y-8">
@@ -27,7 +28,7 @@ export default async function DiscountsPage() {
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
                                 <select name="category" required className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
                                     <option value="">Select Category</option>
-                                    {PRODUCT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
                             <div>
