@@ -1,26 +1,41 @@
-'use client';
+export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
-import { getProducts } from '@/lib/api';
-import { Product } from '@/lib/types';
+import { getProducts, getOrders } from '@/lib/db-admin'; // We will create this helper or use inline db queries if simple
+import { Product, Order } from '@/lib/types';
+import { Package, ShoppingBag, AlertTriangle, Clock, CheckCircle, XCircle } from 'lucide-react';
+import Link from 'next/link';
+import db from '@/lib/db';
 
-export default function AdminDashboard() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+async function getDashboardData() {
+    const productsRes = await db.query('SELECT * FROM products');
+    const ordersRes = await db.query('SELECT * FROM orders ORDER BY created_at DESC');
 
-    useEffect(() => {
-        async function loadData() {
-            try {
-                const productsData = await getProducts();
-                setProducts(productsData);
-            } catch (error) {
-                console.error('Failed to load data:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        loadData();
-    }, []);
+    return {
+        products: productsRes.rows.map(row => ({
+            ...row,
+            price: parseFloat(row.price),
+            isActive: row.is_active
+        })),
+        orders: ordersRes.rows.map(row => ({
+            ...row,
+            totalAmount: parseFloat(row.total_amount),
+            shippingCost: parseFloat(row.shipping_cost)
+        }))
+    };
+}
+
+export default async function AdminDashboard() {
+    const { products, orders } = await getDashboardData();
+    const lowStockProducts = products.filter((p: any) => p.stock < 5);
+    const pendingOrders = orders.filter((o: any) => o.status === 'New Order');
+
+    const stats = [
+        { label: 'Total Sales', value: `₹${orders.reduce((sum: number, o: any) => sum + o.totalAmount, 0).toFixed(2)}`, icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-100' },
+        { label: 'Active Orders', value: pendingOrders.length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-100' },
+        { label: 'Low Stock Items', value: lowStockProducts.length, icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-100' },
+        { label: 'Total Products', value: products.length, icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-100' },
+    ];
+
 
     if (loading) {
         return (

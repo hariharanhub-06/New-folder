@@ -92,11 +92,7 @@ export default function Invoice({ order }: InvoiceProps) {
                 </div>
                 <div className="flex justify-between mb-2">
                     <span className="font-bold text-sm tracking-wider text-black">SHIPPING</span>
-                    <span className="font-bold text-sm text-black">₹{shipping.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between mb-2">
-                    <span className="font-bold text-sm tracking-wider text-black">GATEWAY FEE (2.5%)</span>
-                    <span className="font-bold text-sm text-black">₹{gatewayFee.toFixed(2)}</span>
+                    <span className="font-bold text-sm text-black">₹{(shipping + gatewayFee).toFixed(2)}</span>
                 </div>
             </div>
 
