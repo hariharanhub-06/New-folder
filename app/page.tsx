@@ -49,6 +49,14 @@ export default function HomePage() {
                                 <p>123 Fashion Avenue</p>
                                 <p>T. Nagar, Chennai - 600017</p>
                                 <p className="text-sm text-gray-500 mt-2">(Open 10 AM - 9 PM, All Days)</p>
+                                <a
+                                    href="https://maps.app.goo.gl/i2oZrUYp4yudM7JD7"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 mt-4 text-indigo-600 hover:text-indigo-800 font-medium"
+                                >
+                                    Get Directions <ArrowRight className="w-4 h-4" />
+                                </a>
                             </div>
                         </div>
 
