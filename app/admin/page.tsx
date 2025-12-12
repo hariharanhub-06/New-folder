@@ -35,17 +35,32 @@ export default async function AdminDashboard() {
 
     const stats = [
         { label: 'Total Sales', value: `₹${orders.reduce((sum: number, o: any) => sum + o.totalAmount, 0).toFixed(2)}`, icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-100' },
-        { label: 'Active Orders', value: pendingOrders.length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-100' },
-        { label: 'Low Stock Items', value: lowStockProducts.length, icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-100' },
         { label: 'Total Products', value: products.length, icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-100' },
     ];
+
+    const statusCounts = {
+        'New Order': 0,
+        'Payment Confirmed': 0,
+        'Parcel Prepared': 0,
+        'Couriered': 0,
+        'Delivered': 0,
+        'Cancelled': 0
+    };
+
+    orders.forEach((o: any) => {
+        // @ts-ignore
+        if (statusCounts[o.status] !== undefined) {
+            // @ts-ignore
+            statusCounts[o.status]++;
+        }
+    });
 
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-slate-900">Dashboard Overview</h1>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Main Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {stats.map((stat, index) => (
                     <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
                         <div>
@@ -57,6 +72,26 @@ export default async function AdminDashboard() {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            {/* Order Status Grid */}
+            <div>
+                <h2 className="text-lg font-bold text-slate-900 mb-4">Order Status Breakdown</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {Object.entries(statusCounts).map(([status, count]) => (
+                        <div key={status} className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{status}</p>
+                            <p className={`text-2xl font-bold ${status === 'New Order' ? 'text-amber-600' :
+                                    status === 'Payment Confirmed' ? 'text-blue-600' :
+                                        status === 'Delivered' ? 'text-green-600' :
+                                            status === 'Cancelled' ? 'text-red-500' :
+                                                'text-slate-800'
+                                }`}>
+                                {count}
+                            </p>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -83,9 +118,9 @@ export default async function AdminDashboard() {
                                         <td className="px-6 py-4 font-medium text-slate-900">{order.customerName}</td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'New Order' ? 'bg-amber-100 text-amber-800' :
-                                                    order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
-                                                        order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                                            'bg-gray-100 text-gray-800'
+                                                order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
+                                                    order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                                                        'bg-gray-100 text-gray-800'
                                                 }`}>
                                                 {order.status}
                                             </span>
