@@ -5,13 +5,14 @@ import { Product } from './types';
 
 export interface CartItem extends Product {
     quantity: number;
+    selectedSize?: string;
 }
 
 interface CartContextType {
     items: CartItem[];
-    addToCart: (product: Product) => void;
-    decrementFromCart: (productId: string) => void;
-    removeFromCart: (productId: string) => void;
+    addToCart: (product: Product, size?: string) => void;
+    decrementFromCart: (productId: string, size?: string) => void;
+    removeFromCart: (productId: string, size?: string) => void;
     clearCart: () => void;
     total: number;
 }
@@ -38,43 +39,39 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
     }, [items, isLoaded]);
 
-    const addToCart = (product: Product) => {
+    const addToCart = (product: Product, size?: string) => {
         setItems(current => {
-            const existing = current.find(item => item.id === product.id);
+            const existing = current.find(item => item.id === product.id && item.selectedSize === size);
             if (existing) {
                 return current.map(item =>
-                    item.id === product.id
+                    (item.id === product.id && item.selectedSize === size)
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 );
             }
-            return [...current, { ...product, quantity: 1 }];
+            return [...current, { ...product, quantity: 1, selectedSize: size }];
         });
     };
 
-    const decrementFromCart = (productId: string) => {
+    const decrementFromCart = (productId: string, size?: string) => {
         setItems(current => {
-            const existing = current.find(item => item.id === productId);
+            const existing = current.find(item => item.id === productId && item.selectedSize === size);
             if (existing && existing.quantity > 1) {
                 return current.map(item =>
-                    item.id === productId
+                    (item.id === productId && item.selectedSize === size)
                         ? { ...item, quantity: item.quantity - 1 }
                         : item
                 );
             }
-            // If quantity is 1, remove it (optional, but usually better to let user explicitly remove)
-            // For now, let's just keep it at 1 or remove if desired. 
-            // The user asked for "reduce", so if it goes to 0 it should probably be removed or stay at 1.
-            // Let's implement: if 1, remove.
             if (existing && existing.quantity === 1) {
-                return current.filter(item => item.id !== productId);
+                return current.filter(item => !(item.id === productId && item.selectedSize === size));
             }
             return current;
         });
     };
 
-    const removeFromCart = (productId: string) => {
-        setItems(current => current.filter(item => item.id !== productId));
+    const removeFromCart = (productId: string, size?: string) => {
+        setItems(current => current.filter(item => !(item.id === productId && item.selectedSize === size)));
     };
 
     const clearCart = () => setItems([]);

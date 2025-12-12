@@ -34,63 +34,97 @@ export async function getProduct(id: string): Promise<Product | null> {
     const res = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
     const row = res.rows[0];
     if (!row) return null;
+
+    // Fetch sizes
+    const sizeRes = await pool.query('SELECT size, stock, id FROM product_sizes WHERE product_id = $1', [id]);
+
     return {
         id: row.id,
         name: row.name,
         description: row.description,
-        price: parseFloat(row.price), // Postgres returns numeric as string sometimes
+        price: parseFloat(row.price),
         category: row.category,
         stock: row.stock,
         imageUrl: row.image_url,
         images: row.images ? JSON.parse(row.images) : [],
         isActive: row.is_active,
         size: row.size,
+        sizes: sizeRes.rows.map(r => ({ size: r.size, stock: r.stock, id: r.id })), // Map DB rows to Size objects
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
 }
 
 export async function saveProduct(product: Product) {
-    const res = await pool.query('SELECT id FROM products WHERE id = $1', [product.id]);
-    const exists = res.rows[0];
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
 
-    if (exists) {
-        // Update
-        await pool.query(`
-            UPDATE products 
-            SET name = $1, description = $2, price = $3, category = $4, 
-                stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $10
-        `, [
-            product.name,
-            product.description,
-            product.price,
-            product.category,
-            product.stock,
-            product.imageUrl,
-            JSON.stringify(product.images || []),
-            product.size,
-            product.isActive,
-            product.id
-        ]);
-    } else {
-        // Insert
-        const id = product.id || crypto.randomUUID();
-        await pool.query(`
-            INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-        `, [
-            id,
-            product.name,
-            product.description,
-            product.price,
-            product.category,
-            product.stock,
-            product.imageUrl,
-            JSON.stringify(product.images || []),
-            product.isActive,
-            product.size
-        ]);
+        const res = await client.query('SELECT id FROM products WHERE id = $1', [product.id]);
+        const exists = res.rows[0];
+        // Calculate total stock if not provided or just sync it
+        const totalStock = product.sizes ? product.sizes.reduce((acc, s) => acc + s.stock, 0) : product.stock;
+
+        if (exists) {
+            // Update Product
+            await client.query(`
+                UPDATE products 
+                SET name = $1, description = $2, price = $3, category = $4, 
+                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, updated_at = CURRENT_TIMESTAMP
+                WHERE id = $10
+            `, [
+                product.name,
+                product.description,
+                product.price,
+                product.category,
+                totalStock, // Sync total stock
+                product.imageUrl,
+                JSON.stringify(product.images || []),
+                product.size,
+                product.isActive,
+                product.id
+            ]);
+        } else {
+            // Insert Product
+            const id = product.id || crypto.randomUUID();
+            await client.query(`
+                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `, [
+                id,
+                product.name,
+                product.description,
+                product.price,
+                product.category,
+                totalStock, // Sync total stock
+                product.imageUrl,
+                JSON.stringify(product.images || []),
+                product.isActive,
+                product.size
+            ]);
+        }
+
+        // Handle Sizes
+        if (product.sizes) {
+            // Delete existing sizes to replace with new set (easiest way to handle updates/deletes)
+            await client.query('DELETE FROM product_sizes WHERE product_id = $1', [product.id]);
+
+            // Insert new sizes
+            for (const s of product.sizes) {
+                const sizeId = crypto.randomUUID();
+                await client.query(`
+                    INSERT INTO product_sizes (id, product_id, size, stock)
+                    VALUES ($1, $2, $3, $4)
+                `, [sizeId, product.id, s.size, s.stock]);
+            }
+        }
+
+        await client.query('COMMIT');
+    } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+    } finally {
+        client.release();
     }
 }
 

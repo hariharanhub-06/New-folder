@@ -28,6 +28,10 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
     const imagesStr = formData.get("images") as string;
     const images = imagesStr ? JSON.parse(imagesStr) : [];
 
+    // Parse sizes
+    const sizesStr = formData.get("sizes") as string;
+    const sizes = sizesStr ? JSON.parse(sizesStr) : undefined;
+
     return {
         name,
         description,
@@ -36,7 +40,8 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
         stock,
         size,
         imageUrl,
-        images
+        images,
+        sizes
     };
 }
 

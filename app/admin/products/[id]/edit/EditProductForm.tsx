@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { editProduct } from '@/lib/actions';
-import { Upload, X, Star, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Star, Image as ImageIcon, Loader2, Plus } from 'lucide-react';
 import { Product } from '@/lib/types';
 import { PRODUCT_CATEGORIES } from '@/lib/constants';
 
@@ -15,6 +15,11 @@ export default function EditProductForm({ product }: { product: Product }) {
         product.images ? product.images.indexOf(product.imageUrl) > -1 ? product.images.indexOf(product.imageUrl) : 0 : 0
     );
     const [currentInput, setCurrentInput] = useState<string>('');
+    const [sizes, setSizes] = useState<{ size: string; stock: number }[]>(
+        product.sizes && product.sizes.length > 0
+            ? product.sizes.map(s => ({ size: s.size, stock: s.stock }))
+            : [{ size: product.size || '', stock: product.stock }]
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -119,6 +124,21 @@ export default function EditProductForm({ product }: { product: Product }) {
         // Set all images as JSON string
         formData.set('images', JSON.stringify(images));
 
+        // Remove empty size rows and set sizes
+        const validSizes = sizes.filter(s => s.size.trim() !== '');
+        if (validSizes.length > 0) {
+            formData.set('sizes', JSON.stringify(validSizes));
+            // Set total stock as sum of sizes
+            const totalStock = validSizes.reduce((sum, s) => sum + s.stock, 0);
+            formData.set('stock', totalStock.toString());
+            // Set display size as comma joined
+            formData.set('size', validSizes.map(s => s.size).join(', '));
+        } else {
+            if (sizes.every(s => s.size === '')) {
+                formData.set('stock', '0');
+            }
+        }
+
         try {
             await editProduct(product.id, formData);
             // If we get here without redirect, something went wrong
@@ -165,7 +185,7 @@ export default function EditProductForm({ product }: { product: Product }) {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-4">
                             <div>
                                 <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price (₹)</label>
                                 <input
@@ -179,20 +199,64 @@ export default function EditProductForm({ product }: { product: Product }) {
                                 />
                             </div>
 
-                            <div>
-                                <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stock Quantity</label>
-                                <input
-                                    type="number"
-                                    name="stock"
-                                    id="stock"
-                                    defaultValue={product.stock}
-                                    required
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                                />
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-medium text-gray-700">Stock & Sizes</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSizes([...sizes, { size: '', stock: 0 }])}
+                                        className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                                    >
+                                        <Plus className="w-3 h-3" /> Add Variant
+                                    </button>
+                                </div>
+                                <div className="space-y-2">
+                                    {sizes.map((item, index) => (
+                                        <div key={index} className="flex gap-2 items-start">
+                                            <div className="flex-1">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Size (e.g. M)"
+                                                    value={item.size}
+                                                    onChange={(e) => {
+                                                        const newSizes = [...sizes];
+                                                        newSizes[index].size = e.target.value;
+                                                        setSizes(newSizes);
+                                                    }}
+                                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm border p-2"
+                                                />
+                                            </div>
+                                            <div className="w-24">
+                                                <input
+                                                    type="number"
+                                                    placeholder="Qty"
+                                                    value={item.stock}
+                                                    min="0"
+                                                    onChange={(e) => {
+                                                        const newSizes = [...sizes];
+                                                        newSizes[index].stock = parseInt(e.target.value) || 0;
+                                                        setSizes(newSizes);
+                                                    }}
+                                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm border p-2"
+                                                />
+                                            </div>
+                                            {sizes.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSizes(sizes.filter((_, i) => i !== index))}
+                                                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2 text-right">
+                                    Total Stock: {sizes.reduce((sum, s) => sum + s.stock, 0)}
+                                </p>
                             </div>
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
                                 <div className="mt-1 flex gap-2">
@@ -228,18 +292,6 @@ export default function EditProductForm({ product }: { product: Product }) {
                                     style={{ display: PRODUCT_CATEGORIES.includes(product.category as any) ? 'none' : 'block' }}
                                     placeholder="Enter new category name"
                                     className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                                />
-                            </div>
-
-                            <div>
-                                <label htmlFor="size" className="block text-sm font-medium text-gray-700">Size</label>
-                                <input
-                                    type="text"
-                                    name="size"
-                                    id="size"
-                                    defaultValue={product.size}
-                                    placeholder="e.g., M, L, XL, 42"
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
                                 />
                             </div>
                         </div>

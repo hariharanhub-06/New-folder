@@ -87,7 +87,12 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                                         ₹{product.price.toFixed(2)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                        {product.stock}
+                                        <div className="font-medium">{product.stock}</div>
+                                        {product.sizes && product.sizes.length > 0 && (
+                                            <div className="text-xs text-slate-400 max-w-[150px] truncate" title={product.sizes.map(s => `${s.size}: ${s.stock}`).join(', ')}>
+                                                {product.sizes.map(s => `${s.size}:${s.stock}`).join(', ')}
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.isActive
@@ -144,8 +149,8 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                                             onClick={() => handlePageChange(pageNum)}
                                             disabled={isPending}
                                             className={`px-3 py-1 rounded-lg font-medium text-sm transition-all ${currentPage === pageNum
-                                                    ? 'bg-indigo-600 text-white shadow-md'
-                                                    : 'border border-slate-300 hover:bg-white'
+                                                ? 'bg-indigo-600 text-white shadow-md'
+                                                : 'border border-slate-300 hover:bg-white'
                                                 } disabled:opacity-50`}
                                         >
                                             {pageNum}

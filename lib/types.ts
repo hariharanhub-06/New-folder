@@ -1,3 +1,9 @@
+export interface ProductSize {
+    size: string;
+    stock: number;
+    id?: string;
+}
+
 export interface Product {
     id: string;
     name: string;
@@ -9,6 +15,7 @@ export interface Product {
     images?: string[];
     isActive: boolean;
     size?: string;
+    sizes?: ProductSize[];
     createdAt?: string;
     updatedAt?: string;
 }
