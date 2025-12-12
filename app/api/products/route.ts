@@ -17,18 +17,6 @@ export async function GET(request: Request) {
             return NextResponse.json(product);
         }
 
-        // For the list, strictly speaking we should also fetch sizes if we want to show them in lists.
-        // But for now, let's just stick to the products table for the main list if performance is concerned,
-        // OR fetch all sizes?
-        // Let's modify the query to just return products as before, but if we want sizes in `AdminProductList` we need them.
-        // My `AdminProductList` update assumes `product.sizes` exists.
-        // So I should JOIN or fetch sizes.
-        // Or I can add `getProducts()` to `lib/db.ts`.
-
-        // Let's add inline query with sizes for now, or just basic query and lazy load?
-        // AdminList expects sizes.
-        // Let's do a left join or separate query.
-
         const res = await pool.query(`
             SELECT * FROM products 
             WHERE is_active = true
@@ -36,8 +24,7 @@ export async function GET(request: Request) {
         `);
         const rows = res.rows;
 
-        // Populate sizes for each product (N+1 prob, but okay for small list)
-        // Or better: fetch all sizes and map.
+        // Populate sizes
         const sizeRes = await pool.query('SELECT * FROM product_sizes');
         const sizesMap = new Map();
         sizeRes.rows.forEach(r => {
@@ -45,29 +32,59 @@ export async function GET(request: Request) {
             sizesMap.get(r.product_id).push({ size: r.size, stock: r.stock, id: r.id });
         });
 
-        // Fetch product discounts
-        const discountRes = await pool.query('SELECT product_id, discount_percentage FROM product_discounts WHERE active = true');
-        const discountsMap = new Map();
-        discountRes.rows.forEach(r => {
-            discountsMap.set(r.product_id, r.discount_percentage);
-        });
-
-        const products = rows.map((row: any) => ({
+        // Fetch ALL active discounts
+        const discountRes = await pool.query('SELECT * FROM discounts WHERE active = true');
+        const allDiscounts = discountRes.rows.map((row: any) => ({
             id: row.id,
-            name: row.name,
-            description: row.description,
-            price: parseFloat(row.price),
+            discountType: row.discount_type,
+            targetType: row.target_type,
             category: row.category,
-            stock: row.stock,
-            imageUrl: row.image_url,
-            images: row.images ? JSON.parse(row.images) : [],
-            isActive: row.is_active,
-            size: row.size,
-            sizes: sizesMap.get(row.id) || [],
-            discountPercentage: discountsMap.get(row.id) || undefined,
-            createdAt: row.created_at,
-            updatedAt: row.updated_at,
+            productId: row.product_id,
+            quantity: row.quantity,
+            price: row.price ? parseFloat(row.price) : undefined,
+            percentage: row.percentage,
+            active: row.active
         }));
+
+        const products = rows.map((row: any) => {
+            const productPrice = parseFloat(row.price);
+
+            // Find applicable discounts
+            // Priority: Product Bundle > Product % > Category Bundle > Category %
+
+            const productBundle = allDiscounts.find((d: any) =>
+                d.targetType === 'product' && d.productId === row.id && d.discountType === 'bundle');
+
+            const productPercent = allDiscounts.find((d: any) =>
+                d.targetType === 'product' && d.productId === row.id && d.discountType === 'percentage');
+
+            const categoryBundle = allDiscounts.find((d: any) =>
+                d.targetType === 'category' && d.category === row.category && d.discountType === 'bundle');
+
+            const categoryPercent = allDiscounts.find((d: any) =>
+                d.targetType === 'category' && d.category === row.category && d.discountType === 'percentage');
+
+            const bestDiscount = productBundle || productPercent || categoryBundle || categoryPercent;
+
+            return {
+                id: row.id,
+                name: row.name,
+                description: row.description,
+                price: productPrice,
+                category: row.category,
+                stock: row.stock,
+                imageUrl: row.image_url,
+                images: row.images ? JSON.parse(row.images) : [],
+                isActive: row.is_active,
+                size: row.size,
+                sizes: sizesMap.get(row.id) || [],
+                // We keep discountPercentage for backwards compatibility if needed, but activeDiscount is the source of truth
+                discountPercentage: bestDiscount?.discountType === 'percentage' ? bestDiscount.percentage : undefined,
+                activeDiscount: bestDiscount,
+                createdAt: row.created_at,
+                updatedAt: row.updated_at,
+            };
+        });
 
         return NextResponse.json(products);
     } catch (error: any) {

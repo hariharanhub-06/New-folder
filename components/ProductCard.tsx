@@ -58,14 +58,20 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
 
                 {/* Discount Badge - Top Right */}
-                {product.discountPercentage && product.discountPercentage > 0 && (
-                    <div className="absolute top-2 right-2 z-10">
-                        <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
+                {product.activeDiscount && (
+                    <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 items-end">
+                        <span className={`text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 ${product.activeDiscount.discountType === 'bundle'
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500'
+                            : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                            }`}>
                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                             </svg>
-                            {product.discountPercentage}% OFF
+                            {product.activeDiscount.discountType === 'bundle'
+                                ? `Buy ${product.activeDiscount.quantity} @ ₹${product.activeDiscount.price}`
+                                : `${product.activeDiscount.percentage}% OFF`
+                            }
                         </span>
                     </div>
                 )}
@@ -117,7 +123,16 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
                 <p className="text-[10px] text-slate-500 mb-1.5 line-clamp-2 leading-tight">{product.description}</p>
                 <div className="flex items-center justify-between mt-1.5">
                     <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-900">₹{product.price.toFixed(2)}</span>
+                        {product.activeDiscount?.discountType === 'percentage' && product.activeDiscount.percentage ? (
+                            <>
+                                <span className="text-[10px] text-slate-400 line-through">₹{product.price.toFixed(2)}</span>
+                                <span className="text-sm font-bold text-green-600">
+                                    ₹{(product.price * (1 - product.activeDiscount.percentage / 100)).toFixed(2)}
+                                </span>
+                            </>
+                        ) : (
+                            <span className="text-sm font-bold text-slate-900">₹{product.price.toFixed(2)}</span>
+                        )}
                         {quantityInCart > 0 && (
                             <span className="text-[9px] text-amber-600 font-medium">
                                 {quantityInCart} in cart

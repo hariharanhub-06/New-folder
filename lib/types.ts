@@ -17,6 +17,7 @@ export interface Product {
     size?: string;
     sizes?: ProductSize[];
     discountPercentage?: number;  // Individual product discount
+    activeDiscount?: Discount;    // The best applicable discount (bundle or percentage)
     createdAt?: string;
     updatedAt?: string;
 }
