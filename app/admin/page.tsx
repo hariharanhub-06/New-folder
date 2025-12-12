@@ -42,7 +42,7 @@ export default async function AdminDashboard() {
         'New Order': 0,
         'Payment Confirmed': 0,
         'Parcel Prepared': 0,
-        'Couriered': 0,
+        'Couried': 0,
         'Delivered': 0,
         'Cancelled': 0
     };
@@ -82,10 +82,10 @@ export default async function AdminDashboard() {
                         <div key={status} className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
                             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{status}</p>
                             <p className={`text-2xl font-bold ${status === 'New Order' ? 'text-amber-600' :
-                                    status === 'Payment Confirmed' ? 'text-blue-600' :
-                                        status === 'Delivered' ? 'text-green-600' :
-                                            status === 'Cancelled' ? 'text-red-500' :
-                                                'text-slate-800'
+                                status === 'Payment Confirmed' ? 'text-blue-600' :
+                                    status === 'Delivered' ? 'text-green-600' :
+                                        status === 'Cancelled' ? 'text-red-500' :
+                                            'text-slate-800'
                                 }`}>
                                 {count}
                             </p>
