@@ -312,14 +312,17 @@ export default function CheckoutPage() {
                                 <div className="flex justify-between items-center text-green-600 font-medium">
                                     <span className="flex items-center">
                                         <Tag className="w-4 h-4 mr-1" />
-                                        Bundle Discount
+                                        Discounts Applied
                                     </span>
                                     <span>-₹{discountResult.totalDiscount.toFixed(2)}</span>
                                 </div>
                                 {discountResult.appliedDiscounts.map((discount, idx) => (
-                                    <div key={idx} className="flex justify-between items-center text-xs text-slate-500 pl-6">
-                                        <span>{discount.bundles} × {discount.category} bundle ({discount.quantity} items)</span>
-                                        <span>₹{discount.bundlePrice.toFixed(2)}</span>
+                                    <div key={idx} className="flex justify-between items-center text-xs text-green-600 pl-6">
+                                        <span className="flex items-center gap-1">
+                                            <span className="px-1.5 py-0.5 bg-green-50 rounded text-[10px] font-medium">{discount.type}</span>
+                                            {discount.description}
+                                        </span>
+                                        <span className="font-medium">-₹{discount.discount.toFixed(2)}</span>
                                     </div>
                                 ))}
                             </>
