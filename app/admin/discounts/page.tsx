@@ -25,7 +25,7 @@ export default function DiscountsPage() {
             setProducts(productsData);
 
             // Get unique categories
-            const uniqueCategories = Array.from(new Set(productsData.map((p: Product) => p.category).filter(Boolean)));
+            const uniqueCategories = Array.from(new Set(productsData.map((p: Product) => p.category).filter(Boolean))) as string[];
             setCategories(uniqueCategories);
 
             // Fetch category discounts
@@ -106,8 +106,8 @@ export default function DiscountsPage() {
                                 type="button"
                                 onClick={() => setDiscountType('category')}
                                 className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${discountType === 'category'
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                     }`}
                             >
                                 <Tag className="w-4 h-4 inline mr-1" />
@@ -117,8 +117,8 @@ export default function DiscountsPage() {
                                 type="button"
                                 onClick={() => setDiscountType('product')}
                                 className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${discountType === 'product'
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                     }`}
                             >
                                 <Percent className="w-4 h-4 inline mr-1" />
