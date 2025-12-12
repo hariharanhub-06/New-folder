@@ -275,19 +275,36 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                     </table>
                 </div>
 
-                {/* Logistics ID Modal */}
+                {/* Logistics ID & Courier Name Modal */}
                 {showLogisticsModal && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
-                            <h3 className="text-lg font-bold mb-4 text-gray-900">Enter Logistics ID</h3>
-                            <input
-                                type="text"
-                                value={logisticsId}
-                                onChange={(e) => setLogisticsId(e.target.value)}
-                                placeholder="Tracking Number / ID"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                                autoFocus
-                            />
+                            <h3 className="text-lg font-bold mb-4 text-gray-900">Enter Shipping Details</h3>
+
+                            <div className="space-y-4 mb-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Courier Name</label>
+                                    <input
+                                        type="text"
+                                        value={courierName}
+                                        onChange={(e) => setCourierName(e.target.value)}
+                                        placeholder="e.g. DTDC, FedEx"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Tracking Number</label>
+                                    <input
+                                        type="text"
+                                        value={logisticsId}
+                                        onChange={(e) => setLogisticsId(e.target.value)}
+                                        placeholder="Tracking / Waybill No"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="flex justify-end space-x-2">
                                 <button
                                     onClick={() => setShowLogisticsModal(null)}

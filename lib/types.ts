@@ -42,6 +42,7 @@ export interface Order {
     cashfreeOrderId?: string;
     cashfreePaymentId?: string;
     logisticsId?: string;
+    courierName?: string;
     createdAt?: string;
     updatedAt?: string;
 }

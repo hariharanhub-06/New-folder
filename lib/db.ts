@@ -108,9 +108,9 @@ export async function toggleProductStatus(id: string) {
     }
 }
 
-export async function updateOrderStatus(orderId: string, status: string, logisticsId?: string) {
+export async function updateOrderStatus(orderId: string, status: string, logisticsId?: string, courierName?: string) {
     if (logisticsId) {
-        await pool.query('UPDATE orders SET status = $1, logistics_id = $2 WHERE id = $3', [status, logisticsId, orderId]);
+        await pool.query('UPDATE orders SET status = $1, logistics_id = $2, courier_name = $3 WHERE id = $4', [status, logisticsId, courierName, orderId]);
     } else {
         await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, orderId]);
     }
@@ -159,6 +159,7 @@ export async function getOrderById(id: string): Promise<Order | null> {
         cashfreeOrderId: order.cashfree_order_id,
         cashfreePaymentId: order.cashfree_payment_id,
         logisticsId: order.logistics_id,
+        courierName: order.courier_name,
         createdAt: order.created_at,
         updatedAt: order.updated_at,
         items: items.map(item => ({

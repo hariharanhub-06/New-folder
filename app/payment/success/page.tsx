@@ -70,9 +70,11 @@ function PaymentSuccessContent() {
                     <p className="text-slate-500">
                         Transaction ID: <span className="font-mono font-medium text-slate-900">{order.transactionId || order.cashfreePaymentId}</span>
                     </p>
-                    <p className="text-slate-600">
-                        Thank you for your purchase. Your order has been confirmed.
-                    </p>
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-800 text-left mt-4">
+                        <p className="font-semibold mb-1">Important:</p>
+                        <p>Your parcel will be packed after 2 days from the confirmation date.</p>
+                        <p className="mt-1">Once the shipment is done, you will receive the courier order ID/tracking no for your reference on your <strong>WhatsApp number</strong>.</p>
+                    </div>
 
                     <div className="flex justify-center gap-4 pt-4">
                         <button
