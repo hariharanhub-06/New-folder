@@ -57,9 +57,13 @@ export interface Order {
 
 export interface Discount {
     id: string;
-    productId: string;  // Changed from category to productId
-    quantity: number;
-    price: number;
+    discountType: 'bundle' | 'percentage';  // Type of discount
+    targetType: 'category' | 'product';     // What it applies to
+    category?: string;      // For category-based discounts
+    productId?: string;     // For product-based discounts
+    quantity?: number;      // For bundle discounts
+    price?: number;         // For bundle discounts (bundle price)
+    percentage?: number;    // For percentage discounts
     active: boolean;
 }
 
