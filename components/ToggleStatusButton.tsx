@@ -1,4 +1,3 @@
-```javascript
 "use client";
 
 import { useState } from "react";
@@ -37,15 +36,13 @@ export default function ToggleStatusButton({ id, isActive, onToggle }: ToggleSta
         <button
             onClick={handleToggle}
             disabled={isUpdating}
-            className={`p - 2 rounded - md transition - colors ${
-    isActive
-        ? "text-green-600 hover:bg-green-50"
-        : "text-slate-400 hover:bg-slate-100"
-} ${ isUpdating ? "opacity-50 cursor-not-allowed" : "" } `}
+            className={`p-2 rounded-md transition-colors ${isActive
+                    ? "text-green-600 hover:bg-green-50"
+                    : "text-slate-400 hover:bg-slate-100"
+                } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""} `}
             title={isActive ? "Mark as Inactive" : "Mark as Active"}
         >
             <Power className="w-5 h-5" />
         </button>
     );
 }
-```
