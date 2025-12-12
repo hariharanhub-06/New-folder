@@ -4,7 +4,7 @@ import { Discount } from './types';
 
 export interface DiscountResult {
     appliedDiscounts: Array<{
-        category: string;
+        category: string; // Will show product name for product bundles
         bundles: number;
         quantity: number;
         bundlePrice: number;
@@ -14,30 +14,30 @@ export interface DiscountResult {
 }
 
 export function calculateDiscount(
-    items: Array<{ category: string; price: number; quantity: number }>,
+    items: Array<{ id: string; name: string; category: string; price: number; quantity: number }>,
     discounts: Discount[]
 ): DiscountResult {
     const appliedDiscounts: DiscountResult['appliedDiscounts'] = [];
     let totalDiscount = 0;
     let discountedTotal = 0;
 
-    // Group items by category
-    const categoryGroups = items.reduce((acc, item) => {
-        if (!acc[item.category]) {
-            acc[item.category] = [];
+    // Group items by product ID
+    const productGroups = items.reduce((acc, item) => {
+        if (!acc[item.id]) {
+            acc[item.id] = [];
         }
-        acc[item.category].push(item);
+        acc[item.id].push(item);
         return acc;
     }, {} as Record<string, typeof items>);
 
-    // Check each category for applicable discounts
-    for (const [category, categoryItems] of Object.entries(categoryGroups)) {
-        const totalQuantity = categoryItems.reduce((sum, item) => sum + item.quantity, 0);
-        const originalTotal = categoryItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Check each product group for applicable discounts
+    for (const [productId, productItems] of Object.entries(productGroups)) {
+        const totalQuantity = productItems.reduce((sum, item) => sum + item.quantity, 0);
+        const originalTotal = productItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-        // Find applicable discount for this category (case-insensitive)
+        // Find applicable discount for this product
         const applicableDiscount = discounts.find(
-            d => d.active && d.category.toUpperCase() === category.toUpperCase() && totalQuantity >= d.quantity
+            d => d.active && d.productId === productId && totalQuantity >= d.quantity
         );
 
         if (applicableDiscount) {
@@ -47,18 +47,18 @@ export function calculateDiscount(
             const remainingItems = totalQuantity % applicableDiscount.quantity;
             const remainingTotal = remainingItems * (originalTotal / totalQuantity);
 
-            const categoryDiscountedTotal = bundleTotal + remainingTotal;
-            const categorySavings = originalTotal - categoryDiscountedTotal;
+            const productDiscountedTotal = bundleTotal + remainingTotal;
+            const productSavings = originalTotal - productDiscountedTotal;
 
             appliedDiscounts.push({
-                category,
+                category: productItems[0].name, // Show product name
                 bundles,
                 quantity: applicableDiscount.quantity,
                 bundlePrice: applicableDiscount.price,
             });
 
-            totalDiscount += categorySavings;
-            discountedTotal += categoryDiscountedTotal;
+            totalDiscount += productSavings;
+            discountedTotal += productDiscountedTotal;
         } else {
             // No discount applies, use original price
             discountedTotal += originalTotal;
