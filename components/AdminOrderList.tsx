@@ -261,13 +261,30 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                 </select>
 
                                                 {order.status !== 'New Order' && order.status !== 'Cancelled' && (
-                                                    <button
-                                                        onClick={() => generateInvoice(order)}
-                                                        className="flex items-center justify-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors"
-                                                    >
-                                                        <Download className="w-3 h-3 mr-1" />
-                                                        Invoice
-                                                    </button>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => generateInvoice(order)}
+                                                            className="flex-1 flex items-center justify-center px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors"
+                                                            title="Download Invoice"
+                                                        >
+                                                            <Download className="w-3 h-3 mr-1" />
+                                                            Invoice
+                                                        </button>
+
+                                                        {(order.status === 'Couried' || order.status === 'Shipped') && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    const message = `Hello ${order.customerName},\n\nYour order #${order.id.slice(0, 8)} has been shipped via ${order.courierName || 'Partner'}!\n\nTracking ID: ${order.logisticsId}\n\nYou can track your package using this number.\n\nThank you for shopping with Startup Mens Wear!`;
+                                                                    const url = `https://wa.me/91${order.customerMobile.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+                                                                    window.open(url, '_blank');
+                                                                }}
+                                                                className="flex items-center justify-center px-2 py-1 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors"
+                                                                title="Send Update on WhatsApp"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
                                         </td>
