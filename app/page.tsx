@@ -46,8 +46,8 @@ export default function HomePage() {
                             </p>
                             <div className="space-y-2 text-gray-700">
                                 <p className="font-semibold">Startup Menswear</p>
-                                <p>123 Fashion Avenue</p>
-                                <p>T. Nagar, Chennai - 600017</p>
+                                <p>140, 141/1, Uppilipalayam Main Road</p>
+                                <p>Coimbatore, Tamil Nadu - 641028</p>
                                 <p className="text-sm text-gray-500 mt-2">(Open 10 AM - 9 PM, All Days)</p>
                                 <a
                                     href="https://maps.app.goo.gl/i2oZrUYp4yudM7JD7"
