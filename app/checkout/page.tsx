@@ -328,6 +328,12 @@ export default function CheckoutPage() {
                             <span>Shipping</span>
                             <span>₹{(shippingCost + paymentGatewayFee).toFixed(2)}</span>
                         </div>
+                        <p className="text-xs text-amber-600 italic flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Shipping cost may vary based on your location
+                        </p>
                         <div className="flex justify-between items-center text-lg font-bold text-slate-900 pt-2 border-t border-slate-100 mt-2">
                             <span>Total</span>
                             <span>₹{grandTotal.toFixed(2)}</span>
