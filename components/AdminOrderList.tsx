@@ -9,6 +9,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [logisticsId, setLogisticsId] = useState('');
+    const [courierName, setCourierName] = useState('');
     const [showLogisticsModal, setShowLogisticsModal] = useState<string | null>(null);
     const [viewAddressOrder, setViewAddressOrder] = useState<Order | null>(null);
 
@@ -53,13 +54,14 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
     };
 
     const confirmCourier = async () => {
-        if (!showLogisticsModal || !logisticsId.trim()) return;
-        await performUpdate(showLogisticsModal, 'Couried', logisticsId);
+        if (!showLogisticsModal || !logisticsId.trim() || !courierName.trim()) return;
+        await performUpdate(showLogisticsModal, 'Couried', logisticsId, courierName);
         setShowLogisticsModal(null);
         setLogisticsId('');
+        setCourierName('');
     };
 
-    const performUpdate = async (orderId: string, status: string, logistics?: string) => {
+    const performUpdate = async (orderId: string, status: string, logistics?: string, courier?: string) => {
         // Optimistic update - update UI immediately
         setOrders(prevOrders =>
             prevOrders.map(order =>
@@ -68,6 +70,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                         ...order,
                         status: status as Order['status'],
                         logisticsId: logistics || order.logisticsId,
+                        courierName: courier || order.courierName,
                         updatedAt: new Date().toISOString()
                     }
                     : order
@@ -77,7 +80,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
         setUpdatingId(orderId);
         try {
             // Update in background
-            await updateOrderStatus(orderId, status as any, logistics);
+            await updateOrderStatus(orderId, status as any, logistics, courier);
             // Refresh data in background without blocking UI
             setTimeout(() => router.refresh(), 100);
         } catch (error) {
