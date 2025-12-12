@@ -137,7 +137,7 @@ export default function CheckoutPage() {
                     quantity: item.quantity,
                     price: item.price
                 })),
-                shippingCost: shippingCost,
+                shippingCost: shippingCost + paymentGatewayFee,
                 totalAmount: grandTotal,
                 status: 'New Order' as const,
                 transactionId: '',
@@ -319,23 +319,8 @@ export default function CheckoutPage() {
                             </>
                         )}
                         <div className="flex justify-between items-center text-slate-600">
-                            <span>
-                                Shipping
-                                {shippingDetails ? (
-                                    <span className="text-xs text-slate-500">
-                                        ({shippingDetails.actualWeight.toFixed(2)}kg → {shippingDetails.billableWeight}kg to {shippingDetails.zone})
-                                    </span>
-                                ) : (
-                                    <span className="text-xs text-slate-500">
-                                        ({calculateTotalWeight(items)}kg to {formData.country})
-                                    </span>
-                                )}
-                            </span>
-                            <span>₹{shippingCost.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-slate-600">
-                            <span>Payment Gateway Fee <span className="text-xs text-slate-500">(2.5%)</span></span>
-                            <span>₹{paymentGatewayFee.toFixed(2)}</span>
+                            <span>Shipping</span>
+                            <span>₹{(shippingCost + paymentGatewayFee).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center text-lg font-bold text-slate-900 pt-2 border-t border-slate-100 mt-2">
                             <span>Total</span>
