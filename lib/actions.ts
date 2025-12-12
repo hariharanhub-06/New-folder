@@ -90,6 +90,7 @@ export async function toggleProductStatus(id: string) {
 export async function updateOrderStatus(orderId: string, status: string, logisticsId?: string) {
     await updateOrderStatusDb(orderId, status as any, logisticsId);
     revalidatePath("/admin/orders");
+    revalidatePath("/admin"); // Update dashboard stats
     revalidatePath(`/order/${orderId}`);
     return { success: true };
 }

@@ -54,17 +54,37 @@ body {
     size: auto;
   }
 
+  /* Core resets */
   html,
   body {
-    height: auto;
-    overflow: hidden;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
     background: white;
   }
 
+  /* remove layout spacing */
+  .min-h-screen {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  /* Hide structural elements completely to reclaim space */
+  nav,
+  footer,
+  .navbar,
+  .footer {
+    display: none !important;
+  }
+
+  /* Hide everything else visually but keep flow if needed (though mostly display:none is better if possible) */
   body * {
     visibility: hidden;
   }
 
+  /* Restore Invoice */
   #invoice-container,
   #invoice-container * {
     visibility: visible;
@@ -74,17 +94,15 @@ body {
     position: absolute;
     left: 0;
     top: 0;
-    width: 21cm;
-    margin: 0;
-    padding: 15px !important;
-    /* Slightly reduced padding */
+    width: 100%;
+    margin: 0 !important;
+    padding: 20px !important;
     box-shadow: none !important;
     border: none !important;
-    overflow: hidden;
-    /* Clip anything extra */
+    background: white;
   }
 
-  /* Hide print buttons specifically */
+  /* Ensure no print buttons */
   .print\:hidden {
     display: none !important;
   }
