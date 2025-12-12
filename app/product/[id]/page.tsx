@@ -1,4 +1,4 @@
-import { getProduct } from '@/lib/api';
+import { getProduct } from '@/lib/db';
 import ProductDetail from '@/components/ProductDetail';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';

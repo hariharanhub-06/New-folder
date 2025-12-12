@@ -38,6 +38,37 @@ export async function getProduct(id: string): Promise<Product | null> {
     // Fetch sizes
     const sizeRes = await pool.query('SELECT size, stock, id FROM product_sizes WHERE product_id = $1', [id]);
 
+    // Fetch applicable discounts
+    const discountRes = await pool.query(`
+        SELECT * FROM discounts 
+        WHERE active = true 
+        AND (
+            (target_type = 'product' AND product_id = $1)
+            OR 
+            (target_type = 'category' AND category = $2)
+        )
+    `, [id, row.category]);
+
+    const discounts = discountRes.rows.map((d: any) => ({
+        id: d.id,
+        discountType: d.discount_type,
+        targetType: d.target_type,
+        category: d.category,
+        productId: d.product_id,
+        quantity: d.quantity,
+        price: d.price ? parseFloat(d.price) : undefined,
+        percentage: d.percentage,
+        active: d.active
+    }));
+
+    // Priority: Product Bundle > Product % > Category Bundle > Category %
+    const productBundle = discounts.find(d => d.targetType === 'product' && d.discountType === 'bundle');
+    const productPercent = discounts.find(d => d.targetType === 'product' && d.discountType === 'percentage');
+    const categoryBundle = discounts.find(d => d.targetType === 'category' && d.discountType === 'bundle');
+    const categoryPercent = discounts.find(d => d.targetType === 'category' && d.discountType === 'percentage');
+
+    const bestDiscount = productBundle || productPercent || categoryBundle || categoryPercent;
+
     return {
         id: row.id,
         name: row.name,
@@ -50,6 +81,8 @@ export async function getProduct(id: string): Promise<Product | null> {
         isActive: row.is_active,
         size: row.size,
         sizes: sizeRes.rows.map(r => ({ size: r.size, stock: r.stock, id: r.id })), // Map DB rows to Size objects
+        activeDiscount: bestDiscount,
+        discountPercentage: bestDiscount?.discountType === 'percentage' ? bestDiscount.percentage : undefined,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
