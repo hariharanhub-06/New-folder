@@ -1,0 +1,170 @@
+"use client";
+
+import Link from 'next/link';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Product } from '@/lib/types';
+import DeleteProductButton from '@/components/DeleteProductButton';
+import ToggleStatusButton from '@/components/ToggleStatusButton';
+import AdminProductFilter from '@/components/AdminProductFilter';
+import { useState, useMemo, useTransition, useCallback } from 'react';
+
+interface AdminProductListProps {
+    initialProducts: Product[];
+}
+
+const ITEMS_PER_PAGE = 25;
+
+export default function AdminProductList({ initialProducts }: AdminProductListProps) {
+    const [displayProducts, setDisplayProducts] = useState<Product[]>(initialProducts);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isPending, startTransition] = useTransition();
+
+    // Extract unique categories
+    const availableCategories = useMemo(
+        () => Array.from(new Set(initialProducts.map(p => p.category || 'Uncategorized'))).sort(),
+        [initialProducts]
+    );
+
+    // Pagination
+    const totalPages = Math.ceil(displayProducts.length / ITEMS_PER_PAGE);
+    const paginatedProducts = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return displayProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [displayProducts, currentPage]);
+
+    const handleFilterSort = useCallback((products: Product[]) => {
+        startTransition(() => {
+            setDisplayProducts(products);
+            setCurrentPage(1);
+        });
+    }, []);
+
+    const handlePageChange = useCallback((page: number) => {
+        startTransition(() => {
+            setCurrentPage(page);
+        });
+    }, []);
+
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Products</h1>
+                <Link
+                    href="/admin/products/new"
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 active:scale-95 transition-transform"
+                >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Product
+                </Link>
+            </div>
+
+            <AdminProductFilter
+                products={initialProducts}
+                availableCategories={availableCategories}
+                onFilterSort={handleFilterSort}
+            />
+
+            <div className={`bg-white shadow-sm rounded-xl border border-slate-100 overflow-hidden ${isPending ? 'opacity-50' : ''}`}>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200">
+                        <thead className="bg-slate-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Price</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Stock</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-slate-200">
+                            {paginatedProducts.map((product) => (
+                                <tr key={product.id} className="hover:bg-slate-50 transition-colors">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-slate-900">{product.name}</div>
+                                        <div className="text-sm text-slate-500">{product.category}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                                        ₹{product.price.toFixed(2)}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                                        {product.stock}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.isActive
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-slate-100 text-slate-800'
+                                            }`}>
+                                            {product.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end space-x-2">
+                                        <Link href={`/admin/products/${product.id}/edit`} className="text-indigo-600 hover:text-indigo-900 p-2 hover:bg-indigo-50 rounded-full transition-all active:scale-90">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+                                        </Link>
+                                        <ToggleStatusButton id={product.id} isActive={product.isActive} />
+                                        <DeleteProductButton id={product.id} />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50">
+                        <div className="text-sm text-slate-500">
+                            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, displayProducts.length)} of {displayProducts.length} products
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1 || isPending}
+                                className="p-2 rounded-lg border border-slate-300 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                                    let pageNum;
+                                    if (totalPages <= 5) {
+                                        pageNum = i + 1;
+                                    } else if (currentPage <= 3) {
+                                        pageNum = i + 1;
+                                    } else if (currentPage >= totalPages - 2) {
+                                        pageNum = totalPages - 4 + i;
+                                    } else {
+                                        pageNum = currentPage - 2 + i;
+                                    }
+
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => handlePageChange(pageNum)}
+                                            disabled={isPending}
+                                            className={`px-3 py-1 rounded-lg font-medium text-sm transition-all ${currentPage === pageNum
+                                                    ? 'bg-indigo-600 text-white shadow-md'
+                                                    : 'border border-slate-300 hover:bg-white'
+                                                } disabled:opacity-50`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages || isPending}
+                                className="p-2 rounded-lg border border-slate-300 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

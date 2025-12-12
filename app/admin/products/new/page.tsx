@@ -1,0 +1,387 @@
+"use client";
+
+import { useState } from 'react';
+import { addProduct } from '@/lib/actions';
+import { Upload, X, Star, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { PRODUCT_CATEGORIES } from '@/lib/constants';
+
+export default function NewProductPage() {
+    const [imageOption, setImageOption] = useState<'url' | 'upload'>('url');
+    const [images, setImages] = useState<string[]>([]);
+    const [mainImageIndex, setMainImageIndex] = useState<number>(0);
+    const [currentInput, setCurrentInput] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        setIsProcessing(true);
+
+        try {
+            // Dynamically import libraries to avoid SSR issues
+            const imageCompression = (await import('browser-image-compression')).default;
+            const heic2any = (await import('heic2any')).default;
+
+            const processedImages: string[] = [];
+
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+
+                // Handle HEIC/HEIF files
+                if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
+                    try {
+                        const convertedBlob = await heic2any({
+                            blob: file,
+                            toType: 'image/jpeg',
+                            quality: 0.8
+                        });
+                        // heic2any can return a single blob or an array of blobs
+                        const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+                        file = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+                    } catch (e) {
+                        console.error('Error converting HEIC:', e);
+                        continue; // Skip this file if conversion fails
+                    }
+                }
+
+                // Compress image
+                const options = {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                    fileType: 'image/jpeg'
+                };
+
+                try {
+                    const compressedFile = await imageCompression(file, options);
+
+                    // Convert to base64
+                    const base64 = await new Promise<string>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(compressedFile);
+                        reader.onload = () => resolve(reader.result as string);
+                        reader.onerror = (error) => reject(error);
+                    });
+
+                    processedImages.push(base64);
+                } catch (error) {
+                    console.error('Error compressing image:', error);
+                }
+            }
+
+            setImages(prev => [...prev, ...processedImages]);
+        } catch (error) {
+            console.error('Error processing images:', error);
+            alert('Error processing images. Please try again.');
+        } finally {
+            setIsProcessing(false);
+            // Reset input
+            e.target.value = '';
+        }
+    };
+
+    const handleAddUrl = () => {
+        if (currentInput.trim()) {
+            setImages(prev => [...prev, currentInput.trim()]);
+            setCurrentInput('');
+        }
+    };
+
+    const removeImage = (index: number) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+        if (index === mainImageIndex) {
+            setMainImageIndex(0);
+        } else if (index < mainImageIndex) {
+            setMainImageIndex(prev => prev - 1);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (images.length === 0) {
+            alert('Please add at least one image');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const formData = new FormData(e.currentTarget);
+
+        // Set the main image as imageUrl
+        formData.set('imageUrl', images[mainImageIndex]);
+        // Set all images as JSON string
+        formData.set('images', JSON.stringify(images));
+
+        try {
+            await addProduct(formData);
+            // If we get here without redirect, something went wrong
+        } catch (error) {
+            // Re-throw redirect errors (Next.js uses these internally)
+            // eslint-disable-next-line
+            if ((error as any)?.digest?.startsWith('NEXT_REDIRECT')) {
+                throw error;
+            }
+            console.error('Error adding product:', error);
+            alert('Failed to add product');
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="max-w-4xl mx-auto">
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Add New Product</h1>
+
+            <form onSubmit={handleSubmit} className="bg-white shadow-sm rounded-lg p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-6">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Product Name</label>
+                            <input
+                                type="text"
+                                name="name"
+                                id="name"
+                                required
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea
+                                name="description"
+                                id="description"
+                                rows={4}
+                                required
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price (₹)</label>
+                                <input
+                                    type="number"
+                                    name="price"
+                                    id="price"
+                                    step="0.01"
+                                    required
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stock Quantity</label>
+                                <input
+                                    type="number"
+                                    name="stock"
+                                    id="stock"
+                                    required
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+                                <div className="mt-1 flex gap-2">
+                                    <select
+                                        name="category_select"
+                                        id="category_select"
+                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                        onChange={(e) => {
+                                            const input = document.getElementById('category_input') as HTMLInputElement;
+                                            if (e.target.value !== 'new') {
+                                                input.value = e.target.value;
+                                                input.style.display = 'none';
+                                            } else {
+                                                input.value = '';
+                                                input.style.display = 'block';
+                                                input.focus();
+                                            }
+                                        }}
+                                    >
+                                        {PRODUCT_CATEGORIES.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                        <option value="new">+ Create New Category</option>
+                                    </select>
+                                </div>
+                                <input
+                                    type="text"
+                                    name="category"
+                                    id="category_input"
+                                    required
+                                    defaultValue="Shirt"
+                                    style={{ display: 'none' }}
+                                    placeholder="Enter new category name"
+                                    className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="size" className="block text-sm font-medium text-gray-700">Size</label>
+                                <input
+                                    type="text"
+                                    name="size"
+                                    id="size"
+                                    placeholder="e.g., M, L, XL, 42"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Image Upload Section */}
+                    <div className="space-y-4">
+                        <label className="block text-sm font-medium text-gray-700">Product Images (1-10)</label>
+
+                        <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">
+                            <div className="flex gap-2 mb-4 justify-center">
+                                <button
+                                    type="button"
+                                    onClick={() => setImageOption('url')}
+                                    className={`px-3 py-1.5 text-sm rounded-md transition-all active:scale-95 ${imageOption === 'url' ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+                                >
+                                    Add URL
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setImageOption('upload')}
+                                    className={`px-3 py-1.5 text-sm rounded-md transition-all active:scale-95 ${imageOption === 'upload' ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+                                >
+                                    Upload File
+                                </button>
+                            </div>
+
+                            {imageOption === 'url' ? (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="url"
+                                        value={currentInput}
+                                        onChange={(e) => setCurrentInput(e.target.value)}
+                                        placeholder="https://example.com/image.jpg"
+                                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handleAddUrl();
+                                            }
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddUrl}
+                                        className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm active:scale-95 transition-transform"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <label className={`cursor-pointer inline-flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg hover:bg-gray-100 transition-colors ${isProcessing ? 'opacity-50 cursor-wait' : ''}`}>
+                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                            {isProcessing ? (
+                                                <>
+                                                    <Loader2 className="w-8 h-8 mb-3 text-indigo-600 animate-spin" />
+                                                    <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Processing images...</span></p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Upload className="w-8 h-8 mb-3 text-gray-400" />
+                                                    <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span></p>
+                                                    <p className="text-xs text-gray-500">PNG, JPG, HEIC or GIF</p>
+                                                </>
+                                            )}
+                                        </div>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*,.heic,.heif"
+                                            multiple
+                                            onChange={handleImageUpload}
+                                            disabled={isProcessing}
+                                        />
+                                    </label>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Image Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                            {images.map((img, index) => (
+                                <div key={index} className={`relative aspect-square rounded-lg overflow-hidden border-2 group ${index === mainImageIndex ? 'border-indigo-600 ring-2 ring-indigo-100' : 'border-gray-200'}`}>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={img}
+                                        alt={`Product ${index + 1}`}
+                                        className="w-full h-full object-cover"
+                                    />
+
+                                    {/* Overlay Actions */}
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setMainImageIndex(index)}
+                                            className={`p-1.5 rounded-full active:scale-90 transition-transform ${index === mainImageIndex ? 'bg-yellow-400 text-white' : 'bg-white text-gray-700 hover:bg-yellow-400 hover:text-white'}`}
+                                            title="Set as Main Image"
+                                        >
+                                            <Star className={`w-4 h-4 ${index === mainImageIndex ? 'fill-current' : ''}`} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeImage(index)}
+                                            className="p-1.5 rounded-full bg-white text-red-600 hover:bg-red-600 hover:text-white transition-all active:scale-90"
+                                            title="Remove Image"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+
+                                    {/* Main Image Badge */}
+                                    {index === mainImageIndex && (
+                                        <div className="absolute top-2 left-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">
+                                            Main
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+
+                            {images.length === 0 && (
+                                <div className="col-span-full py-8 text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                    <ImageIcon className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                                    <p className="text-sm">No images added yet</p>
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-xs text-gray-500 text-right">{images.length}/10 images</p>
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                    <button
+                        type="button"
+                        onClick={() => window.history.back()}
+                        className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-all active:scale-95"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={isSubmitting || isProcessing || images.length === 0}
+                        className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-95 flex items-center gap-2"
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Saving...
+                            </>
+                        ) : 'Save Product'}
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+}

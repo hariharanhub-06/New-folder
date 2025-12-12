@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Charges Calculator</title>
+    <meta name="description" content="Calculate delivery charges based on pincode and order weight for different regions in India">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="icon-wrapper">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 7h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 4h4v3h-4V4zm10 16H4V9h16v11z"/>
+                        <circle cx="12" cy="15" r="2"/>
+                    </svg>
+                </div>
+                <h1>Delivery Charges Calculator</h1>
+                <p class="subtitle">Calculate shipping costs based on location and weight</p>
+            </div>
+
+            <form id="deliveryForm" class="form">
+                <div class="form-group">
+                    <label for="pincode">Pincode</label>
+                    <input 
+                        type="text" 
+                        id="pincode" 
+                        placeholder="Enter 6-digit pincode" 
+                        maxlength="6"
+                        required
+                    >
+                    <span class="helper-text">Enter the delivery pincode</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input 
+                        type="number" 
+                        id="quantity" 
+                        placeholder="Enter quantity" 
+                        min="1"
+                        required
+                    >
+                    <span class="helper-text">1 quantity = 0.15 KG</span>
+                </div>
+
+                <button type="submit" class="btn-calculate" id="calculateBtn">
+                    <span>Calculate Charges</span>
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </form>
+
+            <div id="result" class="result hidden">
+                <div class="result-header">
+                    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                    <h2>Delivery Details</h2>
+                </div>
+                
+                <div class="result-grid">
+                    <div class="result-item">
+                        <span class="result-label">Region</span>
+                        <span class="result-value" id="region">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Weight</span>
+                        <span class="result-value" id="weight">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Billable Weight</span>
+                        <span class="result-value" id="billableWeight">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Rate per KG</span>
+                        <span class="result-value" id="rate">-</span>
+                    </div>
+                </div>
+
+                <div class="total-charges">
+                    <span>Total Delivery Charges</span>
+                    <span class="amount" id="totalCharges">₹0</span>
+                </div>
+            </div>
+
+            <div class="rate-card">
+                <h3>Delivery Rates</h3>
+                <div class="rate-list">
+                    <div class="rate-item">
+                        <span class="rate-region">Tamil Nadu / Pondicherry</span>
+                        <span class="rate-price">₹40/kg</span>
+                    </div>
+                    <div class="rate-item">
+                        <span class="rate-region">Kerala / Andhra Pradesh</span>
+                        <span class="rate-price">₹70/kg</span>
+                    </div>
+                    <div class="rate-item">
+                        <span class="rate-region">Karnataka</span>
+                        <span class="rate-price">₹80/kg</span>
+                    </div>
+                    <div class="rate-item">
+                        <span class="rate-region">Other States</span>
+                        <span class="rate-price">₹200/kg</span>
+                    </div>
+                </div>
+                <p class="rate-note">* Weight is rounded up to the nearest KG</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
