@@ -3,13 +3,11 @@
 
 import { Order, Product } from './types';
 
-const WORKERS_BASE = process.env.NEXT_PUBLIC_WORKERS_BASE || 'https://your-subdomain.workers.dev';
-
 const API_ENDPOINTS = {
-    products: `${WORKERS_BASE}/api/products`,
-    orders: `${WORKERS_BASE}/api/orders`,
-    payment: `${WORKERS_BASE}/api/payment/test`,
-    upload: `${WORKERS_BASE}/api/upload-image`,
+    products: '/api/products',
+    orders: '/api/orders',
+    payment: '/api/payment/create-order', // Updated to likely match local, though might need verification
+    upload: '/api/upload-image',
 };
 
 // Products API
