@@ -169,3 +169,24 @@ export async function getOrderById(id: string): Promise<Order | null> {
         }))
     };
 }
+
+export async function verifyAdmin(username: string): Promise<any | null> {
+    const res = await pool.query('SELECT * FROM admins WHERE username = $1', [username]);
+    return res.rows[0] || null;
+}
+
+export async function updateAdmin(id: string, newUsername: string, newPassword: string) {
+    await pool.query('UPDATE admins SET username = $1, password = $2 WHERE id = $3', [newUsername, newPassword, id]);
+}
+
+export async function createInitialAdmin() {
+    // Only creates if not exists
+    const res = await pool.query('SELECT * FROM admins LIMIT 1');
+    if (res.rows.length === 0) {
+        await pool.query('INSERT INTO admins (id, username, password) VALUES ($1, $2, $3)', [
+            'default-admin', 'admin', 'admin123'
+        ]);
+        console.log("Seeded default admin");
+    }
+}
+

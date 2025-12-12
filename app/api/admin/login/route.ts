@@ -1,23 +1,33 @@
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { verifyAdmin, createInitialAdmin } from '@/lib/db';
 
 export async function POST(request: Request) {
     try {
         const { username, password } = await request.json();
 
-        const envUsername = process.env.ADMIN_USERNAME;
-        const envPassword = process.env.ADMIN_PASSWORD;
+        // Ensure default admin exists (self-healing)
+        await createInitialAdmin();
 
-        if (!envUsername || !envPassword) {
-            console.error("ADMIN_USERNAME or ADMIN_PASSWORD not set in env");
-            return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+        const adminUser = await verifyAdmin(username);
+
+        if (!adminUser) {
+            return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
-        if (username === envUsername && password === envPassword) {
+        // Simple direct comparison as requested (for hashing we would use bcrypt.compare)
+        if (adminUser.password === password) {
             // Set session cookie
             const oneDay = 24 * 60 * 60 * 1000;
             cookies().set('admin_session', 'true', {
+                secure: process.env.NODE_ENV === 'production',
+                httpOnly: true,
+                path: '/',
+                maxAge: oneDay
+            });
+            // Store admin ID in cookie for updates if needed, but session is simple for now
+            cookies().set('admin_id', adminUser.id, {
                 secure: process.env.NODE_ENV === 'production',
                 httpOnly: true,
                 path: '/',
@@ -30,6 +40,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
     } catch (error) {
+        console.error("Login Check Error:", error);
         return NextResponse.json({ error: "Internal Error" }, { status: 500 });
     }
 }
