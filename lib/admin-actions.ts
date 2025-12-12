@@ -26,4 +26,15 @@ export async function updateAdminCredentials(formData: FormData) {
 
     // Refresh cookie if username changed? Or just let them re-login if we implemented proper auth.
     // For now, simple update.
+
+    // For now, simple update.
 }
+
+import { redirect } from "next/navigation";
+
+export async function logoutAdmin() {
+    cookies().delete("admin_session");
+    cookies().delete("admin_id");
+    redirect("/admin/login");
+}
+

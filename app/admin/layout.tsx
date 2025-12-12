@@ -9,12 +9,14 @@ import {
     Menu,
     X,
     Loader2,
-    Settings
+    Settings,
+    LogOut
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import AutoRefresh from "@/components/AutoRefresh";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/Logo";
+import { logoutAdmin } from "@/lib/admin-actions";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -136,6 +138,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             );
                         })}
                     </nav>
+
+                    <div className="p-3 border-t border-slate-800">
+                        <form action={logoutAdmin}>
+                            <button
+                                type="submit"
+                                className="w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:text-white hover:bg-red-500/10 transition-colors group"
+                            >
+                                <LogOut className="w-5 h-5 mr-3 group-hover:text-red-300" />
+                                Sign Out
+                            </button>
+                        </form>
+                    </div>
                 </aside>
                 <main className="flex-1 p-4 lg:p-8 overflow-y-auto bg-gray-50">{children}</main>
             </div>
