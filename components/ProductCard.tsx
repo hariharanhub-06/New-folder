@@ -80,6 +80,21 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
                     <Share2 className="w-3.5 h-3.5" />
                 </button>
 
+                {/* Discount Badge - Bottom Left */}
+                {product.activeDiscount && (
+                    <div className="absolute bottom-2 left-2 z-10">
+                        <span className={`text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 ${product.activeDiscount.discountType === 'bundle'
+                                ? 'bg-gradient-to-r from-indigo-500 to-purple-500'
+                                : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                            }`}>
+                            {product.activeDiscount.discountType === 'bundle'
+                                ? `Buy ${product.activeDiscount.quantity} @ ₹${product.activeDiscount.price}`
+                                : `${product.activeDiscount.percentage}% OFF`
+                            }
+                        </span>
+                    </div>
+                )}
+
                 {/* Stock Badge */}
                 <div className="absolute top-2 left-2">
                     {isOutOfStock ? (
