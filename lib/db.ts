@@ -190,3 +190,8 @@ export async function createInitialAdmin() {
     }
 }
 
+export async function getUniqueCategories(): Promise<string[]> {
+    const res = await pool.query('SELECT DISTINCT category FROM products WHERE is_active = true AND category IS NOT NULL AND category != \'\' ORDER BY category');
+    return res.rows.map(r => r.category);
+}
+
