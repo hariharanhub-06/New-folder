@@ -1,5 +1,5 @@
-import { updateAdminCredentials } from "@/lib/admin-actions";
-import { User, Lock, Save, AlertCircle } from "lucide-react";
+import { User, Lock } from "lucide-react";
+import SettingsForm from "./SettingsForm";
 
 export const dynamic = 'force-dynamic';
 
