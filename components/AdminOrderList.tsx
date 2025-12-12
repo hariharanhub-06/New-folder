@@ -1,9 +1,7 @@
-"use client";
-
 import { Order } from '@/lib/types';
 import { useState, useMemo } from 'react';
 import { updateOrderStatus } from '@/lib/actions';
-import { Loader2, Search, Calendar, Download, Filter } from 'lucide-react';
+import { Loader2, Search, Calendar, Download, Filter, Eye, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminOrderList({ orders: initialOrders }: { orders: Order[] }) {
@@ -12,6 +10,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
     const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [logisticsId, setLogisticsId] = useState('');
     const [showLogisticsModal, setShowLogisticsModal] = useState<string | null>(null);
+    const [viewAddressOrder, setViewAddressOrder] = useState<Order | null>(null);
 
     // Filters
     const [searchId, setSearchId] = useState('');
@@ -198,7 +197,16 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                 filteredOrders.map((order) => (
                                     <tr key={order.id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-bold text-gray-900">#{order.id}</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="text-sm font-bold text-gray-900">#{order.id.slice(0, 8)}</div>
+                                                <button
+                                                    onClick={() => setViewAddressOrder(order)}
+                                                    className="p-1 hover:bg-gray-100 rounded-full text-gray-500 hover:text-indigo-600 transition-colors"
+                                                    title="View Full Details"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                             <div className="text-xs text-gray-500 flex items-center mt-1">
                                                 <Calendar className="w-3 h-3 mr-1" />
                                                 {formatDate(order.createdAt)}
@@ -270,7 +278,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                 {/* Logistics ID Modal */}
                 {showLogisticsModal && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl">
+                        <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
                             <h3 className="text-lg font-bold mb-4 text-gray-900">Enter Logistics ID</h3>
                             <input
                                 type="text"
@@ -292,6 +300,71 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
                                 >
                                     Update Status
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Address Details Modal */}
+                {viewAddressOrder && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                            <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-slate-800">Order Details</h3>
+                                <button
+                                    onClick={() => setViewAddressOrder(null)}
+                                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-6">
+                                {/* Customer Info */}
+                                <div>
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Customer Information</h4>
+                                    <div className="bg-slate-50 p-3 rounded-lg space-y-1">
+                                        <p className="font-medium text-slate-900">{viewAddressOrder.customerName}</p>
+                                        <p className="text-sm text-slate-600">{viewAddressOrder.customerEmail}</p>
+                                        <p className="text-sm text-slate-600">{viewAddressOrder.customerMobile}</p>
+                                    </div>
+                                </div>
+
+                                {/* Shipping Address */}
+                                <div>
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Shipping Address</h4>
+                                    <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-700 space-y-1">
+                                        <p>{viewAddressOrder.shippingAddress.street}</p>
+                                        <p>{viewAddressOrder.shippingAddress.city}, {viewAddressOrder.shippingAddress.state}</p>
+                                        <p>{viewAddressOrder.shippingAddress.country} - <span className="font-mono font-medium text-slate-900">{viewAddressOrder.shippingAddress.zipCode}</span></p>
+                                    </div>
+                                </div>
+
+                                {/* Order Items Summary (Optional but helpful) */}
+                                <div>
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Items</h4>
+                                    <div className="text-sm space-y-2">
+                                        {viewAddressOrder.items.map((item, idx) => (
+                                            <div key={idx} className="flex justify-between border-b border-slate-50 last:border-0 pb-1 last:pb-0">
+                                                <span className="text-slate-700">{item.name} <span className="text-slate-400">x{item.quantity}</span></span>
+                                                <span className="font-medium text-slate-900">₹{item.price}</span>
+                                            </div>
+                                        ))}
+                                        <div className="flex justify-between pt-2 font-bold text-slate-900 border-t border-slate-100">
+                                            <span>Total</span>
+                                            <span>₹{viewAddressOrder.totalAmount.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 px-6 py-4 flex justify-end">
+                                <button
+                                    onClick={() => setViewAddressOrder(null)}
+                                    className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                                >
+                                    Close
                                 </button>
                             </div>
                         </div>
