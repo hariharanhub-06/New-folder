@@ -37,7 +37,8 @@ export default function DiscountsPage() {
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
+        const form = e.currentTarget;
+        const formData = new FormData(form);
 
         const discountData: any = {
             discountType,
@@ -67,7 +68,7 @@ export default function DiscountsPage() {
 
             if (res.ok) {
                 loadData();
-                e.currentTarget.reset();
+                form.reset();
                 alert('Discount created successfully!');
             } else {
                 const errorData = await res.json();
