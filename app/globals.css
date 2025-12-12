@@ -53,12 +53,13 @@ body {
     margin: 0;
     size: auto;
   }
-  
+
   body * {
     visibility: hidden;
   }
 
-  #invoice-container, #invoice-container * {
+  #invoice-container,
+  #invoice-container * {
     visibility: visible;
   }
 
@@ -66,9 +67,13 @@ body {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
+    width: 21cm;
+    /* Force standard A4 width */
+    max-width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 20px !important;
+    /* Override large paddings */
+    box-shadow: none !important;
   }
 
   /* Hide print buttons specifically if they aren't already */
