@@ -271,7 +271,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                             Invoice
                                                         </button>
 
-                                                        {(order.status === 'Couried' || order.status === 'Shipped') && (
+                                                        {order.status === 'Couried' && (
                                                             <button
                                                                 onClick={() => {
                                                                     const message = `Hello ${order.customerName},\n\nYour order #${order.id.slice(0, 8)} has been shipped via ${order.courierName || 'Partner'}!\n\nTracking ID: ${order.logisticsId}\n\nYou can track your package using this number.\n\nThank you for shopping with Startup Mens Wear!`;
