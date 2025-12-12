@@ -161,8 +161,8 @@ export async function getDiscounts(): Promise<Discount[]> {
 export async function createDiscount(discount: Omit<Discount, 'id' | 'active' | 'createdAt'>) {
     const id = crypto.randomUUID();
     await pool.query(
-        'INSERT INTO discounts (id, category, quantity, price) VALUES ($1, $2, $3, $4)',
-        [id, discount.category, discount.quantity, discount.price]
+        'INSERT INTO discounts (id, product_id, quantity, price) VALUES ($1, $2, $3, $4)',
+        [id, (discount as any).productId, discount.quantity, discount.price]
     );
 }
 

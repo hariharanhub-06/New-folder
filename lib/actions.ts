@@ -101,13 +101,13 @@ export async function updateOrderStatus(orderId: string, status: string, logisti
 }
 
 export async function addDiscount(formData: FormData) {
-    const category = formData.get("category") as string;
+    const productId = formData.get("productId") as string;
     const quantity = parseInt(formData.get("quantity") as string);
     const price = parseFloat(formData.get("price") as string);
 
-    if (!category || !quantity || !price) return;
+    if (!productId || !quantity || !price) return;
 
-    await createDiscount({ category, quantity, price });
+    await createDiscount({ productId, quantity, price } as any);
     revalidatePath("/admin/discounts");
 }
 

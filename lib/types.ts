@@ -57,7 +57,7 @@ export interface Order {
 
 export interface Discount {
     id: string;
-    category: string;
+    productId: string;  // Changed from category to productId
     quantity: number;
     price: number;
     active: boolean;
