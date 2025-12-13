@@ -1,5 +1,5 @@
 // Delivery charges calculator based on pincode and quantity
-// 1 quantity = 0.15 KG
+// 1 quantity = 0.75 KG
 
 export interface ShippingByPincode {
     zone: string;
@@ -44,7 +44,7 @@ const PINCODE_RANGES = {
 };
 
 // Weight per quantity (in KG)
-const KG_PER_QUANTITY = 0.15;
+const KG_PER_QUANTITY = 0.75;
 
 /**
  * Get region and rate based on pincode
@@ -158,7 +158,7 @@ export function calculateShipping(weight: number, country?: string, pincode?: st
  */
 export function calculateCartWeight(items: Array<{ weight?: number; quantity: number }>): number {
     return items.reduce((total, item) => {
-        const itemWeight = item.weight || 200; // Default 200g if not specified
+        const itemWeight = item.weight || 750; // Default 750g if not specified
         return total + (itemWeight * item.quantity);
     }, 0);
 }
