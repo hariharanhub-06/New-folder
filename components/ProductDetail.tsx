@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Product } from '@/lib/types';
-import { X, ArrowLeft, ShoppingBag, Check } from 'lucide-react';
+import { X, ArrowLeft, ShoppingBag, Check, Plus, Minus } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { getProduct } from '@/lib/api';
 
@@ -18,7 +18,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
     const [activeImage, setActiveImage] = useState(initialActiveImage || initialProduct.imageUrl);
     const [isZoomed, setIsZoomed] = useState(false);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-    const { addToCart, items } = useCart();
+    const { addToCart, decrementFromCart, items } = useCart();
     const [selectedSize, setSelectedSize] = useState<string>('');
 
     // Ensure we have a list of images
@@ -125,8 +125,8 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                         {/* Discount Badge in Detail View */}
                         {product.activeDiscount && (
                             <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full text-white ${product.activeDiscount.discountType === 'bundle'
-                                    ? 'bg-gradient-to-r from-indigo-500 to-purple-500'
-                                    : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                ? 'bg-gradient-to-r from-indigo-500 to-purple-500'
+                                : 'bg-gradient-to-r from-green-500 to-emerald-500'
                                 }`}>
                                 {product.activeDiscount.discountType === 'bundle'
                                     ? `Buy ${product.activeDiscount.quantity} @ ₹${product.activeDiscount.price}`
@@ -208,19 +208,43 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                         )}
                     </div>
 
-                    <button
-                        onClick={() => addToCart(product, selectedSize || undefined)}
-                        disabled={!canAddMore || (product.sizes && product.sizes.length > 0 && !selectedSize)}
-                        className="w-full py-4 px-6 bg-slate-900 text-white rounded-xl font-bold text-lg shadow-lg shadow-slate-900/10 hover:bg-indigo-600 hover:shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                    >
-                        <ShoppingBag className="w-5 h-5" />
-                        {isOutOfStock ? 'Out of Stock' : canAddMore ? 'Add to Cart' : 'Max Quantity in Cart'}
-                    </button>
+                    {quantityInCart > 0 ? (
+                        <div className="flex flex-col gap-3">
+                            <div className="w-full flex items-center justify-between bg-slate-50 rounded-xl p-2 border border-slate-200">
+                                <button
+                                    onClick={() => decrementFromCart(product.id, selectedSize)}
+                                    className="w-12 h-12 flex items-center justify-center bg-white rounded-lg text-slate-900 shadow-sm hover:bg-slate-100 active:scale-95 transition-all"
+                                >
+                                    <Minus className="w-5 h-5" />
+                                </button>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-sm text-slate-500 font-medium">Quantity</span>
+                                    <span className="text-xl font-bold text-slate-900">{quantityInCart}</span>
+                                </div>
+                                <button
+                                    onClick={() => addToCart(product, selectedSize)}
+                                    disabled={!canAddMore}
+                                    className="w-12 h-12 flex items-center justify-center bg-slate-900 rounded-lg text-white shadow-lg shadow-slate-900/10 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+                            </div>
 
-                    {quantityInCart > 0 && (
-                        <p className="text-center text-sm text-gray-500 mt-3">
-                            You have {quantityInCart} of this item {selectedSize && `(${selectedSize})`} in your cart
-                        </p>
+                            {!canAddMore && (
+                                <p className="text-center text-xs text-amber-600 font-medium">
+                                    Max stock reached
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => addToCart(product, selectedSize || undefined)}
+                            disabled={!canAddMore || (product.sizes && product.sizes.length > 0 && !selectedSize)}
+                            className="w-full py-4 px-6 bg-slate-900 text-white rounded-xl font-bold text-lg shadow-lg shadow-slate-900/10 hover:bg-indigo-600 hover:shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                        >
+                            <ShoppingBag className="w-5 h-5" />
+                            {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                        </button>
                     )}
                 </div>
             </div>
