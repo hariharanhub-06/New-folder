@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { addProduct } from '@/lib/actions';
 import { Upload, X, Star, Image as ImageIcon, Loader2, Plus } from 'lucide-react';
 import { PRODUCT_CATEGORIES } from '@/lib/constants';
+import { useRouter } from 'next/navigation';
 
 export default function NewProductPage() {
+    const router = useRouter();
     const [mounted, setMounted] = useState(false);
     const [imageOption, setImageOption] = useState<'url' | 'upload'>('url');
     const [images, setImages] = useState<string[]>([]);
@@ -114,42 +115,43 @@ export default function NewProductPage() {
 
         setIsSubmitting(true);
 
-        const formData = new FormData(e.currentTarget);
-
-        // Set the main image as imageUrl
-        formData.set('imageUrl', images[mainImageIndex]);
-        // Set all images as JSON string
-        formData.set('images', JSON.stringify(images));
-
-        // Remove empty size rows and set sizes
-        const validSizes = sizes.filter(s => s.size.trim() !== '');
-        if (validSizes.length > 0) {
-            formData.set('sizes', JSON.stringify(validSizes));
-            // Set total stock as sum of sizes
-            const totalStock = validSizes.reduce((sum, s) => sum + s.stock, 0);
-            formData.set('stock', totalStock.toString());
-            // Set display size as comma joined
-            formData.set('size', validSizes.map(s => s.size).join(', '));
-        } else {
-            // Fallback if no sizes added (though UI should encourage it)
-            // Check if legacy inputs exist? We are removing them, so we must rely on sizes.
-            if (sizes.every(s => s.size === '')) {
-                // If user didn't add sizes, maybe alert or just send 0 stock?
-                // Let's require at least one size or allow simple stock if we want to fallback (but requirements say "properly handle size-wise")
-                // For now, if no size, just set stock 0.
-                formData.set('stock', '0');
-            }
-        }
-
         try {
-            await addProduct(formData);
-            // If we get here without redirect, something went wrong
-        } catch (error) {
-            // Re-throw redirect errors (Next.js uses these internally)
-            // eslint-disable-next-line
-            if ((error as any)?.digest?.startsWith('NEXT_REDIRECT')) {
-                throw error;
+            const formData = new FormData(e.currentTarget);
+
+            // Prepare product data
+            const validSizes = sizes.filter(s => s.size.trim() !== '');
+            const totalStock = validSizes.length > 0 ? validSizes.reduce((sum, s) => sum + s.stock, 0) : 0;
+
+            const productData = {
+                name: formData.get('name') as string,
+                description: formData.get('description') as string,
+                price: parseFloat(formData.get('price') as string),
+                category: formData.get('category') as string,
+                stock: totalStock,
+                size: validSizes.length > 0 ? validSizes.map(s => s.size).join(', ') : '',
+                imageUrl: images[mainImageIndex],
+                images: JSON.stringify(images),
+                sizes: validSizes.length > 0 ? JSON.stringify(validSizes) : undefined,
+                isActive: true
+            };
+
+            // Call API directly
+            const response = await fetch('/api/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(productData),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to add product');
             }
+
+            // Success - redirect to products page
+            router.push('/admin/products');
+        } catch (error) {
             console.error('Error adding product:', error);
             const errorMessage = (error as Error).message || 'Failed to add product';
             alert(errorMessage);
