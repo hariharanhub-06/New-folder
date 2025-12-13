@@ -14,11 +14,13 @@ export default function NewProductPage() {
     const [currentInput, setCurrentInput] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [sizes, setSizes] = useState<{ size: string; stock: number }[]>([{ size: '', stock: 0 }]); // Start with one empty row
+    const [sizes, setSizes] = useState<{ size: string; stock: number }[]>([{ size: '', stock: 0 }]);
+    const [productId, setProductId] = useState<string>('');
 
     // Prevent SSR issues - only render after client-side hydration
     useEffect(() => {
         setMounted(true);
+        setProductId(crypto.randomUUID());
     }, []);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,6 +127,7 @@ export default function NewProductPage() {
             const totalStock = validSizes.length > 0 ? validSizes.reduce((sum, s) => sum + s.stock, 0) : 0;
 
             const productData = {
+                id: productId, // Idempotency Key
                 name: formData.get('name') as string,
                 description: formData.get('description') as string,
                 price: parseFloat(formData.get('price') as string),
