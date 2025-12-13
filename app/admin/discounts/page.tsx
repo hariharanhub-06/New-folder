@@ -18,11 +18,10 @@ export default function DiscountsPage() {
 
     async function loadData() {
         try {
-            const productsRes = await fetch('/api/products');
+            const productsRes = await fetch('/api/products?limit=1000');
             const productsData = await productsRes.json();
-            setProducts(productsData);
-
-            const uniqueCategories = Array.from(new Set(productsData.map((p: Product) => p.category).filter(Boolean))) as string[];
+            setProducts(productsData.products || []);
+            const uniqueCategories = Array.from(new Set((productsData.products || []).map((p: Product) => p.category).filter(Boolean))) as string[];
             setCategories(uniqueCategories);
 
             const discountsRes = await fetch('/api/discounts');
