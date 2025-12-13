@@ -67,27 +67,43 @@ export default function Invoice({ order }: InvoiceProps) {
                 <thead>
                     <tr className="border-b border-black">
                         <th className="text-left py-3 font-bold text-xs tracking-wider text-black">DESCRIPTION</th>
-                        <th className="text-center py-3 font-bold text-xs tracking-wider text-black">UNIT PRICE</th>
+                        <th className="text-center py-3 font-bold text-xs tracking-wider text-black">BASE COST</th>
+                        <th className="text-center py-3 font-bold text-xs tracking-wider text-black">GST (5%)</th>
                         <th className="text-center py-3 font-bold text-xs tracking-wider text-black">QTY</th>
                         <th className="text-right py-3 font-bold text-xs tracking-wider text-black">TOTAL</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {order.items.map((item, index) => (
-                        <tr key={index} className="border-b border-gray-200">
-                            <td className="py-4 text-sm text-black">{item.name}</td>
-                            <td className="text-center py-4 text-sm text-black">{item.price}</td>
-                            <td className="text-center py-4 text-sm text-black">{item.quantity}</td>
-                            <td className="text-right py-4 text-sm text-black">₹{(item.price * item.quantity)}</td>
-                        </tr>
-                    ))}
+                    {order.items.map((item, index) => {
+                        const totalItemPrice = item.price;
+                        const gstAmount = totalItemPrice * 0.05;
+                        const baseAmount = totalItemPrice - gstAmount;
+
+                        return (
+                            <tr key={index} className="border-b border-gray-200">
+                                <td className="py-4 text-sm text-black">{item.name}</td>
+                                <td className="text-center py-4 text-sm text-black">₹{baseAmount.toFixed(2)}</td>
+                                <td className="text-center py-4 text-sm text-black">₹{gstAmount.toFixed(2)}</td>
+                                <td className="text-center py-4 text-sm text-black">{item.quantity}</td>
+                                <td className="text-right py-4 text-sm text-black">₹{(item.price * item.quantity).toFixed(2)}</td>
+                            </tr>
+                        )
+                    })}
                 </tbody>
             </table>
 
             {/* Totals Section */}
             <div className="border-t-2 border-black pt-4 mb-8">
                 <div className="flex justify-between mb-2">
-                    <span className="font-bold text-sm tracking-wider text-black">SUBTOTAL</span>
+                    <span className="font-bold text-sm tracking-wider text-black">TOTAL BASE AMOUNT</span>
+                    <span className="font-bold text-sm text-black">₹{(subtotal - (subtotal * 0.05)).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                    <span className="font-bold text-sm tracking-wider text-black">TOTAL GST (5%)</span>
+                    <span className="font-bold text-sm text-black">₹{(subtotal * 0.05).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                    <span className="font-bold text-sm tracking-wider text-black">SUBTOTAL (Inc. GST)</span>
                     <span className="font-bold text-sm text-black">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between mb-2">

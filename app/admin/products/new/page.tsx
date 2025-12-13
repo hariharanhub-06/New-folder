@@ -130,8 +130,8 @@ export default function NewProductPage() {
                 stock: totalStock,
                 size: validSizes.length > 0 ? validSizes.map(s => s.size).join(', ') : '',
                 imageUrl: images[mainImageIndex],
-                images: JSON.stringify(images),
-                sizes: validSizes.length > 0 ? JSON.stringify(validSizes) : undefined,
+                images: images,
+                sizes: validSizes.length > 0 ? validSizes : undefined,
                 isActive: true
             };
 
