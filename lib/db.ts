@@ -255,9 +255,19 @@ export async function saveProduct(product: Product) {
     try {
         await client.query('BEGIN');
 
-        const res = await client.query('SELECT id FROM products WHERE id = $1', [product.id]);
-        const exists = res.rows[0];
-        // Calculate total stock if not provided or just sync it
+        // Determine Final ID
+        let finalId = product.id;
+
+        // Check existence if ID provided
+        let exists = false;
+        if (finalId) {
+            const res = await client.query('SELECT id FROM products WHERE id = $1', [finalId]);
+            exists = !!res.rows[0];
+        } else {
+            // Generate new ID if missing
+            finalId = crypto.randomUUID();
+        }
+
         const totalStock = product.sizes ? product.sizes.reduce((acc, s) => acc + s.stock, 0) : product.stock;
 
         if (exists) {
@@ -272,26 +282,25 @@ export async function saveProduct(product: Product) {
                 product.description,
                 product.price,
                 product.category,
-                totalStock, // Sync total stock
+                totalStock,
                 product.imageUrl,
                 JSON.stringify(product.images || []),
                 product.size,
                 product.isActive,
-                product.id
+                finalId
             ]);
         } else {
             // Insert Product
-            const id = product.id || crypto.randomUUID();
             await client.query(`
                 INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             `, [
-                id,
+                finalId, // Use finalId
                 product.name,
                 product.description,
                 product.price,
                 product.category,
-                totalStock, // Sync total stock
+                totalStock,
                 product.imageUrl,
                 JSON.stringify(product.images || []),
                 product.isActive,
@@ -301,8 +310,8 @@ export async function saveProduct(product: Product) {
 
         // Handle Sizes
         if (product.sizes) {
-            // Delete existing sizes to replace with new set (easiest way to handle updates/deletes)
-            await client.query('DELETE FROM product_sizes WHERE product_id = $1', [product.id]);
+            // Delete existing sizes to replace with new set
+            await client.query('DELETE FROM product_sizes WHERE product_id = $1', [finalId]);
 
             // Insert new sizes
             for (const s of product.sizes) {
@@ -310,7 +319,7 @@ export async function saveProduct(product: Product) {
                 await client.query(`
                     INSERT INTO product_sizes (id, product_id, size, stock)
                     VALUES ($1, $2, $3, $4)
-                `, [sizeId, product.id, s.size, s.stock]);
+                `, [sizeId, finalId, s.size, s.stock]); // Use finalId
             }
         }
 
