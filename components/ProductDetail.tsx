@@ -64,7 +64,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
             }
         };
         fetchDetails();
-    }, [product.id]);
+    }, [product.id, selectedSize]);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isZoomed) return;

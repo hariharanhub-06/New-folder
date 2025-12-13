@@ -58,8 +58,8 @@ export default function EditProductForm({ product }: { product: Product }) {
 
                 // Compress image
                 const options = {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
+                    maxSizeMB: 0.1, // Reduced to 100KB to prevent payload issues
+                    maxWidthOrHeight: 1024,
                     useWebWorker: true,
                     fileType: 'image/jpeg'
                 };

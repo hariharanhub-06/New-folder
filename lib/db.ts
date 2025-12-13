@@ -102,7 +102,8 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
 
     const offset = (page - 1) * limit;
     const params: any[] = [];
-    let query = 'SELECT * FROM products WHERE 1=1';
+    // Optimize: Exclude 'images' column (huge JSON) from list view to prevent RSC payload crash
+    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, size, created_at, updated_at FROM products WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM products WHERE 1=1';
 
     // 1. Build Filters
