@@ -116,7 +116,7 @@ export default function CheckoutPage() {
 
         try {
             const finalSubtotal = discountResult?.discountedTotal || total;
-            const paymentGatewayFee = (finalSubtotal + shippingCost) * 0.025;
+            const paymentGatewayFee = (finalSubtotal + shippingCost) * 0.06;
             const grandTotal = finalSubtotal + shippingCost + paymentGatewayFee;
 
             // 1. Create Order in Database first
@@ -234,7 +234,7 @@ export default function CheckoutPage() {
     };
 
     const finalSubtotal = discountResult?.discountedTotal || total;
-    const paymentGatewayFee = (finalSubtotal + shippingCost) * 0.025;
+    const paymentGatewayFee = (finalSubtotal + shippingCost) * 0.06;
     const grandTotal = finalSubtotal + shippingCost + paymentGatewayFee;
 
     if (items.length === 0) {
