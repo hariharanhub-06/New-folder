@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Timer, AlertCircle } from 'lucide-react';
 
@@ -10,6 +10,25 @@ function PaymentProcessingContent() {
     const orderId = searchParams.get('orderId');
     const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
     const [status, setStatus] = useState('processing');
+
+    const handleTimeout = useCallback(() => {
+        router.push(`/payment/failed?orderId=${orderId}&reason=timeout`);
+    }, [router, orderId]);
+
+    const checkPaymentStatus = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/payment/status/${orderId}`);
+            const data = await res.json();
+
+            if (data.status === 'paid') {
+                router.push(`/payment/success?orderId=${orderId}`);
+            } else if (data.status === 'failed') {
+                router.push(`/payment/failed?orderId=${orderId}&reason=failed`);
+            }
+        } catch (error) {
+            console.error('Error checking payment status:', error);
+        }
+    }, [router, orderId]);
 
     useEffect(() => {
         if (!orderId) {
@@ -36,26 +55,7 @@ function PaymentProcessingContent() {
             clearInterval(timer);
             clearInterval(pollInterval);
         };
-    }, [orderId]);
-
-    const checkPaymentStatus = async () => {
-        try {
-            const res = await fetch(`/api/payment/status/${orderId}`);
-            const data = await res.json();
-
-            if (data.status === 'paid') {
-                router.push(`/payment/success?orderId=${orderId}`);
-            } else if (data.status === 'failed') {
-                router.push(`/payment/failed?orderId=${orderId}&reason=failed`);
-            }
-        } catch (error) {
-            console.error('Error checking payment status:', error);
-        }
-    };
-
-    const handleTimeout = () => {
-        router.push(`/payment/failed?orderId=${orderId}&reason=timeout`);
-    };
+    }, [orderId, router, checkPaymentStatus, handleTimeout]);
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
