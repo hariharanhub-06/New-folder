@@ -145,7 +145,8 @@ export default function NewProductPage() {
                 throw error;
             }
             console.error('Error adding product:', error);
-            alert('Failed to add product');
+            const errorMessage = (error as Error).message || 'Failed to add product';
+            alert(errorMessage);
             setIsSubmitting(false);
         }
     };

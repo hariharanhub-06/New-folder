@@ -46,18 +46,28 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
 }
 
 export async function addProduct(formData: FormData) {
-    const productData = parseProductFormData(formData);
+    try {
+        const productData = parseProductFormData(formData);
 
-    await saveProduct({
-        id: crypto.randomUUID(),
-        ...productData,
-        isActive: true,
-    } as Product);
+        await saveProduct({
+            id: crypto.randomUUID(),
+            ...productData,
+            isActive: true,
+        } as Product);
 
-    revalidatePath("/admin/products");
-    revalidatePath("/shop");
-    revalidatePath("/");
-    redirect("/admin/products");
+        revalidatePath("/admin/products");
+        revalidatePath("/shop");
+        revalidatePath("/");
+        redirect("/admin/products");
+    } catch (error) {
+        console.error('❌ Add Product Error:', error);
+        console.error('Error details:', {
+            message: (error as Error).message,
+            stack: (error as Error).stack
+        });
+        // Re-throw to allow client-side handling
+        throw new Error(`Failed to add product: ${(error as Error).message}`);
+    }
 }
 
 export async function editProduct(id: string, formData: FormData) {
