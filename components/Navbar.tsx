@@ -60,8 +60,16 @@ export default function Navbar() {
                         </Link>
                     </div>
 
-                    {/* Mobile Menu Button */}
-                    <div className="md:hidden flex items-center">
+                    {/* Mobile Menu Button & Cart */}
+                    <div className="md:hidden flex items-center gap-4">
+                        <Link href="/checkout" className="relative p-2 text-slate-300 hover:text-amber-500 transition-colors active:scale-90">
+                            <ShoppingCart className="w-6 h-6" />
+                            {items.length > 0 && (
+                                <span className="absolute top-0 right-0 bg-amber-500 text-slate-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    {items.reduce((a, b) => a + b.quantity, 0)}
+                                </span>
+                            )}
+                        </Link>
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             className="p-2 rounded-md text-slate-300 hover:text-white focus:outline-none active:scale-90 transition-transform"
