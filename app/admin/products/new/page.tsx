@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { addProduct } from '@/lib/actions';
 import { Upload, X, Star, Image as ImageIcon, Loader2, Plus } from 'lucide-react';
 import { PRODUCT_CATEGORIES } from '@/lib/constants';
 
 export default function NewProductPage() {
+    const [mounted, setMounted] = useState(false);
     const [imageOption, setImageOption] = useState<'url' | 'upload'>('url');
     const [images, setImages] = useState<string[]>([]);
     const [mainImageIndex, setMainImageIndex] = useState<number>(0);
@@ -13,6 +14,11 @@ export default function NewProductPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [sizes, setSizes] = useState<{ size: string; stock: number }[]>([{ size: '', stock: 0 }]); // Start with one empty row
+
+    // Prevent SSR issues - only render after client-side hydration
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -150,6 +156,17 @@ export default function NewProductPage() {
             setIsSubmitting(false);
         }
     };
+
+    // Prevent SSR hydration mismatch - show loading until mounted
+    if (!mounted) {
+        return (
+            <div className="max-w-4xl mx-auto">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto">
