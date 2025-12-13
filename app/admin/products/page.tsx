@@ -12,7 +12,7 @@ export default function ProductsPage() {
     useEffect(() => {
         async function loadProducts() {
             try {
-                const data = await getProducts();
+                const data = await getProducts(true);
                 setProducts(data);
             } catch (error) {
                 console.error('Failed to load products:', error);

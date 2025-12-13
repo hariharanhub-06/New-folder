@@ -17,11 +17,15 @@ export async function GET(request: Request) {
             return NextResponse.json(product);
         }
 
-        const res = await pool.query(`
-            SELECT * FROM products 
-            WHERE is_active = true
-            ORDER BY created_at DESC
-        `);
+        const isAdmin = searchParams.get('admin') === 'true';
+
+        let query = 'SELECT * FROM products';
+        if (!isAdmin) {
+            query += ' WHERE is_active = true';
+        }
+        query += ' ORDER BY created_at DESC';
+
+        const res = await pool.query(query);
         const rows = res.rows;
 
         // Populate sizes

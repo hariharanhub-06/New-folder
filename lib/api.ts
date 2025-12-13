@@ -21,8 +21,9 @@ export async function getProduct(id: string): Promise<Product | null> {
         return null;
     }
 }
-export async function getProducts(): Promise<Product[]> {
-    const response = await fetch(API_ENDPOINTS.products);
+export async function getProducts(includeInactive: boolean = false): Promise<Product[]> {
+    const url = includeInactive ? `${API_ENDPOINTS.products}?admin=true` : API_ENDPOINTS.products;
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch products');
     return response.json();
 }
