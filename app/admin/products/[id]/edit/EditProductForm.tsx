@@ -110,6 +110,8 @@ export default function EditProductForm({ product }: { product: Product }) {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (isSubmitting) return;
+
         if (images.length === 0) {
             alert('Please add at least one image');
             return;
