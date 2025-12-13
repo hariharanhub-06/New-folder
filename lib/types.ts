@@ -75,3 +75,24 @@ export interface ProductDiscount {
     active: boolean;
     createdAt?: string;
 }
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
+}
+
+export interface ProductFilters {
+    page?: number;
+    limit?: number;
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    sort?: 'newest' | 'price_asc' | 'price_desc' | 'name_asc';
+    search?: string;
+    includeInactive?: boolean;
+}

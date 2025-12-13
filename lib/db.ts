@@ -88,6 +88,167 @@ export async function getProduct(id: string): Promise<Product | null> {
     };
 }
 
+export async function getPaginatedProducts(filters: import('./types').ProductFilters): Promise<import('./types').PaginatedResponse<Product>> {
+    const {
+        page = 1,
+        limit = 12,
+        category,
+        minPrice,
+        maxPrice,
+        sort = 'newest',
+        search,
+        includeInactive = false
+    } = filters;
+
+    const offset = (page - 1) * limit;
+    const params: any[] = [];
+    let query = 'SELECT * FROM products WHERE 1=1';
+    let countQuery = 'SELECT COUNT(*) FROM products WHERE 1=1';
+
+    // 1. Build Filters
+    if (!includeInactive) {
+        query += ' AND is_active = true';
+        countQuery += ' AND is_active = true';
+    }
+
+    if (category && category !== 'All Categories') {
+        params.push(category);
+        query += ` AND category = $${params.length}`;
+        countQuery += ` AND category = $${params.length}`;
+    }
+
+    if (minPrice !== undefined) {
+        params.push(minPrice);
+        query += ` AND price >= $${params.length}`;
+        countQuery += ` AND price >= $${params.length}`;
+    }
+
+    if (maxPrice !== undefined) {
+        params.push(maxPrice);
+        query += ` AND price <= $${params.length}`;
+        countQuery += ` AND price <= $${params.length}`;
+    }
+
+    if (search) {
+        params.push(`%${search}%`);
+        query += ` AND (name ILIKE $${params.length} OR description ILIKE $${params.length})`;
+        countQuery += ` AND (name ILIKE $${params.length} OR description ILIKE $${params.length})`;
+    }
+
+    // 2. Sorting
+    switch (sort) {
+        case 'price_asc':
+            query += ' ORDER BY price ASC';
+            break;
+        case 'price_desc':
+            query += ' ORDER BY price DESC';
+            break;
+        case 'name_asc':
+            query += ' ORDER BY name ASC';
+            break;
+        case 'newest':
+        default:
+            query += ' ORDER BY created_at DESC';
+            break;
+    }
+
+    // 3. Pagination
+    query += ` LIMIT ${limit} OFFSET ${offset}`;
+
+    // Execute Queries
+    const [countRes, productsRes] = await Promise.all([
+        pool.query(countQuery, params),
+        pool.query(query, params)
+    ]);
+
+    const total = parseInt(countRes.rows[0].count);
+    const rows = productsRes.rows;
+
+    if (rows.length === 0) {
+        return {
+            data: [],
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
+    }
+
+    // 4. Fetch Associations (Sizes & Discounts) for these products only
+    const productIds = rows.map(r => r.id);
+
+    // Fetch Sizes
+    const sizeRes = await pool.query('SELECT * FROM product_sizes WHERE product_id = ANY($1)', [productIds]);
+    const sizesMap = new Map();
+    sizeRes.rows.forEach(r => {
+        if (!sizesMap.has(r.product_id)) sizesMap.set(r.product_id, []);
+        sizesMap.get(r.product_id).push({ size: r.size, stock: r.stock, id: r.id });
+    });
+
+    // Fetch Active Discounts (Global or related to these products)
+    // For simplicity and correctness with "Category" discounts, we fetch all active discounts.
+    // Optimization: In a huge system, we would filter this too, but for <100 discounts it's negligible compared to product data.
+    const discountRes = await pool.query('SELECT * FROM discounts WHERE active = true');
+    const allDiscounts = discountRes.rows.map((d: any) => ({
+        id: d.id,
+        discountType: d.discount_type,
+        targetType: d.target_type,
+        category: d.category,
+        productId: d.product_id,
+        quantity: d.quantity,
+        price: d.price ? parseFloat(d.price) : undefined,
+        percentage: d.percentage,
+        active: d.active
+    }));
+
+    // 5. Map to Product Objects
+    const products: Product[] = rows.map((row: any) => {
+        const productPrice = parseFloat(row.price);
+
+        // Find applicable discounts
+        const productBundle = allDiscounts.find(d =>
+            d.targetType === 'product' && d.productId === row.id && d.discountType === 'bundle');
+        const productPercent = allDiscounts.find(d =>
+            d.targetType === 'product' && d.productId === row.id && d.discountType === 'percentage');
+        const categoryBundle = allDiscounts.find(d =>
+            d.targetType === 'category' && d.category === row.category && d.discountType === 'bundle');
+        const categoryPercent = allDiscounts.find(d =>
+            d.targetType === 'category' && d.category === row.category && d.discountType === 'percentage');
+
+        const bestDiscount = productBundle || productPercent || categoryBundle || categoryPercent;
+
+        return {
+            id: row.id,
+            name: row.name,
+            description: row.description,
+            price: productPrice,
+            category: row.category,
+            stock: row.stock,
+            imageUrl: row.image_url,
+            images: row.images ? JSON.parse(row.images) : [],
+            isActive: row.is_active,
+            size: row.size,
+            sizes: sizesMap.get(row.id) || [],
+            activeDiscount: bestDiscount,
+            discountPercentage: bestDiscount?.discountType === 'percentage' ? bestDiscount.percentage : undefined,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+        };
+    });
+
+    return {
+        data: products,
+        pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        }
+    };
+}
+
 export async function saveProduct(product: Product) {
     const client = await pool.connect();
     try {

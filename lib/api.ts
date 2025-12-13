@@ -1,7 +1,7 @@
 // Client-Side API Library
 // Replaces server actions with fetch calls to Cloudflare Workers
 
-import { Order, Product } from './types';
+import { Order, Product, ProductFilters, PaginatedResponse } from './types';
 
 const API_ENDPOINTS = {
     products: '/api/products',
@@ -21,9 +21,27 @@ export async function getProduct(id: string): Promise<Product | null> {
         return null;
     }
 }
+
 export async function getProducts(includeInactive: boolean = false): Promise<Product[]> {
     const url = includeInactive ? `${API_ENDPOINTS.products}?admin=true` : API_ENDPOINTS.products;
     const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch products');
+    const result = await response.json();
+    return result.data || result; // Handle both paginated and legacy array response just in case
+}
+
+export async function getProductsPaginated(filters: ProductFilters): Promise<PaginatedResponse<Product>> {
+    const params = new URLSearchParams();
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.limit) params.append('limit', filters.limit.toString());
+    if (filters.category) params.append('category', filters.category);
+    if (filters.minPrice) params.append('minPrice', filters.minPrice.toString());
+    if (filters.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
+    if (filters.sort) params.append('sort', filters.sort);
+    if (filters.search) params.append('search', filters.search);
+    if (filters.includeInactive) params.append('admin', 'true');
+
+    const response = await fetch(`${API_ENDPOINTS.products}?${params.toString()}`);
     if (!response.ok) throw new Error('Failed to fetch products');
     return response.json();
 }
@@ -116,5 +134,11 @@ export async function processTestPayment(
         body: JSON.stringify({ orderId, amount }),
     });
     if (!response.ok) throw new Error('Payment failed');
+    return response.json();
+}
+
+export async function getCategories(): Promise<string[]> {
+    const response = await fetch('/api/categories');
+    if (!response.ok) throw new Error('Failed to fetch categories');
     return response.json();
 }

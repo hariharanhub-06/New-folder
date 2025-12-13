@@ -1,44 +1,39 @@
 "use client";
 
-import { Product } from '@/lib/types';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Filter, SortAsc } from 'lucide-react';
+import { ProductFilters } from '@/lib/types';
 
 interface FilterSortProps {
-    products: Product[];
     availableCategories: string[];
-    onFilterSort: (filtered: Product[]) => void;
+    filters: ProductFilters;
+    onFilterChange: (newFilters: ProductFilters) => void;
 }
 
-export default function ShopFilterSort({ products, availableCategories, onFilterSort }: FilterSortProps) {
-    const [category, setCategory] = useState<string>("All");
-    const [sortBy, setSortBy] = useState<string>("name");
-    const [minPrice, setMinPrice] = useState(50);
-    const [maxPrice, setMaxPrice] = useState(2000);
+export default function ShopFilterSort({ availableCategories, filters, onFilterChange }: FilterSortProps) {
+    // Local state for price slider to allow smooth dragging without triggering fetch on every pixel
+    const [localMinPrice, setLocalMinPrice] = useState(filters.minPrice ?? 50);
+    const [localMaxPrice, setLocalMaxPrice] = useState(filters.maxPrice ?? 2000);
 
-    // Apply filters whenever filter options change
+    // Sync local state if parent updates filters (e.g. URL params or reset)
     useEffect(() => {
-        let filtered = [...products];
+        setLocalMinPrice(filters.minPrice ?? 50);
+        setLocalMaxPrice(filters.maxPrice ?? 2000);
+    }, [filters.minPrice, filters.maxPrice]);
 
-        // Filter by category
-        if (category !== "All") {
-            filtered = filtered.filter(p => p.category === category);
+    const handleCategoryChange = (val: string) => {
+        onFilterChange({ ...filters, category: val === "All" ? undefined : val, page: 1 });
+    };
+
+    const handleSortChange = (val: string) => {
+        onFilterChange({ ...filters, sort: val as any, page: 1 });
+    };
+
+    const handlePriceCommit = () => {
+        if (localMinPrice !== filters.minPrice || localMaxPrice !== filters.maxPrice) {
+            onFilterChange({ ...filters, minPrice: localMinPrice, maxPrice: localMaxPrice, page: 1 });
         }
-
-        // Filter by price range
-        filtered = filtered.filter(p => p.price >= minPrice && p.price <= maxPrice);
-
-        // Sort
-        if (sortBy === "name") {
-            filtered.sort((a, b) => a.name.localeCompare(b.name));
-        } else if (sortBy === "price-low") {
-            filtered.sort((a, b) => a.price - b.price);
-        } else if (sortBy === "price-high") {
-            filtered.sort((a, b) => b.price - a.price);
-        }
-
-        onFilterSort(filtered);
-    }, [category, sortBy, minPrice, maxPrice, products, onFilterSort]);
+    };
 
     return (
         <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 mb-6 transition-shadow hover:shadow-md">
@@ -49,8 +44,8 @@ export default function ShopFilterSort({ products, availableCategories, onFilter
                         Category
                     </label>
                     <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
+                        value={filters.category || "All"}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                     >
                         <option value="All">All Categories</option>
@@ -66,7 +61,7 @@ export default function ShopFilterSort({ products, availableCategories, onFilter
                             <Filter className="w-4 h-4 mr-2" />
                             Price Range
                         </span>
-                        <span className="text-indigo-600 font-semibold">₹{minPrice} - ₹{maxPrice}</span>
+                        <span className="text-indigo-600 font-semibold">₹{localMinPrice} - ₹{localMaxPrice}</span>
                     </label>
                     <div className="pt-4 pb-2 px-2">
                         <div className="relative h-2">
@@ -76,8 +71,8 @@ export default function ShopFilterSort({ products, availableCategories, onFilter
                             <div
                                 className="absolute h-2 bg-indigo-600 rounded-full"
                                 style={{
-                                    left: `${((minPrice - 50) / (2000 - 50)) * 100}%`,
-                                    right: `${100 - ((maxPrice - 50) / (2000 - 50)) * 100}%`
+                                    left: `${((localMinPrice - 50) / (2000 - 50)) * 100}%`,
+                                    right: `${100 - ((localMaxPrice - 50) / (2000 - 50)) * 100}%`
                                 }}
                             ></div>
                             {/* Min slider */}
@@ -86,13 +81,13 @@ export default function ShopFilterSort({ products, availableCategories, onFilter
                                 min={50}
                                 max={2000}
                                 step={50}
-                                value={minPrice}
+                                value={localMinPrice}
                                 onChange={(e) => {
                                     const value = Number(e.target.value);
-                                    if (value < maxPrice) {
-                                        setMinPrice(value);
-                                    }
+                                    if (value < localMaxPrice) setLocalMinPrice(value);
                                 }}
+                                onMouseUp={handlePriceCommit}
+                                onTouchEnd={handlePriceCommit}
                                 className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-600 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-600 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                             />
                             {/* Max slider */}
@@ -101,13 +96,13 @@ export default function ShopFilterSort({ products, availableCategories, onFilter
                                 min={50}
                                 max={2000}
                                 step={50}
-                                value={maxPrice}
+                                value={localMaxPrice}
                                 onChange={(e) => {
                                     const value = Number(e.target.value);
-                                    if (value > minPrice) {
-                                        setMaxPrice(value);
-                                    }
+                                    if (value > localMinPrice) setLocalMaxPrice(value);
                                 }}
+                                onMouseUp={handlePriceCommit}
+                                onTouchEnd={handlePriceCommit}
                                 className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-600 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-indigo-600 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                             />
                         </div>
@@ -124,13 +119,14 @@ export default function ShopFilterSort({ products, availableCategories, onFilter
                         Sort By
                     </label>
                     <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
+                        value={filters.sort || "newest"}
+                        onChange={(e) => handleSortChange(e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                     >
-                        <option value="name">Name (A-Z)</option>
-                        <option value="price-low">Price (Low to High)</option>
-                        <option value="price-high">Price (High to Low)</option>
+                        <option value="newest">Newest Arrivals</option>
+                        <option value="name_asc">Name (A-Z)</option>
+                        <option value="price_asc">Price (Low to High)</option>
+                        <option value="price_desc">Price (High to Low)</option>
                     </select>
                 </div>
             </div>

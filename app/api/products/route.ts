@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getProduct, saveProduct, deleteProduct } from '@/lib/db';
 import pool from '@/lib/db'; // Keep pool for the list query or move list query to db.ts
 
-// GET: Fetch all active products
+// GET: Fetch products with filters and pagination
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -17,80 +17,32 @@ export async function GET(request: Request) {
             return NextResponse.json(product);
         }
 
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '12');
+        const category = searchParams.get('category') || undefined;
+        const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined;
+        const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined;
+        const sort = (searchParams.get('sort') as any) || 'newest';
+        const search = searchParams.get('search') || undefined;
         const isAdmin = searchParams.get('admin') === 'true';
 
-        let query = 'SELECT * FROM products';
-        if (!isAdmin) {
-            query += ' WHERE is_active = true';
-        }
-        query += ' ORDER BY created_at DESC';
+        // Admin view might want to see inactive products and potentially a larger list, 
+        // but for now we stick to the requested limit or a default higher one for admin if not specified?
+        // Actually, let's just respect the params. If admin view wants all, it can request a high limit.
+        // For backward compatibility with simpler calls, we default to page 1.
 
-        const res = await pool.query(query);
-        const rows = res.rows;
-
-        // Populate sizes
-        const sizeRes = await pool.query('SELECT * FROM product_sizes');
-        const sizesMap = new Map();
-        sizeRes.rows.forEach(r => {
-            if (!sizesMap.has(r.product_id)) sizesMap.set(r.product_id, []);
-            sizesMap.get(r.product_id).push({ size: r.size, stock: r.stock, id: r.id });
-        });
-
-        // Fetch ALL active discounts
-        const discountRes = await pool.query('SELECT * FROM discounts WHERE active = true');
-        const allDiscounts = discountRes.rows.map((row: any) => ({
-            id: row.id,
-            discountType: row.discount_type,
-            targetType: row.target_type,
-            category: row.category,
-            productId: row.product_id,
-            quantity: row.quantity,
-            price: row.price ? parseFloat(row.price) : undefined,
-            percentage: row.percentage,
-            active: row.active
+        const result = await import('@/lib/db').then(mod => mod.getPaginatedProducts({
+            page,
+            limit: isAdmin && !searchParams.has('limit') ? 1000 : limit, // Default higher limit for admin if not specified
+            category,
+            minPrice,
+            maxPrice,
+            sort,
+            search,
+            includeInactive: isAdmin
         }));
 
-        const products = rows.map((row: any) => {
-            const productPrice = parseFloat(row.price);
-
-            // Find applicable discounts
-            // Priority: Product Bundle > Product % > Category Bundle > Category %
-
-            const productBundle = allDiscounts.find((d: any) =>
-                d.targetType === 'product' && d.productId === row.id && d.discountType === 'bundle');
-
-            const productPercent = allDiscounts.find((d: any) =>
-                d.targetType === 'product' && d.productId === row.id && d.discountType === 'percentage');
-
-            const categoryBundle = allDiscounts.find((d: any) =>
-                d.targetType === 'category' && d.category === row.category && d.discountType === 'bundle');
-
-            const categoryPercent = allDiscounts.find((d: any) =>
-                d.targetType === 'category' && d.category === row.category && d.discountType === 'percentage');
-
-            const bestDiscount = productBundle || productPercent || categoryBundle || categoryPercent;
-
-            return {
-                id: row.id,
-                name: row.name,
-                description: row.description,
-                price: productPrice,
-                category: row.category,
-                stock: row.stock,
-                imageUrl: row.image_url,
-                images: row.images ? JSON.parse(row.images) : [],
-                isActive: row.is_active,
-                size: row.size,
-                sizes: sizesMap.get(row.id) || [],
-                // We keep discountPercentage for backwards compatibility if needed, but activeDiscount is the source of truth
-                discountPercentage: bestDiscount?.discountType === 'percentage' ? bestDiscount.percentage : undefined,
-                activeDiscount: bestDiscount,
-                createdAt: row.created_at,
-                updatedAt: row.updated_at,
-            };
-        });
-
-        return NextResponse.json(products);
+        return NextResponse.json(result);
     } catch (error: any) {
         console.error('Error fetching products:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });

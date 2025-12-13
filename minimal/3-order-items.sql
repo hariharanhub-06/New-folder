@@ -1,1 +1,0 @@
-CREATE TABLE IF NOT EXISTS order_items (id TEXT PRIMARY KEY, order_id TEXT NOT NULL, product_id TEXT, name TEXT NOT NULL, quantity INTEGER NOT NULL, price REAL NOT NULL, created_at TEXT DEFAULT (datetime('now')));

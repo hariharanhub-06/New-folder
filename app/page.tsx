@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, MapPin } from "lucide-react";
+import FAQ from "@/components/FAQ";
 
 export default function HomePage() {
     return (
@@ -75,6 +76,9 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+
+            {/* FAQ Section */}
+            <FAQ />
         </div>
     );
 }

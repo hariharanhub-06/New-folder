@@ -1,1 +1,0 @@
-CREATE TABLE IF NOT EXISTS discounts (id TEXT PRIMARY KEY, category TEXT NOT NULL, quantity INTEGER NOT NULL, price REAL NOT NULL, active INTEGER DEFAULT 1, created_at TEXT DEFAULT (datetime('now')));
