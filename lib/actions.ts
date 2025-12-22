@@ -32,6 +32,10 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
     const sizesStr = formData.get("sizes") as string;
     const sizes = sizesStr ? JSON.parse(sizesStr) : undefined;
 
+    // Parse weight (in grams)
+    const weightStr = formData.get("weight") as string;
+    const weight = weightStr ? parseInt(weightStr) : 750;
+
     return {
         name,
         description,
@@ -41,7 +45,8 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
         size,
         imageUrl,
         images,
-        sizes
+        sizes,
+        weight
     };
 }
 
