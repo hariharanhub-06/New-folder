@@ -1,12 +1,10 @@
-"use client";
-
 import { useCart } from '@/lib/cart-context';
-import { placeOrder as placeOrderAPI } from '@/lib/api';
+// import { placeOrder as placeOrderAPI } from '@/lib/api'; // Removed as we use direct API calls now
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Trash2, Tag } from 'lucide-react';
 import Image from 'next/image';
-import { calculateShipping, calculateTotalWeight, calculateTotalQuantity, calculateShippingByPincode } from '@/lib/shipping';
+import { calculateShipping, calculateTotalWeight, calculateShippingByPincode } from '@/lib/shipping';
 import { calculateDiscount } from '@/lib/discount';
 import { Discount } from '@/lib/types';
 
@@ -66,16 +64,17 @@ export default function CheckoutPage() {
 
     // Calculate shipping whenever items, country, or zipCode changes
     useEffect(() => {
+        const weight = calculateTotalWeight(items);
+
         if (formData.country !== 'India') {
             // International shipping
-            const weight = calculateTotalWeight(items);
             const cost = calculateShipping(weight, formData.country);
             setShippingCost(cost);
             setShippingDetails(null);
         } else if (formData.zipCode && formData.zipCode.length === 6) {
             // Domestic shipping with pincode
-            const totalQuantity = calculateTotalQuantity(items);
-            const result = calculateShippingByPincode(totalQuantity, formData.zipCode);
+            // Updated to pass WEIGHT instead of Quantity
+            const result = calculateShippingByPincode(weight, formData.zipCode);
             setShippingCost(result.totalCharges);
             setShippingDetails({
                 zone: result.zone,
@@ -84,7 +83,6 @@ export default function CheckoutPage() {
             });
         } else {
             // Default shipping (no pincode yet)
-            const weight = calculateTotalWeight(items);
             const cost = calculateShipping(weight, formData.country);
             setShippingCost(cost);
             setShippingDetails(null);
@@ -115,91 +113,94 @@ export default function CheckoutPage() {
         setError('');
 
         try {
-            const finalSubtotal = discountResult?.discountedTotal || total;
-            const paymentGatewayFee = (finalSubtotal + shippingCost) * 0.06;
-            const grandTotal = finalSubtotal + shippingCost + paymentGatewayFee;
+            // Updated Flow:
+            // 1. Initiate Razorpay Order (Calculate Total Server-Side)
+            // 2. Open Gateway
+            // 3. On Success -> Create Order in DB (Verify Signature)
 
-            // 1. Create Order in Database first
-            const orderPayload = {
-                customerName: formData.name,
-                customerEmail: formData.email,
-                customerMobile: formData.mobile,
-                shippingAddress: {
-                    street: formData.street,
-                    city: formData.city,
-                    state: formData.state,
-                    country: formData.country,
-                    zipCode: formData.zipCode
-                },
-                items: items.map(item => ({
-                    productId: item.id,
-                    name: item.name,
-                    quantity: item.quantity,
-                    price: item.price,
-                    size: item.selectedSize  // Include selected size
-                })),
-                shippingCost: shippingCost + paymentGatewayFee,
-                totalAmount: grandTotal,
-                status: 'New Order' as const,
-                transactionId: '',
-            };
-
-            const orderResponse = await placeOrderAPI(orderPayload);
-            const orderId = orderResponse.orderId;
-
-            // 2. Create Razorpay Order
+            // 1. Initiate Razorpay Order
             const razorpayRes = await fetch('/api/payment/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    orderId, // Our DB internal ID
-                    amount: grandTotal,
+                    items: items.map(item => ({
+                        id: item.id,
+                        price: item.price,
+                        quantity: item.quantity,
+                        weight: item.weight // Pass weight if available
+                    })),
+                    address: {
+                        street: formData.street,
+                        city: formData.city,
+                        state: formData.state,
+                        country: formData.country,
+                        zipCode: formData.zipCode
+                    },
                     customerName: formData.name,
                     customerEmail: formData.email,
-                    customerPhone: formData.mobile
                 })
             });
 
             const razorpayOrder = await razorpayRes.json();
             if (razorpayOrder.error) throw new Error(razorpayOrder.error);
 
-            // 3. Open Razorpay Checkout
+            // 2. Open Razorpay Checkout
             if (!window.Razorpay) {
                 throw new Error("Razorpay SDK failed to load. Please check your connection.");
             }
 
             const options = {
                 key: razorpayOrder.keyId,
-                amount: razorpayOrder.amount,
+                amount: razorpayOrder.amount, // Verified server-side amount
                 currency: razorpayOrder.currency,
                 name: "Startup Men's Wear",
-                description: `Order #${orderId}`,
+                description: "Payment for Order",
                 order_id: razorpayOrder.razorpayOrderId,
                 handler: async function (response: any) {
-                    // Payment Success
+                    // 3. Payment Success -> Place Order
                     try {
-                        // Verify Payment on Backend
-                        const verifyRes = await fetch('/api/payment/verify', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
+                        const verifiedOrderPayload = {
+                            paymentDetails: {
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                orderId: orderId
-                            })
+                                razorpay_signature: response.razorpay_signature
+                            },
+                            cartItems: items,
+                            shippingAddress: {
+                                street: formData.street,
+                                city: formData.city,
+                                state: formData.state,
+                                country: formData.country,
+                                zipCode: formData.zipCode
+                            },
+                            customerDetails: {
+                                name: formData.name,
+                                email: formData.email,
+                                mobile: formData.mobile
+                            },
+                            totals: {
+                                grandTotal: razorpayOrder.verifiedAmount, // Use the amount confirmed by server
+                                shippingCost: razorpayOrder.shippingCost
+                            }
+                        };
+
+                        const placeOrderRes = await fetch('/api/orders/place-verified', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(verifiedOrderPayload)
                         });
 
-                        const verifyData = await verifyRes.json();
-                        if (verifyData.success) {
+                        const placeOrderData = await placeOrderRes.json();
+                        if (placeOrderData.success) {
                             clearCart();
-                            router.push(`/payment/success?orderId=${orderId}`);
+                            router.push(`/payment/success?orderId=${placeOrderData.orderId}`);
                         } else {
-                            throw new Error('Payment verification failed');
+                            throw new Error('Order placement failed after payment. Please contact support.');
                         }
-                    } catch (verifyError) {
+
+                    } catch (verifyError: any) {
                         console.error(verifyError);
-                        setError('Payment verification failed. Please contact support.');
+                        setError('Order creation failed but payment was taken. Please contact support immediately.');
                     }
                 },
                 prefill: {
@@ -209,6 +210,11 @@ export default function CheckoutPage() {
                 },
                 theme: {
                     color: "#4f46e5"
+                },
+                modal: {
+                    ondismiss: function () {
+                        setIsProcessing(false);
+                    }
                 }
             };
 
@@ -216,13 +222,13 @@ export default function CheckoutPage() {
             rzp1.on('payment.failed', function (response: any) {
                 console.error(response.error);
                 setError(`Payment Failed: ${response.error.description}`);
+                setIsProcessing(false);
             });
             rzp1.open();
 
         } catch (err: any) {
             console.error('❌ Payment Error:', err);
             setError(err.message || 'Payment failed. Please try again.');
-        } finally {
             setIsProcessing(false);
         }
     };

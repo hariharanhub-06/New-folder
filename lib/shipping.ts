@@ -97,14 +97,14 @@ function getRegionByPincode(pincode: string): { zone: string; rate: number } {
 }
 
 /**
- * Calculate shipping charges by pincode and quantity
- * @param totalQuantity - Total quantity of items
+ * Calculate shipping charges by pincode and weight
+ * @param totalWeightInKg - Total weight of items in KG
  * @param pincode - Delivery pincode
  * @returns Detailed shipping breakdown
  */
-export function calculateShippingByPincode(totalQuantity: number, pincode: string): ShippingByPincode {
-    // Calculate actual weight
-    const actualWeight = totalQuantity * KG_PER_QUANTITY;
+export function calculateShippingByPincode(totalWeightInKg: number, pincode: string): ShippingByPincode {
+    // Actual weight is passed directly
+    const actualWeight = totalWeightInKg;
 
     // Calculate billable weight (rounded up to nearest KG)
     const billableWeight = Math.ceil(actualWeight);
@@ -141,9 +141,7 @@ export function calculateShipping(weight: number, country?: string, pincode?: st
 
     // If pincode provided, use new calculation
     if (pincode && pincode.length === 6) {
-        // Convert weight to quantity (reverse calculation)
-        const quantity = Math.ceil(weight / KG_PER_QUANTITY);
-        const result = calculateShippingByPincode(quantity, pincode);
+        const result = calculateShippingByPincode(weight, pincode); // Pass weight directly
         return result.totalCharges;
     }
 
