@@ -77,7 +77,8 @@ export async function getProduct(id: string): Promise<Product | null> {
         category: row.category,
         stock: row.stock,
         imageUrl: row.image_url,
-        images: row.images ? JSON.parse(row.images) : [],
+        // Fix: Check if images is already parsed (JSONB) or string (TEXT)
+        images: typeof row.images === 'string' ? JSON.parse(row.images) : (row.images || []),
         isActive: row.is_active,
         size: row.size,
         sizes: sizeRes.rows.map(r => ({ size: r.size, stock: r.stock, id: r.id })), // Map DB rows to Size objects
