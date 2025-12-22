@@ -47,7 +47,7 @@ export default function EditProductForm({ product }: { product: Product }) {
             for (let i = 0; i < files.length; i++) {
                 let file = files[i];
 
-                // Handle HEIC/HEIF files
+                // Handle HEIC/HEIF files (same as before)
                 if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
                     try {
                         const convertedBlob = await heic2any({
@@ -55,19 +55,18 @@ export default function EditProductForm({ product }: { product: Product }) {
                             toType: 'image/jpeg',
                             quality: 0.8
                         });
-                        // heic2any can return a single blob or an array of blobs
                         const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
                         file = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
                     } catch (e) {
                         console.error('Error converting HEIC:', e);
-                        continue; // Skip this file if conversion fails
+                        continue;
                     }
                 }
 
                 // Compress image
                 const options = {
-                    maxSizeMB: 0.1, // Reduced to 100KB to prevent payload issues
-                    maxWidthOrHeight: 1024,
+                    maxSizeMB: 1, // Increased to 1MB since we are uploading to cloud, not base64 DB
+                    maxWidthOrHeight: 1920, // Better quality for cloud
                     useWebWorker: true,
                     fileType: 'image/jpeg'
                 };
@@ -75,17 +74,23 @@ export default function EditProductForm({ product }: { product: Product }) {
                 try {
                     const compressedFile = await imageCompression(file, options);
 
-                    // Convert to base64
-                    const base64 = await new Promise<string>((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.readAsDataURL(compressedFile);
-                        reader.onload = () => resolve(reader.result as string);
-                        reader.onerror = (error) => reject(error);
+                    // Upload to ImageKit via API
+                    const formData = new FormData();
+                    formData.append('file', compressedFile);
+
+                    const res = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        body: formData
                     });
 
-                    processedImages.push(base64);
+                    if (!res.ok) throw new Error('Upload failed');
+
+                    const data = await res.json();
+                    if (data.success && data.url) {
+                        processedImages.push(data.url);
+                    }
                 } catch (error) {
-                    console.error('Error compressing image:', error);
+                    console.error('Error uploading image:', error);
                 }
             }
 
