@@ -78,7 +78,7 @@ export async function POST(request: Request) {
                 JSON.stringify(order.shippingAddress),
                 order.totalAmount,
                 order.shippingCost || 0,
-                'New Order'
+                'Payment Confirmed'
             ]);
 
             for (const item of order.items) {

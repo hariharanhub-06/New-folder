@@ -45,7 +45,7 @@ export interface Order {
     items: OrderItem[];
     totalAmount: number;
     shippingCost: number;
-    status: 'New Order' | 'Payment Confirmed' | 'Parcel Prepared' | 'Couried' | 'Delivered' | 'Cancelled';
+    status: 'Payment Confirmed' | 'Parcel Prepared' | 'Couried' | 'Delivered' | 'Cancelled';
     transactionId: string;
     razorpayOrderId?: string;
     razorpayPaymentId?: string;

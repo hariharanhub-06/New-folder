@@ -31,7 +31,7 @@ async function getDashboardData() {
 export default async function AdminDashboard() {
     const { products, orders } = await getDashboardData();
     const lowStockProducts = products.filter((p: any) => p.stock < 5);
-    const pendingOrders = orders.filter((o: any) => o.status === 'New Order');
+    const pendingOrders = orders.filter((o: any) => o.status === 'Payment Confirmed');
 
     const stats = [
         { label: 'Total Sales', value: `₹${orders.reduce((sum: number, o: any) => sum + o.totalAmount, 0).toFixed(2)}`, icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-100' },
@@ -39,7 +39,6 @@ export default async function AdminDashboard() {
     ];
 
     const statusCounts = {
-        'New Order': 0,
         'Payment Confirmed': 0,
         'Parcel Prepared': 0,
         'Couried': 0,
@@ -81,11 +80,10 @@ export default async function AdminDashboard() {
                     {Object.entries(statusCounts).map(([status, count]) => (
                         <div key={status} className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow">
                             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{status}</p>
-                            <p className={`text-2xl font-bold ${status === 'New Order' ? 'text-amber-600' :
-                                status === 'Payment Confirmed' ? 'text-blue-600' :
-                                    status === 'Delivered' ? 'text-green-600' :
-                                        status === 'Cancelled' ? 'text-red-500' :
-                                            'text-slate-800'
+                            <p className={`text-2xl font-bold ${status === 'Payment Confirmed' ? 'text-blue-600' :
+                                status === 'Delivered' ? 'text-green-600' :
+                                    status === 'Cancelled' ? 'text-red-500' :
+                                        'text-slate-800'
                                 }`}>
                                 {count}
                             </p>
@@ -117,7 +115,7 @@ export default async function AdminDashboard() {
                                         <td className="px-6 py-4 font-mono text-slate-600">#{order.id.slice(0, 8)}</td>
                                         <td className="px-6 py-4 font-medium text-slate-900">{order.customerName}</td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'New Order' ? 'bg-amber-100 text-amber-800' :
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'Payment Confirmed' ? 'bg-indigo-100 text-indigo-800' :
                                                 order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
                                                     order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
                                                         'bg-gray-100 text-gray-800'

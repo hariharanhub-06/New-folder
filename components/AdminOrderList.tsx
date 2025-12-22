@@ -101,7 +101,6 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'New Order': return 'bg-blue-100 text-blue-800';
             case 'Payment Confirmed': return 'bg-indigo-100 text-indigo-800';
             case 'Parcel Prepared': return 'bg-amber-100 text-amber-800';
             case 'Couried': return 'bg-purple-100 text-purple-800';
@@ -145,7 +144,6 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                     >
                         <option value="All">All Statuses</option>
-                        <option value="New Order">New Order</option>
                         <option value="Payment Confirmed">Payment Confirmed</option>
                         <option value="Parcel Prepared">Parcel Prepared</option>
                         <option value="Couried">Couried</option>
@@ -252,7 +250,6 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                     onChange={(e) => handleStatusChange(order.id, e.target.value)}
                                                     className="block w-full pl-3 pr-8 py-1 text-xs border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
                                                 >
-                                                    <option value="New Order">New Order</option>
                                                     <option value="Payment Confirmed">Payment Confirmed</option>
                                                     <option value="Parcel Prepared">Parcel Prepared</option>
                                                     <option value="Couried">Couried</option>
@@ -260,7 +257,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                     <option value="Cancelled">Cancelled</option>
                                                 </select>
 
-                                                {order.status !== 'New Order' && order.status !== 'Cancelled' && (
+                                                {order.status !== 'Cancelled' && (
                                                     <div className="flex gap-2">
                                                         <button
                                                             onClick={() => generateInvoice(order)}
