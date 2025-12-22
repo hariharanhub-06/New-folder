@@ -1,3 +1,5 @@
+"use client";
+
 import { useCart } from '@/lib/cart-context';
 // import { placeOrder as placeOrderAPI } from '@/lib/api'; // Removed as we use direct API calls now
 import { useRouter } from 'next/navigation';
