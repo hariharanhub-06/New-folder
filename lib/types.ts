@@ -16,6 +16,7 @@ export interface Product {
     isActive: boolean;
     size?: string;
     sizes?: ProductSize[];
+    weight?: number;              // Weight in grams
     discountPercentage?: number;  // Individual product discount
     activeDiscount?: Discount;    // The best applicable discount (bundle or percentage)
     createdAt?: string;

@@ -23,6 +23,14 @@ export default function EditProductForm({ product }: { product: Product }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // Initialize weight: if product has weight, determine unit based on value
+    const initialWeight = product.weight || 750;
+    const initialUnit: 'grams' | 'kg' = initialWeight >= 1000 ? 'kg' : 'grams';
+    const initialValue = initialUnit === 'kg' ? (initialWeight / 1000).toString() : initialWeight.toString();
+
+    const [weightValue, setWeightValue] = useState<string>(initialValue);
+    const [weightUnit, setWeightUnit] = useState<'grams' | 'kg'>(initialUnit);
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
@@ -141,6 +149,12 @@ export default function EditProductForm({ product }: { product: Product }) {
             }
         }
 
+        // Convert weight to grams
+        const weightInGrams = weightValue ?
+            (weightUnit === 'kg' ? parseFloat(weightValue) * 1000 : parseFloat(weightValue))
+            : 750;
+        formData.set('weight', Math.round(weightInGrams).toString());
+
         try {
             await editProduct(product.id, formData);
             // If we get here without redirect, something went wrong
@@ -232,7 +246,7 @@ export default function EditProductForm({ product }: { product: Product }) {
                                                 <input
                                                     type="number"
                                                     placeholder="Qty"
-                                                    value={item.stock}
+                                                    value={item.stock || ''}
                                                     min="0"
                                                     onChange={(e) => {
                                                         const newSizes = [...sizes];
@@ -295,6 +309,36 @@ export default function EditProductForm({ product }: { product: Product }) {
                                     placeholder="Enter new category name"
                                     className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
                                 />
+                            </div>
+
+                            <div>
+                                <label htmlFor="weight" className="block text-sm font-medium text-gray-700">Product Weight *</label>
+                                <div className="mt-1 flex gap-2">
+                                    <input
+                                        type="number"
+                                        name="weight_value"
+                                        id="weight"
+                                        step="0.01"
+                                        min="0"
+                                        value={weightValue}
+                                        onChange={(e) => setWeightValue(e.target.value)}
+                                        placeholder="Enter weight"
+                                        required
+                                        className="flex-1 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                    />
+                                    <select
+                                        name="weight_unit"
+                                        value={weightUnit}
+                                        onChange={(e) => setWeightUnit(e.target.value as 'grams' | 'kg')}
+                                        className="w-28 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                    >
+                                        <option value="grams">Grams</option>
+                                        <option value="kg">Kg</option>
+                                    </select>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {weightValue && `≈ ${weightUnit === 'kg' ? (parseFloat(weightValue) * 1000).toFixed(0) + 'g' : (parseFloat(weightValue) / 1000).toFixed(3) + 'kg'}`}
+                                </p>
                             </div>
                         </div>
                     </div>

@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowchart Render</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body { background-color: #1a1a1a; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .mermaid { background-color: #1a1a1a; padding: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="mermaid">
+    %%{init: {'theme': 'dark'}}%%
+    graph LR
+        %% Styles
+        classDef user fill:#ff9900,stroke:#333,stroke-width:2px,color:black;
+        classDef app fill:#00e599,stroke:#333,stroke-width:2px,color:black;
+        classDef service fill:#3b82f6,stroke:#333,stroke-width:2px,color:white;
+    
+        User(👤 Customer) ::: user
+        Admin(👨‍💻 Admin) ::: user
+    
+        subgraph Application [Next.js 14 App]
+            UI[🖥️ Interface] ::: app
+            API[⚡ Server Actions] ::: app
+        end
+    
+        subgraph External_Services [Integrated Services]
+            DB[(🛢️ Neon Postgres)] ::: service
+            CDN[🖼️ ImageKit CDN] ::: service
+            Pay[💳 Razorpay] ::: service
+        end
+    
+        %% Customer Flow
+        User -->|Browse| UI
+        UI -->|Query Products| API
+        API -->|Select| DB
+        UI -->|Load Images| CDN
+        User -->|Checkout| Pay
+        Pay -->|Webhook| API
+        API -->|Create Order| DB
+    
+        %% Admin Flow
+        Admin -->|Login| UI
+        UI -->|Manage Uploads| API
+        API -->|Upload| CDN
+        API -->|Update Data| DB
+    
+        %% Legend styling
+        linkStyle default stroke-width:2px,fill:none,stroke:#666;
+    </div>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+</body>
+</html>

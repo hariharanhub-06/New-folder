@@ -4,13 +4,13 @@ import { Product, Order, Discount } from './types';
 
 let pool: Pool;
 
-if (!process.env.DATABASE_URL) {
+if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.POSTGRES_PRISMA_URL) {
     // During build time or if env not set, avoid crashing
     console.warn("DATABASE_URL is not set. Database operations will fail.");
     // Mock pool or throw error later
 }
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL;
 
 // Use global singleton for dev environment to prevent pool exhaustion
 declare global {
@@ -81,6 +81,7 @@ export async function getProduct(id: string): Promise<Product | null> {
         isActive: row.is_active,
         size: row.size,
         sizes: sizeRes.rows.map(r => ({ size: r.size, stock: r.stock, id: r.id })), // Map DB rows to Size objects
+        weight: row.weight || 750,  // Default to 750 grams if not set
         activeDiscount: bestDiscount,
         discountPercentage: bestDiscount?.discountType === 'percentage' ? bestDiscount.percentage : undefined,
         createdAt: row.created_at,
@@ -103,7 +104,7 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
     const offset = (page - 1) * limit;
     const params: any[] = [];
     // Optimize: Exclude 'images' column (huge JSON) from list view to prevent RSC payload crash
-    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, size, created_at, updated_at FROM products WHERE 1=1';
+    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, size, weight, created_at, updated_at FROM products WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM products WHERE 1=1';
 
     // 1. Build Filters
@@ -232,6 +233,7 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
             isActive: row.is_active,
             size: row.size,
             sizes: sizesMap.get(row.id) || [],
+            weight: row.weight || 750,  // Default to 750 grams if not set
             activeDiscount: bestDiscount,
             discountPercentage: bestDiscount?.discountType === 'percentage' ? bestDiscount.percentage : undefined,
             createdAt: row.created_at,
@@ -275,8 +277,8 @@ export async function saveProduct(product: Product) {
             await client.query(`
                 UPDATE products 
                 SET name = $1, description = $2, price = $3, category = $4, 
-                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, updated_at = CURRENT_TIMESTAMP
-                WHERE id = $10
+                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, weight = $10, updated_at = CURRENT_TIMESTAMP
+                WHERE id = $11
             `, [
                 product.name,
                 product.description,
@@ -287,13 +289,14 @@ export async function saveProduct(product: Product) {
                 JSON.stringify(product.images || []),
                 product.size,
                 product.isActive,
+                product.weight || 750,
                 finalId
             ]);
         } else {
             // Insert Product
             await client.query(`
-                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size, weight)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             `, [
                 finalId, // Use finalId
                 product.name,
@@ -304,7 +307,8 @@ export async function saveProduct(product: Product) {
                 product.imageUrl,
                 JSON.stringify(product.images || []),
                 product.isActive,
-                product.size
+                product.size,
+                product.weight || 750
             ]);
         }
 

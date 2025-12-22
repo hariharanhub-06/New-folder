@@ -16,6 +16,8 @@ export default function NewProductPage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [sizes, setSizes] = useState<{ size: string; stock: number }[]>([{ size: '', stock: 0 }]);
     const [productId, setProductId] = useState<string>('');
+    const [weightValue, setWeightValue] = useState<string>('');
+    const [weightUnit, setWeightUnit] = useState<'grams' | 'kg'>('grams');
 
     // Prevent SSR issues - only render after client-side hydration
     useEffect(() => {
@@ -126,6 +128,11 @@ export default function NewProductPage() {
             const validSizes = sizes.filter(s => s.size.trim() !== '');
             const totalStock = validSizes.length > 0 ? validSizes.reduce((sum, s) => sum + s.stock, 0) : 0;
 
+            // Convert weight to grams
+            const weightInGrams = weightValue ?
+                (weightUnit === 'kg' ? parseFloat(weightValue) * 1000 : parseFloat(weightValue))
+                : 750; // Default 750g if not specified
+
             const productData = {
                 id: productId, // Idempotency Key
                 name: formData.get('name') as string,
@@ -137,6 +144,7 @@ export default function NewProductPage() {
                 imageUrl: images[mainImageIndex],
                 images: images,
                 sizes: validSizes.length > 0 ? validSizes : undefined,
+                weight: Math.round(weightInGrams), // Store as integer grams
                 isActive: true
             };
 
@@ -248,7 +256,7 @@ export default function NewProductPage() {
                                                 <input
                                                     type="number"
                                                     placeholder="Qty"
-                                                    value={item.stock}
+                                                    value={item.stock || ''}
                                                     min="0"
                                                     onChange={(e) => {
                                                         const newSizes = [...sizes];
@@ -274,6 +282,36 @@ export default function NewProductPage() {
                                     Total Stock: {sizes.reduce((sum, s) => sum + s.stock, 0)}
                                 </p>
                             </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="weight" className="block text-sm font-medium text-gray-700">Product Weight *</label>
+                            <div className="mt-1 flex gap-2">
+                                <input
+                                    type="number"
+                                    name="weight_value"
+                                    id="weight"
+                                    step="0.01"
+                                    min="0"
+                                    value={weightValue}
+                                    onChange={(e) => setWeightValue(e.target.value)}
+                                    placeholder="Enter weight"
+                                    required
+                                    className="flex-1 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                />
+                                <select
+                                    name="weight_unit"
+                                    value={weightUnit}
+                                    onChange={(e) => setWeightUnit(e.target.value as 'grams' | 'kg')}
+                                    className="w-28 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                >
+                                    <option value="grams">Grams</option>
+                                    <option value="kg">Kg</option>
+                                </select>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                                {weightValue && `≈ ${weightUnit === 'kg' ? (parseFloat(weightValue) * 1000).toFixed(0) + 'g' : (parseFloat(weightValue) / 1000).toFixed(3) + 'kg'}`}
+                            </p>
                         </div>
 
                         <div>
