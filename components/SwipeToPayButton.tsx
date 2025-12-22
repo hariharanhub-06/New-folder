@@ -84,6 +84,7 @@ export default function SwipeToPayButton({ amount, onSwipeComplete, isLoading = 
             window.removeEventListener('mousemove', handleDrag as any);
             window.removeEventListener('touchmove', handleDrag as any);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isDragging]);
 
     return (

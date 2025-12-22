@@ -20,7 +20,7 @@ export default function SceneConclusion() {
                 </div>
 
                 <div className="mt-20">
-                    <p className="text-sm text-slate-500 uppercase tracking-[0.5em] animate-pulse">Startup Men's Wear</p>
+                    <p className="text-sm text-slate-500 uppercase tracking-[0.5em] animate-pulse">Startup Men&apos;s Wear</p>
                 </div>
             </div>
         </div>

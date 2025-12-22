@@ -34,7 +34,7 @@ function PaymentSuccessContent() {
         };
 
         fetchOrder();
-    }, [orderId]);
+    }, [orderId, router]);
 
     if (loading) {
         return (
