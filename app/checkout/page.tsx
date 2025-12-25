@@ -107,6 +107,16 @@ export default function CheckoutPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+
+        // Only allow 6 digits for zipCode
+        if (name === 'zipCode') {
+            const numericValue = value.replace(/\D/g, '');
+            if (numericValue.length <= 6) {
+                setFormData(prev => ({ ...prev, [name]: numericValue }));
+            }
+            return;
+        }
+
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -403,7 +413,17 @@ export default function CheckoutPage() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-2">Zip Code *</label>
-                                <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
+                                <input
+                                    type="text"
+                                    name="zipCode"
+                                    value={formData.zipCode}
+                                    onChange={handleInputChange}
+                                    required
+                                    maxLength={6}
+                                    pattern="\d{6}"
+                                    placeholder="6-digit Pincode"
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                                />
                             </div>
                         </div>
 
