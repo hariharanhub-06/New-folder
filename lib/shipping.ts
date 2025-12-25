@@ -11,38 +11,13 @@ export interface ShippingByPincode {
 
 // Regional pricing per KG
 const REGIONAL_RATES = {
-    tamilnadu: { rate: 40, name: 'Tamil Nadu' },
+    tamilnadu: { rate: 50, name: 'Tamil Nadu' }, // Updated from 40 to 50
     kerala: { rate: 80, name: 'Kerala' },
-    othersHigh: { rate: 90, name: 'Other States (>50)' },
-    othersLow: { rate: 200, name: 'Other States (<=50)' }
+    tier2: { rate: 90, name: 'Andhra, Karnataka, Assam, Arunachal, Bihar' },
+    others: { rate: 200, name: 'Other States' }
 };
 
-// Pincode ranges for each region
-const PINCODE_RANGES = {
-    // Tamil Nadu: 600000-643253
-    tamilnadu: [
-        { start: 600000, end: 643253 }
-    ],
-    // Pondicherry: 605001-609609
-    pondicherry: [
-        { start: 605001, end: 609609 }
-    ],
-    // Kerala: 670001-695615
-    kerala: [
-        { start: 670001, end: 695615 }
-    ],
-    // Andhra Pradesh: 500001-535594
-    andhra: [
-        { start: 500001, end: 535594 }
-    ],
-    // Karnataka: 560001-591346
-    karnataka: [
-        { start: 560001, end: 591346 }
-    ]
-};
-
-// Weight per quantity (in KG)
-const KG_PER_QUANTITY = 0.75;
+// ... existing code ...
 
 /**
  * Get region and rate based on pincode
@@ -52,33 +27,46 @@ function getRegionByPincode(pincode: string): { zone: string; rate: number } {
 
     // Validate pincode format
     if (isNaN(pin) || pincode.length !== 6) {
-        return { zone: REGIONAL_RATES.othersLow.name, rate: REGIONAL_RATES.othersLow.rate };
+        return { zone: REGIONAL_RATES.others.name, rate: REGIONAL_RATES.others.rate };
     }
 
-    // Check Tamil Nadu (Starts with 600-649)
-    if (pin >= 600000 && pin <= 649999) {
+    const prefix2 = Math.floor(pin / 10000); // First 2 digits
+    const prefix3 = Math.floor(pin / 1000);  // First 3 digits
+
+    // 1. Tamil Nadu (60-66) -> ₹50
+    if (prefix2 >= 60 && prefix2 <= 66) {
         return { zone: REGIONAL_RATES.tamilnadu.name, rate: REGIONAL_RATES.tamilnadu.rate };
     }
 
-    // Check Kerala (Starts with 670-699)
-    if (pin >= 670000 && pin <= 699999) {
+    // 2. Kerala (67-69) -> ₹80
+    if (prefix2 >= 67 && prefix2 <= 69) {
         return { zone: REGIONAL_RATES.kerala.name, rate: REGIONAL_RATES.kerala.rate };
     }
 
-    // Others based on first two digits
-    const prefix = Math.floor(pin / 10000);
-    const firstDigit = Math.floor(pin / 100000);
-
-    // East and North-East (Pincode starts with 7 or 8) -> ₹200
-    if (firstDigit === 7 || firstDigit === 8) {
-        return { zone: 'East/North-East', rate: REGIONAL_RATES.othersLow.rate };
+    // 3. Tier 2 (Andhra, Karnataka, Assam, Arunachal, Bihar) -> ₹90
+    // Andhra: 51-53
+    if (prefix2 >= 51 && prefix2 <= 53) {
+        return { zone: 'Andhra Pradesh', rate: REGIONAL_RATES.tier2.rate };
+    }
+    // Karnataka: 56-59
+    if (prefix2 >= 56 && prefix2 <= 59) {
+        return { zone: 'Karnataka', rate: REGIONAL_RATES.tier2.rate };
+    }
+    // Assam: 78
+    if (prefix2 === 78) {
+        return { zone: 'Assam', rate: REGIONAL_RATES.tier2.rate };
+    }
+    // Bihar: 80-82
+    if (prefix2 >= 80 && prefix2 <= 82) {
+        return { zone: 'Bihar', rate: REGIONAL_RATES.tier2.rate };
+    }
+    // Arunachal Pradesh: 790-792
+    if (prefix3 >= 790 && prefix3 <= 792) {
+        return { zone: 'Arunachal Pradesh', rate: REGIONAL_RATES.tier2.rate };
     }
 
-    if (prefix > 50) {
-        return { zone: REGIONAL_RATES.othersHigh.name, rate: REGIONAL_RATES.othersHigh.rate };
-    } else {
-        return { zone: REGIONAL_RATES.othersLow.name, rate: REGIONAL_RATES.othersLow.rate };
-    }
+    // 4. All others -> ₹200
+    return { zone: REGIONAL_RATES.others.name, rate: REGIONAL_RATES.others.rate };
 }
 
 /**
