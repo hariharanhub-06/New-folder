@@ -41,11 +41,8 @@ export async function POST(request: Request) {
         const totalWeight = calculateTotalWeight(weightedItems);
         const shippingCost = calculateShipping(totalWeight, address.country, address.zipCode);
 
-        // 3. Calculate Gateway Fee (6%)
-        const preFeeTotal = subtotal + shippingCost;
-        const gatewayFee = preFeeTotal * 0.025;
-
-        const grandTotal = preFeeTotal + gatewayFee;
+        // 3. Calculate Grand Total
+        const grandTotal = subtotal + shippingCost;
 
         // 4. Create Razorpay Order
         const options = {
@@ -56,7 +53,7 @@ export async function POST(request: Request) {
                 customer_name: customerName,
                 customer_email: customerEmail,
                 shipping_cost: shippingCost,
-                gateway_fee: gatewayFee
+                gateway_fee: 0
             }
         };
 
@@ -72,7 +69,7 @@ export async function POST(request: Request) {
             // Return these so frontend can verify/display if needed
             verifiedAmount: grandTotal,
             shippingCost: shippingCost,
-            gatewayFee: gatewayFee
+            gatewayFee: 0
         });
 
     } catch (error: any) {

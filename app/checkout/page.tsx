@@ -242,8 +242,7 @@ export default function CheckoutPage() {
     };
 
     const finalSubtotal = discountResult?.discountedTotal || total;
-    const paymentGatewayFee = (finalSubtotal + shippingCost) * 0.025;
-    const grandTotal = finalSubtotal + shippingCost + paymentGatewayFee;
+    const grandTotal = finalSubtotal + shippingCost;
 
     if (items.length === 0) {
         return (
@@ -337,7 +336,7 @@ export default function CheckoutPage() {
                         )}
                         <div className="flex justify-between items-center text-slate-600">
                             <span>Shipping</span>
-                            <span>₹{(shippingCost + paymentGatewayFee).toFixed(2)}</span>
+                            <span>₹{shippingCost.toFixed(2)}</span>
                         </div>
                         <p className="text-xs text-amber-600 italic flex items-center gap-1">
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
