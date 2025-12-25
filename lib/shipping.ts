@@ -12,11 +12,9 @@ export interface ShippingByPincode {
 // Regional pricing per KG
 const REGIONAL_RATES = {
     tamilnadu: { rate: 40, name: 'Tamil Nadu' },
-    pondicherry: { rate: 40, name: 'Pondicherry' },
-    kerala: { rate: 70, name: 'Kerala' },
-    andhra: { rate: 70, name: 'Andhra Pradesh' },
-    karnataka: { rate: 80, name: 'Karnataka' },
-    others: { rate: 200, name: 'Other State' }
+    kerala: { rate: 80, name: 'Kerala' },
+    othersHigh: { rate: 90, name: 'Other States (>50)' },
+    othersLow: { rate: 200, name: 'Other States (<=50)' }
 };
 
 // Pincode ranges for each region
@@ -54,46 +52,26 @@ function getRegionByPincode(pincode: string): { zone: string; rate: number } {
 
     // Validate pincode format
     if (isNaN(pin) || pincode.length !== 6) {
-        return { zone: REGIONAL_RATES.others.name, rate: REGIONAL_RATES.others.rate };
+        return { zone: REGIONAL_RATES.othersLow.name, rate: REGIONAL_RATES.othersLow.rate };
     }
 
-    // Check Tamil Nadu
-    for (const range of PINCODE_RANGES.tamilnadu) {
-        if (pin >= range.start && pin <= range.end) {
-            return { zone: REGIONAL_RATES.tamilnadu.name, rate: REGIONAL_RATES.tamilnadu.rate };
-        }
+    // Check Tamil Nadu (Starts with 600-649)
+    if (pin >= 600000 && pin <= 649999) {
+        return { zone: REGIONAL_RATES.tamilnadu.name, rate: REGIONAL_RATES.tamilnadu.rate };
     }
 
-    // Check Pondicherry
-    for (const range of PINCODE_RANGES.pondicherry) {
-        if (pin >= range.start && pin <= range.end) {
-            return { zone: REGIONAL_RATES.pondicherry.name, rate: REGIONAL_RATES.pondicherry.rate };
-        }
+    // Check Kerala (Starts with 670-699)
+    if (pin >= 670000 && pin <= 699999) {
+        return { zone: REGIONAL_RATES.kerala.name, rate: REGIONAL_RATES.kerala.rate };
     }
 
-    // Check Kerala
-    for (const range of PINCODE_RANGES.kerala) {
-        if (pin >= range.start && pin <= range.end) {
-            return { zone: REGIONAL_RATES.kerala.name, rate: REGIONAL_RATES.kerala.rate };
-        }
+    // Others based on first two digits
+    const prefix = Math.floor(pin / 10000);
+    if (prefix > 50) {
+        return { zone: REGIONAL_RATES.othersHigh.name, rate: REGIONAL_RATES.othersHigh.rate };
+    } else {
+        return { zone: REGIONAL_RATES.othersLow.name, rate: REGIONAL_RATES.othersLow.rate };
     }
-
-    // Check Andhra Pradesh
-    for (const range of PINCODE_RANGES.andhra) {
-        if (pin >= range.start && pin <= range.end) {
-            return { zone: REGIONAL_RATES.andhra.name, rate: REGIONAL_RATES.andhra.rate };
-        }
-    }
-
-    // Check Karnataka
-    for (const range of PINCODE_RANGES.karnataka) {
-        if (pin >= range.start && pin <= range.end) {
-            return { zone: REGIONAL_RATES.karnataka.name, rate: REGIONAL_RATES.karnataka.rate };
-        }
-    }
-
-    // Default to other states
-    return { zone: REGIONAL_RATES.others.name, rate: REGIONAL_RATES.others.rate };
 }
 
 /**
@@ -106,19 +84,19 @@ export function calculateShippingByPincode(totalWeightInKg: number, pincode: str
     // Actual weight is passed directly
     const actualWeight = totalWeightInKg;
 
-    // Calculate billable weight (rounded up to nearest KG)
-    const billableWeight = Math.ceil(actualWeight);
+    // Calculate billable units (rounded up based on 1.1 KG per unit)
+    const billableWeightUnits = Math.ceil(actualWeight / 1.1);
 
     // Get region and rate
     const { zone, rate } = getRegionByPincode(pincode);
 
     // Calculate total charges
-    const totalCharges = billableWeight * rate;
+    const totalCharges = billableWeightUnits * rate;
 
     return {
         zone,
         actualWeight,
-        billableWeight,
+        billableWeight: billableWeightUnits,
         ratePerKg: rate,
         totalCharges
     };
@@ -146,9 +124,9 @@ export function calculateShipping(weight: number, country?: string, pincode?: st
     }
 
     // Fallback to simple weight-based calculation
-    const billableWeight = Math.ceil(weight);
-    if (billableWeight <= 1) return 40; // Default to TN rate for 1kg
-    return billableWeight * 40; // Default to TN rate per kg
+    const billableUnits = Math.ceil(weight / 1.1);
+    if (billableUnits <= 1) return 40; // Default to TN rate for 1 unit
+    return billableUnits * 40; // Default to TN rate per unit
 }
 
 /**

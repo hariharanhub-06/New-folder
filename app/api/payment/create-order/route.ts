@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
         // 3. Calculate Gateway Fee (6%)
         const preFeeTotal = subtotal + shippingCost;
-        const gatewayFee = preFeeTotal * 0.06;
+        const gatewayFee = preFeeTotal * 0.025;
 
         const grandTotal = preFeeTotal + gatewayFee;
 

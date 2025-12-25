@@ -242,7 +242,7 @@ export default function CheckoutPage() {
     };
 
     const finalSubtotal = discountResult?.discountedTotal || total;
-    const paymentGatewayFee = (finalSubtotal + shippingCost) * 0.06;
+    const paymentGatewayFee = (finalSubtotal + shippingCost) * 0.025;
     const grandTotal = finalSubtotal + shippingCost + paymentGatewayFee;
 
     if (items.length === 0) {
