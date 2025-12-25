@@ -108,11 +108,38 @@ export default function CheckoutPage() {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
 
+        // Only allow numeric input and limit to 10 digits for mobile
+        if (name === 'mobile') {
+            const numericValue = value.replace(/\D/g, '');
+            if (numericValue.length <= 10) {
+                setFormData(prev => ({ ...prev, [name]: numericValue }));
+            }
+            return;
+        }
+
         // Only allow 6 digits for zipCode
         if (name === 'zipCode') {
             const numericValue = value.replace(/\D/g, '');
             if (numericValue.length <= 6) {
                 setFormData(prev => ({ ...prev, [name]: numericValue }));
+
+                // Auto-fill address detail when zipCode is 6 digits
+                if (numericValue.length === 6) {
+                    fetch(`https://api.postalpincode.in/pincode/${numericValue}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data[0] && data[0].Status === "Success") {
+                                const postOffice = data[0].PostOffice[0];
+                                setFormData(prev => ({
+                                    ...prev,
+                                    city: postOffice.District,
+                                    state: postOffice.State,
+                                    country: 'India'
+                                }));
+                            }
+                        })
+                        .catch(err => console.error('Pincode fetch failed:', err));
+                }
             }
             return;
         }
@@ -246,7 +273,7 @@ export default function CheckoutPage() {
     };
 
     const isFormValid = () => {
-        return formData.name && formData.email && formData.mobile &&
+        return formData.name && formData.email && formData.mobile && formData.mobile.length === 10 &&
             formData.street && formData.city && formData.state &&
             formData.zipCode && formData.zipCode.length === 6;
     };
@@ -387,30 +414,12 @@ export default function CheckoutPage() {
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Full Address *</label>
                             <input type="text" name="street" value={formData.street} onChange={handleInputChange} required placeholder="Street Address, Apt, etc." className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
+                            <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed italic">
+                                Please provide your complete and accurate address. This is the final delivery location for your parcel; modifications cannot be made once the order is placed.
+                            </p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">City *</label>
-                                <input type="text" name="city" value={formData.city} onChange={handleInputChange} required className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">State *</label>
-                                <input type="text" name="state" value={formData.state} onChange={handleInputChange} required className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Country *</label>
-                                <select name="country" value={formData.country} onChange={handleInputChange} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500">
-                                    <option value="India">India</option>
-                                    <option value="United States">United States</option>
-                                    <option value="United Kingdom">United Kingdom</option>
-                                    <option value="Canada">Canada</option>
-                                    <option value="Australia">Australia</option>
-                                </select>
-                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-2">Zip Code *</label>
                                 <input
@@ -424,6 +433,27 @@ export default function CheckoutPage() {
                                     placeholder="6-digit Pincode"
                                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">City *</label>
+                                <input type="text" name="city" value={formData.city} onChange={handleInputChange} required className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">State *</label>
+                                <input type="text" name="state" value={formData.state} onChange={handleInputChange} required className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Country *</label>
+                                <select name="country" value={formData.country} onChange={handleInputChange} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500">
+                                    <option value="India">India</option>
+                                    <option value="United States">United States</option>
+                                    <option value="United Kingdom">United Kingdom</option>
+                                    <option value="Canada">Canada</option>
+                                    <option value="Australia">Australia</option>
+                                </select>
                             </div>
                         </div>
 
