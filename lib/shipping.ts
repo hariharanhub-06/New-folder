@@ -67,6 +67,13 @@ function getRegionByPincode(pincode: string): { zone: string; rate: number } {
 
     // Others based on first two digits
     const prefix = Math.floor(pin / 10000);
+    const firstDigit = Math.floor(pin / 100000);
+
+    // East and North-East (Pincode starts with 7 or 8) -> ₹200
+    if (firstDigit === 7 || firstDigit === 8) {
+        return { zone: 'East/North-East', rate: REGIONAL_RATES.othersLow.rate };
+    }
+
     if (prefix > 50) {
         return { zone: REGIONAL_RATES.othersHigh.name, rate: REGIONAL_RATES.othersHigh.rate };
     } else {
