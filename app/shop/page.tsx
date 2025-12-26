@@ -46,6 +46,8 @@ export default function ShopPage() {
                     getProductsPaginated({ ...queryFilters, isOffer: true })
                 ]);
 
+                console.log('Offer products fetched:', offerRes.data.length, offerRes.data.map(p => p.name));
+
                 setProducts(regularRes.data);
                 setOfferProducts(offerRes.data);
                 setPagination(regularRes.pagination);

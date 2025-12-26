@@ -71,6 +71,54 @@ export default function ShopProductList({
         return <Tag className="w-4 h-4" />;
     };
 
+    // Dynamic grid: first row gets min 5 items, then second row, max 10 visible
+    const getOfferGridLayout = () => {
+        const count = offerProducts.length;
+        if (count === 0) return null;
+
+        // Show max 10 products, rest in overflow
+        const visibleProducts = offerProducts.slice(0, 10);
+
+        // If 5 or fewer, single row
+        if (count <= 5) {
+            return (
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 pb-1">
+                    {visibleProducts.map((product) => (
+                        <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                            <ProductCard product={product} onSelect={setSelectedProduct} />
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        // More than 5: split into 2 rows
+        const firstRowCount = Math.max(5, Math.ceil(count / 2));
+        const firstRow = visibleProducts.slice(0, firstRowCount);
+        const secondRow = visibleProducts.slice(firstRowCount);
+
+        return (
+            <div className="space-y-2">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">
+                    {firstRow.map((product) => (
+                        <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                            <ProductCard product={product} onSelect={setSelectedProduct} />
+                        </div>
+                    ))}
+                </div>
+                {secondRow.length > 0 && (
+                    <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">
+                        {secondRow.map((product) => (
+                            <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                                <ProductCard product={product} onSelect={setSelectedProduct} />
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <h1 className="text-2xl font-bold text-slate-900 mb-6">Our Collection</h1>
@@ -85,7 +133,7 @@ export default function ShopProductList({
                 {/* Main Content */}
                 <div className="flex-1 min-w-0">
 
-                    {/* Offer Section - 50% smaller */}
+                    {/* Offer Section - Dynamic Layout */}
                     {!loading && offerProducts.length > 0 && (
                         <div className="mb-4 relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-600 via-red-600 to-pink-600 p-3 shadow-xl">
                             <div className="absolute inset-0 opacity-20">
@@ -102,29 +150,20 @@ export default function ShopProductList({
                                         <Sparkles className="w-4 h-4 text-white" />
                                     </div>
                                     <h2 className="text-lg font-bold text-white tracking-tight drop-shadow-lg">
-                                        Exclusive Offers
+                                        Exclusive Offers {offerProducts.length > 0 && `(${offerProducts.length})`}
                                     </h2>
                                 </div>
 
-                                {/* 2-Row Horizontal Scroll Grid - smaller cards */}
+                                {/* Dynamic Grid Layout */}
                                 <div
                                     ref={offerScrollRef}
-                                    className="overflow-x-scroll overflow-y-hidden scrollbar-hide -mx-1 px-1"
+                                    className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-1 px-1"
                                     style={{
                                         overscrollBehaviorX: 'contain',
                                         WebkitOverflowScrolling: 'touch'
                                     }}
                                 >
-                                    <div className="grid grid-rows-2 grid-flow-col auto-cols-[150px] gap-2 pb-1">
-                                        {offerProducts.map((product) => (
-                                            <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                                                <ProductCard
-                                                    product={product}
-                                                    onSelect={setSelectedProduct}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
+                                    {getOfferGridLayout()}
                                 </div>
                             </div>
                         </div>

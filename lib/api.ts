@@ -40,8 +40,12 @@ export async function getProductsPaginated(filters: ProductFilters): Promise<Pag
     if (filters.sort) params.append('sort', filters.sort);
     if (filters.search) params.append('search', filters.search);
     if (filters.includeInactive) params.append('admin', 'true');
+    if (filters.isOffer !== undefined) params.append('isOffer', filters.isOffer.toString());
 
-    const response = await fetch(`${API_ENDPOINTS.products}?${params.toString()}`);
+    const response = await fetch(`${API_ENDPOINTS.products}?${params.toString()}`, {
+        cache: 'no-store' // Prevent caching
+    });
+
     if (!response.ok) throw new Error('Failed to fetch products');
     return response.json();
 }
