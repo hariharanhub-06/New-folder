@@ -36,16 +36,12 @@ export default function ShopProductList({
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Determine if we are in "Search/Filter Mode" or "Browse Mode"
-    const isFiltered = filters.search || filters.category || filters.minPrice || filters.maxPrice || filters.sort !== 'newest' || filters.includeInactive;
-
-    // Group products by category for Browse Mode (if not filtered)
-    const groupedProducts = !isFiltered && categories.length > 0
-        ? categories.map(category => ({
-            category,
-            items: products.filter(p => p.category === category)
-        })).filter(group => group.items.length > 0)
-        : [];
+    // Always group products by category for the Netflix-style layout
+    // Even when filtered, we show the matching products in their category rows
+    const groupedProducts = categories.map(category => ({
+        category,
+        items: products.filter(p => p.category === category)
+    })).filter(group => group.items.length > 0);
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -57,106 +53,32 @@ export default function ShopProductList({
                 onFilterChange={onFilterChange}
             />
 
-            {/* BROWSE MODE: Grouped Categories (Netflix Style) */}
-            {!isFiltered && !loading && (
+            {loading ? (
                 <div className="space-y-12">
-                    {groupedProducts.length > 0 ? (
-                        groupedProducts.map((group) => (
-                            <CategorySection
-                                key={group.category}
-                                title={group.category}
-                                products={group.items}
-                            />
-                        ))
-                    ) : (
-                        <div className="text-center py-12">
-                            <p className="text-slate-500">No products found.</p>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* SEARCH/FILTER MODE: Grid Layout (Existing Logic) */}
-            {(isFiltered || loading) && (
-                <>
-                    {loading ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                            {Array.from({ length: limit }).map((_, i) => (
-                                <div key={i} className="aspect-[3/4] bg-slate-100 rounded-xl animate-pulse"></div>
+                    {/* Skeleton for category sections */}
+                    <div className="space-y-4">
+                        <div className="h-8 w-48 bg-slate-100 rounded animate-pulse"></div>
+                        <div className="flex gap-4 overflow-hidden">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <div key={i} className="min-w-[200px] h-[300px] bg-slate-100 rounded-xl animate-pulse"></div>
                             ))}
                         </div>
-                    ) : products.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-slate-500">No products found. Try adjusting your filters!</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                                {products.map((product) => (
-                                    <ProductCard
-                                        key={product.id}
-                                        product={product}
-                                        onSelect={setSelectedProduct}
-                                    />
-                                ))}
-                            </div>
-
-                            {/* Pagination (Only in Search Mode) */}
-                            {totalPages > 1 && (
-                                <div className="flex items-center justify-center gap-2 mt-12">
-                                    <button
-                                        onClick={() => handlePageChange(page - 1)}
-                                        disabled={page === 1 || loading}
-                                        className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
-
-                                    <div className="flex items-center gap-1">
-                                        {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                                            let pageNum;
-                                            if (totalPages <= 7) {
-                                                pageNum = i + 1;
-                                            } else if (page <= 4) {
-                                                pageNum = i + 1;
-                                            } else if (page >= totalPages - 3) {
-                                                pageNum = totalPages - 6 + i;
-                                            } else {
-                                                pageNum = page - 3 + i;
-                                            }
-
-                                            return (
-                                                <button
-                                                    key={pageNum}
-                                                    onClick={() => handlePageChange(pageNum)}
-                                                    disabled={loading}
-                                                    className={`px-4 py-2 rounded-lg font-medium transition-all ${page === pageNum
-                                                        ? 'bg-indigo-600 text-white shadow-md'
-                                                        : 'border border-slate-300 hover:bg-slate-50'
-                                                        } disabled:opacity-50`}
-                                                >
-                                                    {pageNum}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
-                                    <button
-                                        onClick={() => handlePageChange(page + 1)}
-                                        disabled={page === totalPages || loading}
-                                        className="p-2 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            )}
-
-                            <p className="text-center text-sm text-slate-500 mt-4">
-                                Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, total)} of {total} products
-                            </p>
-                        </>
-                    )}
-                </>
+                    </div>
+                </div>
+            ) : groupedProducts.length === 0 ? (
+                <div className="text-center py-12">
+                    <p className="text-slate-500">No products found. Try adjusting your filters!</p>
+                </div>
+            ) : (
+                <div className="space-y-12">
+                    {groupedProducts.map((group) => (
+                        <CategorySection
+                            key={group.category}
+                            title={group.category}
+                            products={group.items}
+                        />
+                    ))}
+                </div>
             )}
 
             {/* Product Detail Modal */}

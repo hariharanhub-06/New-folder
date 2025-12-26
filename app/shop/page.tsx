@@ -33,14 +33,11 @@ export default function ShopPage() {
         async function loadProducts() {
             setLoading(true);
             try {
-                // Determine if we are in "Search/Filter Mode" or "Browse Mode"
-                const isFiltered = filters.search || filters.category || filters.minPrice || filters.maxPrice || filters.sort !== 'newest' || filters.includeInactive;
-
-                // If browsing (no filters), fetch ALL products (high limit) for the category rows
-                // If filtering, use standard pagination
+                // Fetch ALL products (limit 2000) to ensure Category Sections are populated
+                // Pagination is effectively disabled for the user view
                 const queryFilters = {
                     ...filters,
-                    limit: isFiltered ? ITEMS_PER_PAGE : 2000 // High limit to get all for categories
+                    limit: 2000
                 };
 
                 const response = await getProductsPaginated(queryFilters);
