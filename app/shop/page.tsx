@@ -9,6 +9,7 @@ const ITEMS_PER_PAGE = 12;
 
 export default function ShopPage() {
     const [products, setProducts] = useState<Product[]>([]);
+    const [offerProducts, setOfferProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<ProductFilters>({
@@ -33,16 +34,21 @@ export default function ShopPage() {
         async function loadProducts() {
             setLoading(true);
             try {
-                // Fetch ALL products (limit 2000) to ensure Category Sections are populated
-                // Pagination is effectively disabled for the user view
+                // Fetch Regular Products (isOffer: false) AND Offer Products (isOffer: true)
+                // Both respect current filters (category, price, search)
                 const queryFilters = {
                     ...filters,
                     limit: 2000
                 };
 
-                const response = await getProductsPaginated(queryFilters);
-                setProducts(response.data);
-                setPagination(response.pagination);
+                const [regularRes, offerRes] = await Promise.all([
+                    getProductsPaginated({ ...queryFilters, isOffer: false }),
+                    getProductsPaginated({ ...queryFilters, isOffer: true })
+                ]);
+
+                setProducts(regularRes.data);
+                setOfferProducts(offerRes.data);
+                setPagination(regularRes.pagination);
             } catch (error) {
                 console.error('Failed to load products:', error);
             } finally {
@@ -65,6 +71,7 @@ export default function ShopPage() {
     return (
         <ShopProductList
             products={products}
+            offerProducts={offerProducts}
             categories={categories}
             pagination={pagination}
             filters={filters}

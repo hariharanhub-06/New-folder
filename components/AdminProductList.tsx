@@ -5,6 +5,7 @@ import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '@/lib/types';
 import DeleteProductButton from '@/components/DeleteProductButton';
 import ToggleStatusButton from '@/components/ToggleStatusButton';
+import ToggleOfferButton from '@/components/ToggleOfferButton';
 import AdminProductFilter from '@/components/AdminProductFilter';
 import { useState, useMemo, useTransition, useCallback } from 'react';
 
@@ -101,6 +102,19 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                                             }`}>
                                             {product.isActive ? 'Active' : 'Inactive'}
                                         </span>
+                                        <div className="inline-block flex-shrink-0 ml-2 align-middle">
+                                            <ToggleOfferButton
+                                                id={product.id}
+                                                isOffer={product.isOffer || false}
+                                                onToggle={() => {
+                                                    setDisplayProducts(current =>
+                                                        current.map(p =>
+                                                            p.id === product.id ? { ...p, isOffer: !p.isOffer } : p
+                                                        )
+                                                    );
+                                                }}
+                                            />
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end space-x-2">
                                         <Link href={`/admin/products/${product.id}/edit`} className="text-indigo-600 hover:text-indigo-900 p-2 hover:bg-indigo-50 rounded-full transition-all active:scale-90">

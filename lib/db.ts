@@ -80,6 +80,7 @@ export async function getProduct(id: string): Promise<Product | null> {
         // Fix: Check if images is already parsed (JSONB) or string (TEXT)
         images: typeof row.images === 'string' ? JSON.parse(row.images) : (row.images || []),
         isActive: row.is_active,
+        isOffer: row.is_offer,
         size: row.size,
         sizes: sizeRes.rows.map(r => ({ size: r.size, stock: r.stock, id: r.id })), // Map DB rows to Size objects
         weight: row.weight || 750,  // Default to 750 grams if not set
@@ -99,13 +100,14 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         maxPrice,
         sort = 'newest',
         search,
-        includeInactive = false
+        includeInactive = false,
+        isOffer
     } = filters;
 
     const offset = (page - 1) * limit;
     const params: any[] = [];
     // Optimize: Exclude 'images' column (huge JSON) from list view to prevent RSC payload crash
-    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, size, weight, created_at, updated_at FROM products WHERE 1=1';
+    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, is_offer, size, weight, created_at, updated_at FROM products WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM products WHERE 1=1';
 
     // 1. Build Filters
@@ -136,6 +138,12 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         params.push(`%${search}%`);
         query += ` AND (name ILIKE $${params.length} OR description ILIKE $${params.length})`;
         countQuery += ` AND (name ILIKE $${params.length} OR description ILIKE $${params.length})`;
+    }
+
+    if (isOffer !== undefined) {
+        params.push(isOffer);
+        query += ` AND is_offer = $${params.length}`;
+        countQuery += ` AND is_offer = $${params.length}`;
     }
 
     // 2. Sorting
@@ -232,6 +240,7 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
             imageUrl: row.image_url,
             images: row.images ? JSON.parse(row.images) : [],
             isActive: row.is_active,
+            isOffer: row.is_offer,
             size: row.size,
             sizes: sizesMap.get(row.id) || [],
             weight: row.weight || 750,  // Default to 750 grams if not set
@@ -278,8 +287,8 @@ export async function saveProduct(product: Product) {
             await client.query(`
                 UPDATE products 
                 SET name = $1, description = $2, price = $3, category = $4, 
-                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, weight = $10, updated_at = CURRENT_TIMESTAMP
-                WHERE id = $11
+                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, weight = $10, is_offer = $11, updated_at = CURRENT_TIMESTAMP
+                WHERE id = $12
             `, [
                 product.name,
                 product.description,
@@ -291,13 +300,13 @@ export async function saveProduct(product: Product) {
                 product.size,
                 product.isActive,
                 product.weight || 750,
+                product.isOffer || false,
                 finalId
             ]);
         } else {
-            // Insert Product
             await client.query(`
-                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size, weight)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size, weight, is_offer)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             `, [
                 finalId, // Use finalId
                 product.name,
@@ -309,7 +318,8 @@ export async function saveProduct(product: Product) {
                 JSON.stringify(product.images || []),
                 product.isActive,
                 product.size,
-                product.weight || 750
+                product.weight || 750,
+                product.isOffer || false
             ]);
         }
 
@@ -471,5 +481,17 @@ export async function createInitialAdmin() {
 export async function getUniqueCategories(): Promise<string[]> {
     const res = await pool.query('SELECT DISTINCT category FROM products WHERE is_active = true AND category IS NOT NULL AND category != \'\' ORDER BY category');
     return res.rows.map(r => r.category);
+}
+
+export async function toggleProductOffer(id: string) {
+    const product = await getProduct(id);
+    if (product) {
+        await pool.query('UPDATE products SET is_offer = $1 WHERE id = $2', [
+            !product.isOffer,
+            id
+        ]);
+        return { success: true };
+    }
+    return { success: false };
 }
 

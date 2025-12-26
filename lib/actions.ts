@@ -6,6 +6,7 @@ import {
     saveProduct,
     deleteProduct,
     toggleProductStatus as toggleStatusDb,
+    toggleProductOffer as toggleOfferDb,
     updateOrderStatus as updateOrderStatusDb,
     getProduct,
     createDiscount,
@@ -244,4 +245,10 @@ export async function deleteCategory(categoryToDelete: string) {
         console.error("Failed to delete category:", error);
         throw new Error("Failed to delete category");
     }
+}
+
+export async function toggleProductOffer(id: string) {
+    await toggleOfferDb(id);
+    revalidatePath("/admin/products");
+    revalidatePath("/shop");
 }

@@ -14,6 +14,7 @@ export interface Product {
     imageUrl: string;
     images?: string[];
     isActive: boolean;
+    isOffer?: boolean; // If true, product is highlighted and removed from normal category
     size?: string;
     sizes?: ProductSize[];
     weight?: number;              // Weight in grams
@@ -99,4 +100,5 @@ export interface ProductFilters {
     sort?: 'newest' | 'price_asc' | 'price_desc' | 'name_asc';
     search?: string;
     includeInactive?: boolean;
+    isOffer?: boolean; // Filter by offer status
 }
