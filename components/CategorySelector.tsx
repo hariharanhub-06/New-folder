@@ -31,7 +31,7 @@ export default function CategorySelector({ currentCategory, onCategoryChange }: 
                 // No, better to wait for list load.
             }
         }
-    }, []);
+    }, [availableCategories, currentCategory]);
 
     const fetchCategories = useCallback(async () => {
         setLoading(true);

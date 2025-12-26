@@ -353,7 +353,7 @@ export default function NewProductPage() {
                                     />
                                     <div className="flex flex-col">
                                         <span className="text-sm font-bold text-gray-900">Mark as Hot Offer</span>
-                                        <span className="text-[10px] text-gray-500">Shows in "Best Offers" tab & includes sale badge</span>
+                                        <span className="text-[10px] text-gray-500">Shows in &quot;Best Offers&quot; tab &amp; includes sale badge</span>
                                     </div>
                                 </label>
 
@@ -366,7 +366,7 @@ export default function NewProductPage() {
                                     />
                                     <div className="flex flex-col">
                                         <span className="text-sm font-bold text-gray-900">Trending Now</span>
-                                        <span className="text-[10px] text-gray-500">Flags the product for the "Trending" collection</span>
+                                        <span className="text-[10px] text-gray-500">Flags the product for the &quot;Trending&quot; collection</span>
                                     </div>
                                 </label>
 
@@ -379,7 +379,7 @@ export default function NewProductPage() {
                                     />
                                     <div className="flex flex-col">
                                         <span className="text-sm font-bold text-gray-900">New Arrival</span>
-                                        <span className="text-[10px] text-gray-500">Always show in "New Arrivals" regardless of date</span>
+                                        <span className="text-[10px] text-gray-500">Always show in &quot;New Arrivals&quot; regardless of date</span>
                                     </div>
                                 </label>
                             </div>

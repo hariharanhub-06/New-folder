@@ -153,7 +153,7 @@ export default function SettingsForm() {
                                     className="w-full bg-gray-50 border-2 border-black/10 px-4 py-3 text-sm font-medium outline-none focus:border-black transition-colors"
                                     placeholder="https://google.com/maps/embed/..."
                                 />
-                                <p className="text-[10px] text-gray-400 mt-2">Go to Google Maps &gt; Share &gt; Embed a map &gt; Copy the 'src' attribute.</p>
+                                <p className="text-[10px] text-gray-400 mt-2">Go to Google Maps &gt; Share &gt; Embed a map &gt; Copy the &apos;src&apos; attribute.</p>
                             </div>
                             <div>
                                 <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Store Address</label>

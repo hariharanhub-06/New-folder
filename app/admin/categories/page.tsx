@@ -134,7 +134,7 @@ export default function AdminCategories() {
                                     <Loader2 className="w-8 h-8 animate-spin text-brand-red" />
                                 ) : editForm.image_url ? (
                                     <>
-                                        <img src={editForm.image_url} className="w-full h-full object-cover" />
+                                        <img src={editForm.image_url} alt={editForm.name || "Category Preview"} className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <p className="text-[10px] text-white font-bold uppercase">Change Image</p>
                                         </div>
@@ -177,7 +177,7 @@ export default function AdminCategories() {
                     <div key={cat.id} className="bg-white border-2 border-black p-4 flex flex-col group hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] transition-all">
                         <div className="aspect-[3/4] bg-gray-100 relative mb-4 overflow-hidden border-2 border-black">
                             {cat.image_url ? (
-                                <img src={cat.image_url} className="w-full h-full object-cover" />
+                                <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
                                     <ImageIcon className="w-12 h-12" />
