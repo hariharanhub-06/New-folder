@@ -3,7 +3,7 @@
 import { Product } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
 import Image from 'next/image';
-import { ShoppingBag, Plus, Package, Share2 } from 'lucide-react';
+import { ShoppingBag, Search, Plus } from 'lucide-react';
 import { memo } from 'react';
 
 interface ProductCardProps {
@@ -11,164 +11,95 @@ interface ProductCardProps {
     onSelect?: (product: Product) => void;
 }
 
-// Memoize to prevent unnecessary re-renders
 const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCardProps) {
     const { addToCart, items } = useCart();
 
-    // Check if product has size variants
     const hasSizes = product.sizes && product.sizes.length > 0;
-
-    // Get current quantity in cart for this product (all sizes combined if has sizes)
     const cartItems = items.filter(item => item.id === product.id);
     const quantityInCart = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const canAddMore = quantityInCart < product.stock;
     const isOutOfStock = product.stock === 0;
 
     const handleAddToCart = (e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent opening modal
-
-        // If product has sizes, open the modal to select size
+        e.stopPropagation();
         if (hasSizes) {
             onSelect?.(product);
-        } else {
-            // For products without sizes, add directly
-            if (canAddMore) {
-                addToCart(product);
-            }
+        } else if (canAddMore) {
+            addToCart(product);
         }
-    };
-
-    const handleShare = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        const url = `${window.location.origin}/product/${product.id}`;
-        navigator.clipboard.writeText(url).then(() => {
-            alert('Link copied to clipboard!');
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
-        });
     };
 
     return (
         <div
-            onClick={(e) => {
-                if (onSelect) {
-                    onSelect(product);
-                }
-            }}
-            className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-slate-100 cursor-pointer active:scale-[0.99] relative h-full flex flex-col"
+            onClick={() => onSelect?.(product)}
+            className="group bg-white rounded-sm overflow-hidden border border-gray-100 cursor-pointer active:scale-[0.98] transition-all flex flex-col h-full font-jost"
         >
-            <div className="relative h-40 w-full overflow-hidden bg-gray-100">
+            {/* Image Section */}
+            <div className="relative aspect-[3/4] w-full bg-[#f9f9f9] overflow-hidden">
                 <Image
-                    src={product.imageUrl}
+                    src={product.imageUrl || "https://images.unsplash.com/photo-1552066344-24632e509613?q=80&w=1000&auto=format&fit=crop"}
                     alt={product.name}
                     fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                    loading="lazy"
-                    quality={75}
-                    placeholder="blur"
-                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=="
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    unoptimized={!!product.imageUrl?.startsWith('http')}
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
 
-                {/* Share Button */}
-                <button
-                    onClick={handleShare}
-                    className="absolute top-2 right-2 z-20 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm text-slate-600 hover:text-indigo-600 hover:bg-white transition-all active:scale-95"
-                    title="Copy Link"
-                >
-                    <Share2 className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Discount Badge - Bottom Left */}
+                {/* Sale Badge (Top Left - Rectangular) */}
                 {product.activeDiscount && (
-                    <div className="absolute bottom-2 left-2 z-10">
-                        <span className={`text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 ${product.activeDiscount.discountType === 'bundle'
-                                ? 'bg-gradient-to-r from-indigo-500 to-purple-500'
-                                : 'bg-gradient-to-r from-green-500 to-emerald-500'
-                            }`}>
-                            {product.activeDiscount.discountType === 'bundle'
-                                ? `Buy ${product.activeDiscount.quantity} @ ₹${product.activeDiscount.price}`
-                                : `${product.activeDiscount.percentage}% OFF`
-                            }
+                    <div className="absolute top-3 left-0 z-10">
+                        <span className="bg-brand-red text-white text-[10px] font-bold px-3 py-1 uppercase tracking-tighter">
+                            {product.activeDiscount.percentage}% OFF
                         </span>
                     </div>
                 )}
 
-                {/* Stock Badge */}
-                <div className="absolute top-2 left-2">
+                {/* Status Badges (Top Right) */}
+                <div className="absolute top-3 right-3 z-10 flex flex-col gap-1 items-end">
                     {isOutOfStock ? (
-                        <span className="bg-red-500 text-white text-[9px] font-bold px-2 py-1 rounded">
-                            OUT OF STOCK
-                        </span>
-                    ) : product.stock <= 5 ? (
-                        <span className="bg-orange-500 text-white text-[9px] font-bold px-2 py-1 rounded flex items-center gap-1">
-                            <Package className="w-2.5 h-2.5" />
-                            {product.stock} left
-                        </span>
-                    ) : (
-                        <span className="bg-green-500 text-white text-[9px] font-bold px-2 py-1 rounded flex items-center gap-1">
-                            <Package className="w-2.5 h-2.5" />
-                            {product.stock} in stock
-                        </span>
+                        <span className="bg-black text-white text-[8px] font-bold px-2 py-0.5 uppercase">Out of Stock</span>
+                    ) : product.stock <= 5 && (
+                        <span className="bg-white text-brand-red border border-brand-red text-[8px] font-bold px-2 py-0.5 uppercase">Only {product.stock} left</span>
                     )}
                 </div>
 
-                {/* Quick Add Button */}
-                <button
-                    onClick={handleAddToCart}
-                    disabled={!canAddMore && !hasSizes}
-                    className="absolute bottom-2 right-2 bg-white text-slate-900 p-1.5 rounded-full shadow-lg translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-amber-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed active:scale-90"
-                    title={hasSizes ? 'Select size' : (!canAddMore ? (isOutOfStock ? 'Out of stock' : 'Maximum quantity in cart') : 'Add to cart')}
-                >
-                    <ShoppingBag className="w-3.5 h-3.5" />
-                </button>
-            </div>
-
-            <div className="p-2.5 flex-1 flex flex-col justify-between">
-                <div>
-                    <div className="flex justify-between items-start mb-0.5">
-                        <div className="text-[9px] font-bold text-amber-600 uppercase tracking-wider">{product.category}</div>
-                        {hasSizes ? (
-                            <span className="text-[9px] font-medium text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">
-                                {product.sizes.length} sizes
-                            </span>
-                        ) : product.size && (
-                            <span className="text-[9px] font-medium text-slate-500 bg-slate-100 px-1 py-0.5 rounded">
-                                {product.size}
-                            </span>
-                        )}
-                    </div>
-                    <h3 className="text-xs font-bold text-slate-900 mb-0.5 line-clamp-1">{product.name}</h3>
-                    <p className="text-[10px] text-slate-500 mb-1.5 line-clamp-2 leading-tight">{product.description}</p>
-                </div>
-
-                <div className="flex items-center justify-between mt-1.5">
-                    <div className="flex flex-col">
-                        {product.activeDiscount?.discountType === 'percentage' && product.activeDiscount.percentage ? (
-                            <>
-                                <span className="text-[10px] text-slate-400 line-through">₹{product.price.toFixed(2)}</span>
-                                <span className="text-sm font-bold text-green-600">
-                                    ₹{(product.price * (1 - product.activeDiscount.percentage / 100)).toFixed(2)}
-                                </span>
-                            </>
-                        ) : (
-                            <span className="text-sm font-bold text-slate-900">₹{product.price.toFixed(2)}</span>
-                        )}
-                        {quantityInCart > 0 && (
-                            <span className="text-[9px] text-amber-600 font-medium">
-                                {quantityInCart} in cart
-                            </span>
-                        )}
-                    </div>
+                {/* Quick Action Overlay (Bottom) */}
+                <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-black/5 backdrop-blur-sm opacity-0 group-hover:opacity-100 flex gap-2">
                     <button
                         onClick={handleAddToCart}
-                        disabled={!canAddMore && !hasSizes}
-                        className="bg-slate-900 text-white p-1.5 rounded-full hover:bg-amber-500 hover:text-slate-900 transition-all duration-300 shadow-md hover:shadow-amber-500/50 group disabled:opacity-50 disabled:cursor-not-allowed active:scale-90"
-                        title={hasSizes ? 'Select size' : (!canAddMore ? (isOutOfStock ? 'Out of stock' : 'Maximum quantity in cart') : 'Add to cart')}
+                        className="flex-1 bg-black text-white py-2.5 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-red transition-colors flex items-center justify-center gap-2"
                     >
-                        <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                        <Plus className="w-3 h-3" />
+                        {hasSizes ? 'Select Size' : 'Add to Cart'}
                     </button>
+                </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="p-4 flex flex-col flex-1">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1">{product.category}</div>
+                <h3 className="text-sm font-medium text-black line-clamp-2 leading-tight mb-2 group-hover:text-brand-red transition-colors">
+                    {product.name}
+                </h3>
+
+                <div className="mt-auto flex items-end justify-between">
+                    <div className="flex flex-col">
+                        {product.activeDiscount?.percentage ? (
+                            <div className="flex items-center gap-2">
+                                <span className="text-base font-bold text-brand-red">
+                                    ₹{Math.floor(product.price * (1 - product.activeDiscount.percentage / 100))}
+                                </span>
+                                <span className="text-xs text-gray-400 line-through">₹{product.price}</span>
+                            </div>
+                        ) : (
+                            <span className="text-base font-bold text-black">₹{product.price}</span>
+                        )}
+                    </div>
+                    {quantityInCart > 0 && (
+                        <div className="bg-gray-100 text-[10px] px-2 py-1 font-bold text-black border border-gray-200">
+                            IN CART: {quantityInCart}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

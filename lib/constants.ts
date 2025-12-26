@@ -1,12 +1,10 @@
 // Centralized product categories used across the application
 export const PRODUCT_CATEGORIES = [
+    'Hoodie',
+    'T-Shirt',
+    'Pant',
     'Shirt',
-    'Pants',
-    't-Shirt',
-    'Trousers',
-    'Accessories',
-    'Shoes',
-    'Caps'
+    'Accessory'
 ] as const;
 
 export type ProductCategory = typeof PRODUCT_CATEGORIES[number];

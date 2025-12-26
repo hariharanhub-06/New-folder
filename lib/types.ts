@@ -15,6 +15,8 @@ export interface Product {
     images?: string[];
     isActive: boolean;
     isOffer?: boolean; // If true, product is highlighted and removed from normal category
+    isTrending?: boolean; // If true, shown in Trending tab
+    isNewArrival?: boolean; // Manual override for New Arrivals
     size?: string;
     sizes?: ProductSize[];
     weight?: number;              // Weight in grams
@@ -101,4 +103,6 @@ export interface ProductFilters {
     search?: string;
     includeInactive?: boolean;
     isOffer?: boolean; // Filter by offer status
+    isTrending?: boolean; // Filter by trending status
+    isNewArrival?: boolean; // Filter by new arrival status
 }

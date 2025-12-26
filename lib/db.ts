@@ -81,6 +81,8 @@ export async function getProduct(id: string): Promise<Product | null> {
         images: typeof row.images === 'string' ? JSON.parse(row.images) : (row.images || []),
         isActive: row.is_active,
         isOffer: row.is_offer,
+        isTrending: row.is_trending,
+        isNewArrival: row.is_new_arrival,
         size: row.size,
         sizes: sizeRes.rows.map(r => ({ size: r.size, stock: r.stock, id: r.id })), // Map DB rows to Size objects
         weight: row.weight || 750,  // Default to 750 grams if not set
@@ -101,13 +103,15 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         sort = 'newest',
         search,
         includeInactive = false,
-        isOffer
+        isOffer,
+        isTrending,
+        isNewArrival
     } = filters;
 
     const offset = (page - 1) * limit;
     const params: any[] = [];
     // Optimize: Exclude 'images' column (huge JSON) from list view to prevent RSC payload crash
-    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, is_offer, size, weight, created_at, updated_at FROM products WHERE 1=1';
+    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, is_offer, is_trending, is_new_arrival, size, weight, created_at, updated_at FROM products WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM products WHERE 1=1';
 
     // 1. Build Filters
@@ -144,6 +148,18 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         params.push(isOffer);
         query += ` AND is_offer = $${params.length}`;
         countQuery += ` AND is_offer = $${params.length}`;
+    }
+
+    if (isTrending !== undefined) {
+        params.push(isTrending);
+        query += ` AND is_trending = $${params.length}`;
+        countQuery += ` AND is_trending = $${params.length}`;
+    }
+
+    if (isNewArrival !== undefined) {
+        params.push(isNewArrival);
+        query += ` AND is_new_arrival = $${params.length}`;
+        countQuery += ` AND is_new_arrival = $${params.length}`;
     }
 
     // 2. Sorting
@@ -241,6 +257,8 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
             images: row.images ? JSON.parse(row.images) : [],
             isActive: row.is_active,
             isOffer: row.is_offer,
+            isTrending: row.is_trending,
+            isNewArrival: row.is_new_arrival,
             size: row.size,
             sizes: sizesMap.get(row.id) || [],
             weight: row.weight || 750,  // Default to 750 grams if not set
@@ -287,8 +305,8 @@ export async function saveProduct(product: Product) {
             await client.query(`
                 UPDATE products 
                 SET name = $1, description = $2, price = $3, category = $4, 
-                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, weight = $10, is_offer = $11, updated_at = CURRENT_TIMESTAMP
-                WHERE id = $12
+                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, weight = $10, is_offer = $11, is_trending = $12, is_new_arrival = $13, updated_at = CURRENT_TIMESTAMP
+                WHERE id = $14
             `, [
                 product.name,
                 product.description,
@@ -301,14 +319,16 @@ export async function saveProduct(product: Product) {
                 product.isActive,
                 product.weight || 750,
                 product.isOffer || false,
+                product.isTrending || false,
+                product.isNewArrival || false,
                 finalId
             ]);
         } else {
             await client.query(`
-                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size, weight, is_offer)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size, weight, is_offer, is_trending, is_new_arrival)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             `, [
-                finalId, // Use finalId
+                finalId,
                 product.name,
                 product.description,
                 product.price,
@@ -319,7 +339,9 @@ export async function saveProduct(product: Product) {
                 product.isActive,
                 product.size,
                 product.weight || 750,
-                product.isOffer || false
+                product.isOffer || false,
+                product.isTrending || false,
+                product.isNewArrival || false
             ]);
         }
 
@@ -481,6 +503,50 @@ export async function createInitialAdmin() {
 export async function getUniqueCategories(): Promise<string[]> {
     const res = await pool.query('SELECT DISTINCT category FROM products WHERE is_active = true AND category IS NOT NULL AND category != \'\' ORDER BY category');
     return res.rows.map(r => r.category);
+}
+
+// Full category management
+export async function getFullCategories() {
+    const res = await pool.query('SELECT * FROM categories ORDER BY display_order ASC, name ASC');
+    return res.rows;
+}
+
+export async function upsertCategory(category: { id?: string, name: string, imageUrl?: string, displayOrder?: number, isActive?: boolean }) {
+    const id = category.id || category.name.toLowerCase().replace(/\s+/g, '-');
+    await pool.query(`
+        INSERT INTO categories (id, name, image_url, display_order, is_active)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            image_url = EXCLUDED.image_url,
+            display_order = EXCLUDED.display_order,
+            is_active = EXCLUDED.is_active
+    `, [id, category.name, category.imageUrl, category.displayOrder || 0, category.isActive !== undefined ? category.isActive : true]);
+    return { success: true, id };
+}
+
+export async function deleteCategory(id: string) {
+    await pool.query('DELETE FROM categories WHERE id = $1', [id]);
+    return { success: true };
+}
+
+// Site Settings
+export async function getSiteSettings() {
+    const res = await pool.query('SELECT * FROM site_settings');
+    const settings: Record<string, string> = {};
+    res.rows.forEach(r => settings[r.key] = r.value);
+    return settings;
+}
+
+export async function updateSiteSetting(key: string, value: string) {
+    await pool.query(`
+        INSERT INTO site_settings (key, value)
+        VALUES ($1, $2)
+        ON CONFLICT (key) DO UPDATE SET
+            value = EXCLUDED.value,
+            updated_at = CURRENT_TIMESTAMP
+    `, [key, value]);
+    return { success: true };
 }
 
 export async function toggleProductOffer(id: string) {

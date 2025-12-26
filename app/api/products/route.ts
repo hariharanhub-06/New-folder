@@ -28,6 +28,8 @@ export async function GET(request: Request) {
         const search = searchParams.get('search') || undefined;
         const isAdmin = searchParams.get('admin') === 'true';
         const isOffer = searchParams.get('isOffer') === 'true' ? true : searchParams.get('isOffer') === 'false' ? false : undefined;
+        const isTrending = searchParams.get('isTrending') === 'true' ? true : searchParams.get('isTrending') === 'false' ? false : undefined;
+        const isNewArrival = searchParams.get('isNewArrival') === 'true' ? true : searchParams.get('isNewArrival') === 'false' ? false : undefined;
 
         // Admin view might want to see inactive products and potentially a larger list, 
         // but for now we stick to the requested limit or a default higher one for admin if not specified?
@@ -43,7 +45,9 @@ export async function GET(request: Request) {
             sort,
             search,
             includeInactive: isAdmin,
-            isOffer
+            isOffer,
+            isTrending,
+            isNewArrival
         }));
 
         return NextResponse.json(result);

@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { getProductsPaginated, getCategories } from '@/lib/api';
 import ShopProductList from '@/components/ShopProductList';
 import { Product, ProductFilters, PaginatedResponse } from '@/lib/types';
+import { useSearchParams } from 'next/navigation';
 
 const ITEMS_PER_PAGE = 12;
 
-export default function ShopPage() {
+function Shop() {
+    const searchParams = useSearchParams();
     const [products, setProducts] = useState<Product[]>([]);
     const [offerProducts, setOfferProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
@@ -23,6 +25,27 @@ export default function ShopPage() {
         limit: ITEMS_PER_PAGE,
         totalPages: 0
     });
+
+    // Sync filters with URL search params
+    useEffect(() => {
+        const category = searchParams.get('category') || undefined;
+        const sort = searchParams.get('sort') || 'newest';
+        const isOffer = searchParams.get('isOffer') === 'true' ? true : undefined;
+        const isTrending = searchParams.get('isTrending') === 'true' ? true : undefined;
+        const isNewArrival = searchParams.get('isNewArrival') === 'true' ? true : undefined;
+        const search = searchParams.get('search') || undefined;
+
+        setFilters(prev => ({
+            ...prev,
+            category,
+            sort: sort as any,
+            isOffer,
+            isTrending,
+            isNewArrival,
+            search,
+            page: 1 // Reset to page 1 on param change
+        }));
+    }, [searchParams]);
 
     // Load initial categories
     useEffect(() => {
@@ -81,5 +104,13 @@ export default function ShopPage() {
             onPageChange={handlePageChange}
             onFilterChange={handleFilterChange}
         />
+    );
+}
+
+export default function ShopPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Shop...</div>}>
+            <Shop />
+        </Suspense>
     );
 }

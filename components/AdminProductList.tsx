@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { Product } from '@/lib/types';
 import DeleteProductButton from '@/components/DeleteProductButton';
 import ToggleStatusButton from '@/components/ToggleStatusButton';
@@ -47,15 +47,15 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
     }, []);
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Products</h1>
+        <div className="space-y-6 font-jost">
+            <div className="flex justify-between items-center px-2">
+                <h1 className="text-3xl font-bold text-black uppercase tracking-tighter italic">Products</h1>
                 <Link
                     href="/admin/products/new"
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 active:scale-95 transition-transform"
+                    className="inline-flex items-center px-6 py-2.5 border border-transparent shadow-sm text-xs font-bold uppercase tracking-widest text-white bg-black hover:bg-brand-red focus:outline-none active:scale-95 transition-all"
                 >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add Product
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Product
                 </Link>
             </div>
 
@@ -65,7 +65,7 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                 onFilterSort={handleFilterSort}
             />
 
-            <div className={`bg-white shadow-sm rounded-xl border border-slate-100 overflow-hidden ${isPending ? 'opacity-50' : ''}`}>
+            <div className={`bg-white border border-gray-100 overflow-hidden ${isPending ? 'opacity-50' : ''}`}>
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-200">
                         <thead className="bg-slate-50">
@@ -117,8 +117,8 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end space-x-2">
-                                        <Link href={`/admin/products/${product.id}/edit`} className="text-indigo-600 hover:text-indigo-900 p-2 hover:bg-indigo-50 rounded-full transition-all active:scale-90">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+                                        <Link href={`/admin/products/${product.id}/edit`} className="text-gray-400 hover:text-brand-red p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90" title="Edit Product">
+                                            <Pencil className="w-4.5 h-4.5" />
                                         </Link>
                                         <ToggleStatusButton
                                             id={product.id}
@@ -178,9 +178,9 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                                             key={pageNum}
                                             onClick={() => handlePageChange(pageNum)}
                                             disabled={isPending}
-                                            className={`px-3 py-1 rounded-lg font-bold text-sm transition-all focus:ring-2 focus:ring-indigo-200 ${currentPage === pageNum
-                                                ? 'bg-indigo-600 text-white shadow-md border-transparent'
-                                                : 'border border-slate-300 text-slate-600 hover:bg-white hover:border-slate-400 hover:text-indigo-600 bg-white'
+                                            className={`px-3 py-1 rounded-none font-bold text-xs transition-all ${currentPage === pageNum
+                                                ? 'bg-brand-red text-white shadow-md'
+                                                : 'border border-gray-200 text-gray-500 hover:bg-gray-50'
                                                 } disabled:opacity-50`}
                                         >
                                             {pageNum}

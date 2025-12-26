@@ -304,10 +304,11 @@ export default function CheckoutPage() {
                                 <div className="flex items-center space-x-4">
                                     <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-slate-100">
                                         <Image
-                                            src={item.imageUrl}
+                                            src={item.imageUrl || "https://images.unsplash.com/photo-1552066344-24632e509613?q=80&w=1000&auto=format&fit=crop"}
                                             alt={item.name}
                                             fill
                                             className="object-cover"
+                                            unoptimized={!!item.imageUrl?.startsWith('http')}
                                         />
                                     </div>
                                     <div>

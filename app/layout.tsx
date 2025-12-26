@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
+import { Jost } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
 import Navbar from "@/components/Navbar";
 import { Analytics } from "@vercel/analytics/react";
 import { Instagram } from "lucide-react";
 import ScrollFix from "@/components/ScrollFix";
+
+const jost = Jost({
+    subsets: ["latin"],
+    weight: ["300", "400", "500", "600", "700"],
+    variable: "--font-jost",
+});
 
 export const metadata: Metadata = {
     metadataBase: new URL('https://startupmenswear.in'),
@@ -48,7 +55,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className="antialiased bg-gray-50">
+            <body className={`${jost.className} ${jost.variable} antialiased bg-[#F4F3EF] text-[#000000]`}>
                 <CartProvider>
                     <Navbar />
                     <main className="min-h-screen pb-12">
@@ -87,10 +94,10 @@ export default function RootLayout({
                             </div>
                         </div>
                     </footer>
-                </CartProvider>
+                </CartProvider >
                 <ScrollFix />
                 <Analytics />
-            </body>
-        </html>
+            </body >
+        </html >
     );
 }

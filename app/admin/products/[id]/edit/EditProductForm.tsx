@@ -33,6 +33,9 @@ export default function EditProductForm({ product }: { product: Product }) {
     const [weightUnit, setWeightUnit] = useState<'grams' | 'kg'>(initialUnit);
     // Use simple category state
     const [category, setCategory] = useState<string>(product.category || 'Shirt');
+    const [isOffer, setIsOffer] = useState(product.isOffer || false);
+    const [isTrending, setIsTrending] = useState(product.isTrending || false);
+    const [isNewArrival, setIsNewArrival] = useState(product.isNewArrival || false);
 
     // No need for useEffect fetching here as CategorySelector handles it
 
@@ -164,6 +167,9 @@ export default function EditProductForm({ product }: { product: Product }) {
             (weightUnit === 'kg' ? parseFloat(weightValue) * 1000 : parseFloat(weightValue))
             : 750;
         formData.set('weight', Math.round(weightInGrams).toString());
+        formData.set('isOffer', isOffer.toString());
+        formData.set('isTrending', isTrending.toString());
+        formData.set('isNewArrival', isNewArrival.toString());
 
         try {
             await editProduct(product.id, formData);
@@ -324,7 +330,52 @@ export default function EditProductForm({ product }: { product: Product }) {
                     </div>
 
                     {/* Image Upload Section */}
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                        {/* Display Attributes */}
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+                            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Product Attributes</h3>
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-3 p-2 hover:bg-white rounded-md transition-colors cursor-pointer border border-transparent hover:border-slate-200">
+                                    <input
+                                        type="checkbox"
+                                        checked={isOffer}
+                                        onChange={(e) => setIsOffer(e.target.checked)}
+                                        className="w-4 h-4 text-brand-red border-gray-300 rounded focus:ring-brand-red"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">Mark as Hot Offer</span>
+                                        <span className="text-[10px] text-gray-500">Shows in "Best Offers" tab & includes sale badge</span>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center gap-3 p-2 hover:bg-white rounded-md transition-colors cursor-pointer border border-transparent hover:border-slate-200">
+                                    <input
+                                        type="checkbox"
+                                        checked={isTrending}
+                                        onChange={(e) => setIsTrending(e.target.checked)}
+                                        className="w-4 h-4 text-brand-red border-gray-300 rounded focus:ring-brand-red"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">Trending Now</span>
+                                        <span className="text-[10px] text-gray-500">Flags the product for the "Trending" collection</span>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center gap-3 p-2 hover:bg-white rounded-md transition-colors cursor-pointer border border-transparent hover:border-slate-200">
+                                    <input
+                                        type="checkbox"
+                                        checked={isNewArrival}
+                                        onChange={(e) => setIsNewArrival(e.target.checked)}
+                                        className="w-4 h-4 text-brand-red border-gray-300 rounded focus:ring-brand-red"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">New Arrival</span>
+                                        <span className="text-[10px] text-gray-500">Always show in "New Arrivals" regardless of date</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
                         <label className="block text-sm font-medium text-gray-700">Product Images (1-10)</label>
 
                         <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">

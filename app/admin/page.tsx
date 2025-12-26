@@ -55,19 +55,19 @@ export default async function AdminDashboard() {
     });
 
     return (
-        <div className="space-y-8">
-            <h1 className="text-3xl font-bold text-slate-900">Dashboard Overview</h1>
+        <div className="space-y-8 font-jost">
+            <h1 className="text-3xl font-bold text-black uppercase tracking-tighter italic">Dashboard</h1>
 
             {/* Main Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {stats.map((stat, index) => (
-                    <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div key={index} className="bg-white p-8 border border-gray-100 flex items-center justify-between group hover:border-brand-red transition-colors">
                         <div>
-                            <p className="text-slate-500 text-sm font-medium">{stat.label}</p>
-                            <p className="text-2xl font-bold text-slate-900 mt-1">{stat.value}</p>
+                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">{stat.label}</p>
+                            <p className="text-4xl font-black text-black mt-1">{stat.value}</p>
                         </div>
-                        <div className={`p-3 rounded-lg ${stat.bg}`}>
-                            <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                        <div className={`p-4 bg-gray-50 group-hover:bg-brand-red transition-colors`}>
+                            <stat.icon className={`w-8 h-8 ${stat.color} group-hover:text-white transition-colors`} />
                         </div>
                     </div>
                 ))}
@@ -94,10 +94,10 @@ export default async function AdminDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Recent Orders */}
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                        <h2 className="text-lg font-bold text-slate-900">Recent Orders</h2>
-                        <Link href="/admin/orders" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">View All</Link>
+                <div className="lg:col-span-2 bg-white border border-gray-100 overflow-hidden">
+                    <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <h2 className="text-sm font-bold text-black uppercase tracking-widest">Recent Orders</h2>
+                        <Link href="/admin/orders" className="text-xs text-brand-red hover:underline font-bold uppercase tracking-widest">View All</Link>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
@@ -132,11 +132,11 @@ export default async function AdminDashboard() {
                 </div>
 
                 {/* Low Stock Alerts */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden h-fit">
-                    <div className="p-6 border-b border-slate-100">
-                        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                            <AlertTriangle className="w-5 h-5 text-red-500" />
-                            Low Stock Alerts
+                <div className="bg-white border border-gray-100 overflow-hidden h-fit">
+                    <div className="p-6 border-b border-gray-100 bg-brand-red">
+                        <h2 className="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-widest">
+                            <AlertTriangle className="w-4 h-4" />
+                            Stock Alerts
                         </h2>
                     </div>
                     <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
@@ -157,7 +157,7 @@ export default async function AdminDashboard() {
                                     </div>
                                     <div className="text-right">
                                         <span className="text-red-600 font-bold text-sm">{product.stock} left</span>
-                                        <Link href={`/admin/products?edit=${product.id}`} className="block text-xs text-indigo-600 hover:text-indigo-700 mt-1">Refill</Link>
+                                        <Link href={`/admin/products/${product.id}/edit`} className="block text-xs text-brand-red font-bold hover:underline mt-1 uppercase tracking-widest">Refill Stock</Link>
                                     </div>
                                 </div>
                             ))

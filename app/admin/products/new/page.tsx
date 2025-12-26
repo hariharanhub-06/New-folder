@@ -20,6 +20,9 @@ export default function NewProductPage() {
     const [weightUnit, setWeightUnit] = useState<'grams' | 'kg'>('grams');
     // Category state is now just the string
     const [category, setCategory] = useState<string>('Shirt');
+    const [isOffer, setIsOffer] = useState(false);
+    const [isTrending, setIsTrending] = useState(false);
+    const [isNewArrival, setIsNewArrival] = useState(false);
 
 
     // Prevent SSR issues
@@ -153,7 +156,10 @@ export default function NewProductPage() {
                 images: images,
                 sizes: validSizes.length > 0 ? validSizes : undefined,
                 weight: Math.round(weightInGrams), // Store as integer grams
-                isActive: true
+                isActive: true,
+                isOffer: isOffer,
+                isTrending: isTrending,
+                isNewArrival: isNewArrival
             };
 
             // Call API directly
@@ -333,7 +339,52 @@ export default function NewProductPage() {
                     </div>
 
                     {/* Image Upload Section */}
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                        {/* Display Attributes */}
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+                            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Product Attributes</h3>
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-3 p-2 hover:bg-white rounded-md transition-colors cursor-pointer border border-transparent hover:border-slate-200">
+                                    <input
+                                        type="checkbox"
+                                        checked={isOffer}
+                                        onChange={(e) => setIsOffer(e.target.checked)}
+                                        className="w-4 h-4 text-brand-red border-gray-300 rounded focus:ring-brand-red"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">Mark as Hot Offer</span>
+                                        <span className="text-[10px] text-gray-500">Shows in "Best Offers" tab & includes sale badge</span>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center gap-3 p-2 hover:bg-white rounded-md transition-colors cursor-pointer border border-transparent hover:border-slate-200">
+                                    <input
+                                        type="checkbox"
+                                        checked={isTrending}
+                                        onChange={(e) => setIsTrending(e.target.checked)}
+                                        className="w-4 h-4 text-brand-red border-gray-300 rounded focus:ring-brand-red"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">Trending Now</span>
+                                        <span className="text-[10px] text-gray-500">Flags the product for the "Trending" collection</span>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center gap-3 p-2 hover:bg-white rounded-md transition-colors cursor-pointer border border-transparent hover:border-slate-200">
+                                    <input
+                                        type="checkbox"
+                                        checked={isNewArrival}
+                                        onChange={(e) => setIsNewArrival(e.target.checked)}
+                                        className="w-4 h-4 text-brand-red border-gray-300 rounded focus:ring-brand-red"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">New Arrival</span>
+                                        <span className="text-[10px] text-gray-500">Always show in "New Arrivals" regardless of date</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
                         <label className="block text-sm font-medium text-gray-700">Product Images (1-10)</label>
 
                         <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">

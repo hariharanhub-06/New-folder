@@ -41,6 +41,8 @@ export async function getProductsPaginated(filters: ProductFilters): Promise<Pag
     if (filters.search) params.append('search', filters.search);
     if (filters.includeInactive) params.append('admin', 'true');
     if (filters.isOffer !== undefined) params.append('isOffer', filters.isOffer.toString());
+    if (filters.isTrending !== undefined) params.append('isTrending', filters.isTrending.toString());
+    if (filters.isNewArrival !== undefined) params.append('isNewArrival', filters.isNewArrival.toString());
 
     const response = await fetch(`${API_ENDPOINTS.products}?${params.toString()}`, {
         cache: 'no-store' // Prevent caching
@@ -144,5 +146,45 @@ export async function processTestPayment(
 export async function getCategories(): Promise<string[]> {
     const response = await fetch('/api/categories', { cache: 'no-store' });
     if (!response.ok) throw new Error('Failed to fetch categories');
+    return response.json();
+}
+
+export async function getFullCategories(): Promise<any[]> {
+    const response = await fetch('/api/categories?full=true', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Failed to fetch categories');
+    return response.json();
+}
+
+export async function saveCategory(category: any): Promise<{ success: boolean; id: string }> {
+    const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(category),
+    });
+    if (!response.ok) throw new Error('Failed to save category');
+    return response.json();
+}
+
+export async function deleteCategory(id: string): Promise<{ success: boolean }> {
+    const response = await fetch(`/api/categories?id=${id}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete category');
+    return response.json();
+}
+
+export async function getSettings(): Promise<Record<string, string>> {
+    const response = await fetch('/api/settings', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Failed to fetch settings');
+    return response.json();
+}
+
+export async function updateSetting(key: string, value: string): Promise<{ success: boolean }> {
+    const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value }),
+    });
+    if (!response.ok) throw new Error('Failed to update setting');
     return response.json();
 }

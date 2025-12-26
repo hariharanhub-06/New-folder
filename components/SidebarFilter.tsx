@@ -46,15 +46,15 @@ export default function SidebarFilter({ filters, onFilterChange }: SidebarFilter
                     onClick={() => toggleSection('price')}
                     className="flex items-center justify-between w-full mb-2 group"
                 >
-                    <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Price Filter</h3>
-                    {openSections.price ? <Minus className="w-3 h-3 text-slate-500" /> : <Plus className="w-3 h-3 text-slate-500" />}
+                    <h3 className="text-xs font-bold text-black uppercase tracking-widest group-hover:text-brand-red transition-colors">Price</h3>
+                    {openSections.price ? <Minus className="w-3 h-3 text-black" /> : <Plus className="w-3 h-3 text-black" />}
                 </button>
 
                 {openSections.price && (
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs font-medium text-slate-700">
-                            <span>Range:</span>
-                            <span className="text-indigo-600">₹{localMinPrice} - ₹{localMaxPrice}</span>
+                    <div className="space-y-3 pt-2">
+                        <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                            <span>Range</span>
+                            <span className="text-black">₹{localMinPrice} - ₹{localMaxPrice}</span>
                         </div>
 
                         <div className="pt-2 pb-1 px-1">
@@ -63,7 +63,7 @@ export default function SidebarFilter({ filters, onFilterChange }: SidebarFilter
                                 <div className="absolute w-full h-1.5 bg-slate-200 rounded-full"></div>
                                 {/* Active range */}
                                 <div
-                                    className="absolute h-1.5 bg-indigo-600 rounded-full"
+                                    className="absolute h-1.5 bg-black"
                                     style={{
                                         left: `${((localMinPrice - 50) / (2000 - 50)) * 100}%`,
                                         right: `${100 - ((localMaxPrice - 50) / (2000 - 50)) * 100}%`
@@ -82,7 +82,7 @@ export default function SidebarFilter({ filters, onFilterChange }: SidebarFilter
                                     }}
                                     onMouseUp={handlePriceCommit}
                                     onTouchEnd={handlePriceCommit}
-                                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-600 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
+                                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:bg-brand-red [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
                                 />
                                 {/* Max slider */}
                                 <input
@@ -97,7 +97,7 @@ export default function SidebarFilter({ filters, onFilterChange }: SidebarFilter
                                     }}
                                     onMouseUp={handlePriceCommit}
                                     onTouchEnd={handlePriceCommit}
-                                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-600 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
+                                    className="absolute w-full h-1.5 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:bg-brand-red [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
                                 />
                             </div>
                         </div>
@@ -111,8 +111,8 @@ export default function SidebarFilter({ filters, onFilterChange }: SidebarFilter
                     onClick={() => toggleSection('sort')}
                     className="flex items-center justify-between w-full mb-2 group"
                 >
-                    <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Sort By</h3>
-                    {openSections.sort ? <Minus className="w-3 h-3 text-slate-500" /> : <Plus className="w-3 h-3 text-slate-500" />}
+                    <h3 className="text-xs font-bold text-black uppercase tracking-widest group-hover:text-brand-red transition-colors">Sort</h3>
+                    {openSections.sort ? <Minus className="w-3 h-3 text-black" /> : <Plus className="w-3 h-3 text-black" />}
                 </button>
 
                 {openSections.sort && (
@@ -130,9 +130,9 @@ export default function SidebarFilter({ filters, onFilterChange }: SidebarFilter
                                     value={option.value}
                                     checked={createSortValue(filters.sort) === option.value}
                                     onChange={(e) => handleSortChange(e.target.value)}
-                                    className="form-radio h-3 w-3 text-indigo-600 border-slate-300 focus:ring-indigo-500"
+                                    className="form-radio h-3 w-3 text-brand-red border-gray-300 focus:ring-brand-red"
                                 />
-                                <span className="text-xs text-slate-600 group-hover:text-slate-900 transition-colors">{option.label}</span>
+                                <span className="text-xs font-bold uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">{option.label}</span>
                             </label>
                         ))}
                     </div>

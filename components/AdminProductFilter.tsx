@@ -15,6 +15,7 @@ export default function AdminProductFilter({ products, availableCategories, onFi
     const [sortBy, setSortBy] = useState<string>("name");
     const [status, setStatus] = useState<string>("All");
     const [stockFilter, setStockFilter] = useState<string>("All");
+    const [attributeFilter, setAttributeFilter] = useState<string>("All");
 
     // Apply filters whenever filter options change
     useEffect(() => {
@@ -41,6 +42,15 @@ export default function AdminProductFilter({ products, availableCategories, onFi
             filtered = filtered.filter(p => p.stock > 0);
         }
 
+        // Filter by Attribute
+        if (attributeFilter === "Trending") {
+            filtered = filtered.filter(p => p.isTrending === true);
+        } else if (attributeFilter === "New Arrival") {
+            filtered = filtered.filter(p => p.isNewArrival === true);
+        } else if (attributeFilter === "Offer") {
+            filtered = filtered.filter(p => p.isOffer === true);
+        }
+
         // Sort
         if (sortBy === "name") {
             filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -53,7 +63,7 @@ export default function AdminProductFilter({ products, availableCategories, onFi
         }
 
         onFilterSort(filtered);
-    }, [category, sortBy, status, stockFilter, products, onFilterSort]);
+    }, [category, sortBy, status, stockFilter, attributeFilter, products, onFilterSort]);
 
     return (
         <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 mb-6">
@@ -110,13 +120,30 @@ export default function AdminProductFilter({ products, availableCategories, onFi
 
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center">
+                        <Filter className="w-4 h-4 mr-2" />
+                        Attribute
+                    </label>
+                    <select
+                        value={attributeFilter}
+                        onChange={(e) => setAttributeFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-brand-red focus:border-brand-red"
+                    >
+                        <option value="All">All Products</option>
+                        <option value="Trending">Trending</option>
+                        <option value="New Arrival">New Arrivals</option>
+                        <option value="Offer">Best Offers</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center">
                         <SortAsc className="w-4 h-4 mr-2" />
                         Sort By
                     </label>
                     <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-brand-red focus:border-brand-red"
                     >
                         <option value="name">Name (A-Z)</option>
                         <option value="price-low">Price (Low to High)</option>

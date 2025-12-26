@@ -41,6 +41,11 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
     const weightStr = formData.get("weight") as string;
     const weight = weightStr ? parseInt(weightStr) : 750;
 
+    // Parse boolean flags (handle both 'true'/'false' strings and checkbox presence)
+    const isOffer = formData.get("isOffer") === 'true';
+    const isTrending = formData.get("isTrending") === 'true';
+    const isNewArrival = formData.get("isNewArrival") === 'true';
+
     return {
         name,
         description,
@@ -51,7 +56,10 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
         imageUrl,
         images,
         sizes,
-        weight
+        weight,
+        isOffer,
+        isTrending,
+        isNewArrival
     };
 }
 
