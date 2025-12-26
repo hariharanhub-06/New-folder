@@ -92,28 +92,14 @@ export default function CategorySection({ title, products, className = '' }: Cat
                 >
                     {/* Dynamic Grid Rows: 1 row if <= 5 items, 2 if <= 10, 3 if > 10 */}
                     <div className={`grid gap-4 w-max ${products.length <= 5 ? 'grid-rows-1' :
-                            products.length <= 10 ? 'grid-rows-2' :
-                                'grid-rows-3'
+                        products.length <= 10 ? 'grid-rows-2' :
+                            'grid-rows-3'
                         } grid-flow-col ${products.length < 5 ? 'mx-0' : ''}`}>
                         {products.map((product) => (
                             <div key={product.id} className="w-[160px] sm:w-[200px]">
                                 <ProductCard product={product} />
                             </div>
                         ))}
-
-                        {/* "View More" Card at the end if we have many items */}
-                        {products.length >= 15 && (
-                            <Link
-                                href={`/shop?category=${encodeURIComponent(title)}`}
-                                className="w-[160px] sm:w-[200px] h-full min-h-[250px] flex flex-col items-center justify-center bg-indigo-50 border-2 border-dashed border-indigo-200 rounded-xl text-indigo-600 hover:bg-indigo-100 hover:border-indigo-300 transition-all cursor-pointer row-span-3"
-                            >
-                                <span className="w-12 h-12 flex items-center justify-center rounded-full bg-white mb-3 shadow-sm">
-                                    <ArrowRight className="w-6 h-6" />
-                                </span>
-                                <span className="font-bold text-lg">View All</span>
-                                <span className="text-sm mt-1 opacity-75">{products.length}+ Items</span>
-                            </Link>
-                        )}
                     </div>
                 </div>
             </div>

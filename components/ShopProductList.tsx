@@ -36,8 +36,11 @@ export default function ShopProductList({
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Always group products by category for the Netflix-style layout
-    // Even when filtered, we show the matching products in their category rows
+    // Layout Logic:
+    // 1. If a specific Category Filter is active -> Show Vertical Grid (Deep Dive)
+    // 2. Otherwise (Default, Search, Price Filter) -> Show Horizontal Category Sections (Netflix Style)
+    const showVerticalGrid = !!filters.category;
+
     const groupedProducts = categories.map(category => ({
         category,
         items: products.filter(p => p.category === category)
@@ -65,11 +68,23 @@ export default function ShopProductList({
                         </div>
                     </div>
                 </div>
-            ) : groupedProducts.length === 0 ? (
+            ) : products.length === 0 ? (
                 <div className="text-center py-12">
                     <p className="text-slate-500">No products found. Try adjusting your filters!</p>
                 </div>
+            ) : showVerticalGrid ? (
+                /* VERTICAL GRID MODE (Specific Category Selected) */
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    {products.map((product) => (
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            onSelect={setSelectedProduct}
+                        />
+                    ))}
+                </div>
             ) : (
+                /* HORIZONTAL SECTIONS MODE (Default / Search / Price Filter) */
                 <div className="space-y-12">
                     {groupedProducts.map((group) => (
                         <CategorySection
