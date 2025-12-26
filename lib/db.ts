@@ -435,10 +435,13 @@ export async function getOrderById(id: string): Promise<Order | null> {
         createdAt: order.created_at,
         updatedAt: order.updated_at,
         items: items.map(item => ({
+            id: item.id,
             productId: item.product_id,
             name: item.name,
             quantity: item.quantity,
-            price: parseFloat(item.price)
+            price: parseFloat(item.price),
+            imageUrl: item.image_url,
+            size: item.size
         }))
     };
 }

@@ -49,7 +49,8 @@ export async function GET() {
                     name: item.name,
                     quantity: item.quantity,
                     price: parseFloat(item.price),
-                    size: item.size
+                    size: item.size,
+                    imageUrl: item.image_url
                 })),
             };
         }));
@@ -97,8 +98,8 @@ export async function POST(request: Request) {
 
             for (const item of order.items) {
                 await client.query(`
-                    INSERT INTO order_items (id, order_id, product_id, name, quantity, price, size)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    INSERT INTO order_items (id, order_id, product_id, name, quantity, price, size, image_url)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 `, [
                     crypto.randomUUID(),
                     orderId,
@@ -106,7 +107,8 @@ export async function POST(request: Request) {
                     item.name,
                     item.quantity,
                     item.price,
-                    (item as any).size || null  // Save size if provided
+                    (item as any).size || null,
+                    (item as any).imageUrl || null
                 ]);
             }
 
