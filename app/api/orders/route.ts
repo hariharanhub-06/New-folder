@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { OrderItem } from '@/lib/types';
 
 // GET: Fetch all orders with their items
 export async function GET() {
@@ -43,7 +44,7 @@ export async function GET() {
                 logisticsId: order.logistics_id,
                 createdAt: order.created_at,
                 updatedAt: order.updated_at,
-                items: items.map(item => ({
+                items: items.map((item: any): OrderItem => ({
                     id: item.id,
                     productId: item.product_id,
                     name: item.name,

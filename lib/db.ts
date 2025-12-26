@@ -1,6 +1,6 @@
 
 import { Pool } from 'pg';
-import { Product, Order, Discount } from './types';
+import { Product, Order, OrderItem, Discount } from './types';
 
 let pool: Pool;
 
@@ -434,7 +434,7 @@ export async function getOrderById(id: string): Promise<Order | null> {
         courierName: order.courier_name,
         createdAt: order.created_at,
         updatedAt: order.updated_at,
-        items: items.map(item => ({
+        items: items.map((item: any): OrderItem => ({
             id: item.id,
             productId: item.product_id,
             name: item.name,

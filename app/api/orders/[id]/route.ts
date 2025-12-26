@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { OrderItem } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,12 +36,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
             logisticsId: order.logistics_id,
             createdAt: order.created_at,
             updatedAt: order.updated_at,
-            items: items.map((item: any) => ({
+            items: items.map((item: any): OrderItem => ({
                 id: item.id,
                 productId: item.product_id,
                 name: item.name,
                 quantity: item.quantity,
                 price: parseFloat(item.price),
+                size: item.size,
+                imageUrl: item.image_url
             })),
         };
 
