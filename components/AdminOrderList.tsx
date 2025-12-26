@@ -484,8 +484,8 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                 {/* Edit Details Modal */}
                 {editOrder && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-                        <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl border border-slate-100 overflow-hidden">
-                            <form onSubmit={handleEditSave}>
+                        <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
+                            <form onSubmit={handleEditSave} className="flex flex-col h-full overflow-hidden">
                                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
                                     <h3 className="text-lg font-bold text-slate-800">Edit Order Details</h3>
                                     <button type="button" onClick={() => setEditOrder(null)} className="text-slate-400 hover:text-slate-600">
@@ -493,7 +493,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                     </button>
                                 </div>
 
-                                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                                <div className="p-6 space-y-4 overflow-y-auto flex-1">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="col-span-2">
                                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Customer Name</label>
@@ -576,14 +576,15 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                 )}
 
                 {/* View Details Modal (Reuse existing logic) */}
+
                 {viewAddressOrder && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-                        <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100">
+                        <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100">
                             <div className="bg-slate-900 px-6 py-4 flex justify-between items-center">
                                 <h3 className="text-lg font-bold text-white">Order Details Overview</h3>
                                 <button onClick={() => setViewAddressOrder(null)} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
                             </div>
-                            <div className="p-6 space-y-6">
+                            <div className="p-6 space-y-6 overflow-y-auto flex-1">
                                 <div>
                                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Customer & Contact</h4>
                                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-1">

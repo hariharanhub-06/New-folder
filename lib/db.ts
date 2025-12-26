@@ -428,6 +428,8 @@ export async function getOrderById(id: string): Promise<Order | null> {
         shippingCost: parseFloat(order.shipping_cost),
         status: order.status,
         transactionId: order.transaction_id,
+        razorpayOrderId: order.razorpay_order_id,
+        razorpayPaymentId: order.razorpay_payment_id,
         cashfreeOrderId: order.cashfree_order_id,
         cashfreePaymentId: order.cashfree_payment_id,
         logisticsId: order.logistics_id,
