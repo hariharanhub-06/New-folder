@@ -33,7 +33,17 @@ export default function ShopPage() {
         async function loadProducts() {
             setLoading(true);
             try {
-                const response = await getProductsPaginated(filters);
+                // Determine if we are in "Search/Filter Mode" or "Browse Mode"
+                const isFiltered = filters.search || filters.category || filters.minPrice || filters.maxPrice || filters.sort !== 'newest' || filters.includeInactive;
+
+                // If browsing (no filters), fetch ALL products (high limit) for the category rows
+                // If filtering, use standard pagination
+                const queryFilters = {
+                    ...filters,
+                    limit: isFiltered ? ITEMS_PER_PAGE : 2000 // High limit to get all for categories
+                };
+
+                const response = await getProductsPaginated(queryFilters);
                 setProducts(response.data);
                 setPagination(response.pagination);
             } catch (error) {
