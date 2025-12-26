@@ -79,8 +79,8 @@ export default function ShopProductList({
         // Show max 10 products, rest in overflow
         const visibleProducts = offerProducts.slice(0, 10);
 
-        // If 5 or fewer, single row
-        if (count <= 5) {
+        // 5 to 9 products: single row
+        if (count >= 5 && count <= 9) {
             return (
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 pb-1">
                     {visibleProducts.map((product) => (
@@ -92,8 +92,21 @@ export default function ShopProductList({
             );
         }
 
-        // More than 5: split into 2 rows
-        const firstRowCount = Math.max(5, Math.ceil(count / 2));
+        // Less than 5: single row
+        if (count < 5) {
+            return (
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 pb-1">
+                    {visibleProducts.map((product) => (
+                        <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                            <ProductCard product={product} onSelect={setSelectedProduct} />
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        // 10 or more: first row gets exactly 5, second row gets rest
+        const firstRowCount = 5;
         const firstRow = visibleProducts.slice(0, firstRowCount);
         const secondRow = visibleProducts.slice(firstRowCount);
 
@@ -175,8 +188,8 @@ export default function ShopProductList({
                             <button
                                 onClick={() => onFilterChange({ ...filters, category: undefined, page: 1 })}
                                 className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${!filters.category
-                                        ? 'bg-indigo-600 text-white shadow-md'
-                                        : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                    ? 'bg-indigo-600 text-white shadow-md'
+                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
                                     }`}
                             >
                                 <LayoutGrid className="w-4 h-4 mr-2" />
@@ -187,8 +200,8 @@ export default function ShopProductList({
                                     key={cat}
                                     onClick={() => onFilterChange({ ...filters, category: cat, page: 1 })}
                                     className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${filters.category === cat
-                                            ? 'bg-indigo-600 text-white shadow-md'
-                                            : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                        ? 'bg-indigo-600 text-white shadow-md'
+                                        : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
                                         }`}
                                 >
                                     <span className="mr-2">{getCategoryIcon(cat)}</span>
