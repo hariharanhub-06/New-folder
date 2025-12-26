@@ -9,8 +9,12 @@ import {
     updateOrderStatus as updateOrderStatusDb,
     getProduct,
     createDiscount,
-    deleteDiscount
+    deleteDiscount,
+    deleteOrder as deleteOrderDb,
+    updateOrder as updateOrderDb
 } from "./db";
+import pool from "./db";
+import { razorpay } from "./razorpay";
 
 // ... existing code ...
 
@@ -113,6 +117,94 @@ export async function updateOrderStatus(orderId: string, status: string, logisti
     revalidatePath("/admin"); // Update dashboard stats
     revalidatePath(`/order/${orderId}`);
     return { success: true };
+}
+
+export async function removeOrder(id: string) {
+    await deleteOrderDb(id);
+    revalidatePath("/admin/orders");
+    revalidatePath("/admin");
+    return { success: true };
+}
+
+export async function updateOrderDetails(orderId: string, details: any) {
+    await updateOrderDb(orderId, details);
+    revalidatePath("/admin/orders");
+    revalidatePath(`/order/${orderId}`);
+    return { success: true };
+}
+
+export async function syncRazorpayPayments() {
+    try {
+        const payments = await (razorpay.payments.all as any)({
+            count: 50, // Get last 50 payments
+        });
+
+        const capturedPayments = payments.items.filter((p: any) => p.status === 'captured');
+        let syncedCount = 0;
+
+        for (const payment of capturedPayments) {
+            // Check if payment already exists in DB
+            const existingRes = await pool.query('SELECT id FROM orders WHERE razorpay_payment_id = $1 OR transaction_id = $1', [payment.id]);
+
+            if (existingRes.rows.length === 0) {
+                // Create recovery order
+                const orderId = `REC-${crypto.randomUUID().slice(0, 8)}`;
+                const customerName = payment.notes?.customer_name || payment.email?.split('@')[0] || 'Unknown Customer';
+                const customerEmail = payment.email || '';
+                const customerMobile = payment.contact || '';
+
+                // Construct shipping address from notes if available
+                const shippingAddress = {
+                    street: payment.notes?.street || 'N/A',
+                    city: payment.notes?.city || 'N/A',
+                    state: payment.notes?.state || 'N/A',
+                    country: payment.notes?.country || 'India',
+                    zipCode: payment.notes?.zipCode || '000000'
+                };
+
+                await pool.query(`
+                    INSERT INTO orders (
+                        id, customer_name, customer_email, customer_mobile, shipping_address,
+                        total_amount, shipping_cost, status, razorpay_payment_id, razorpay_order_id,
+                        created_at, updated_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $11)
+                `, [
+                    orderId,
+                    customerName,
+                    customerEmail,
+                    customerMobile,
+                    JSON.stringify(shippingAddress),
+                    (payment.amount as number) / 100, // paisa to rupees
+                    payment.notes?.shipping_cost || 0,
+                    'Payment Confirmed',
+                    payment.id,
+                    payment.order_id,
+                    new Date(payment.created_at * 1000).toISOString()
+                ]);
+
+                // Add a placeholder item
+                await pool.query(`
+                    INSERT INTO order_items (id, order_id, name, quantity, price)
+                    VALUES ($1, $2, $3, $4, $5)
+                `, [
+                    crypto.randomUUID(),
+                    orderId,
+                    'Recovered Razorpay Order',
+                    1,
+                    (payment.amount as number) / 100
+                ]);
+
+                syncedCount++;
+            }
+        }
+
+        revalidatePath("/admin/orders");
+        revalidatePath("/admin");
+        return { success: true, count: syncedCount };
+    } catch (error) {
+        console.error('❌ Sync Error:', error);
+        throw error;
+    }
 }
 
 export async function addDiscount(formData: FormData) {

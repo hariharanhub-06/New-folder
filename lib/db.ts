@@ -359,6 +359,35 @@ export async function updateOrderStatus(orderId: string, status: string, logisti
     }
 }
 
+export async function deleteOrder(id: string) {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        await client.query('DELETE FROM order_items WHERE order_id = $1', [id]);
+        await client.query('DELETE FROM orders WHERE id = $1', [id]);
+        await client.query('COMMIT');
+    } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+    } finally {
+        client.release();
+    }
+}
+
+export async function updateOrder(id: string, details: { customerName: string, customerEmail: string, customerMobile: string, shippingAddress: any }) {
+    await pool.query(`
+        UPDATE orders 
+        SET customer_name = $1, customer_email = $2, customer_mobile = $3, shipping_address = $4, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
+    `, [
+        details.customerName,
+        details.customerEmail,
+        details.customerMobile,
+        JSON.stringify(details.shippingAddress),
+        id
+    ]);
+}
+
 export async function getDiscounts(): Promise<Discount[]> {
     const res = await pool.query('SELECT * FROM discounts ORDER BY created_at DESC');
     return res.rows.map(row => ({
