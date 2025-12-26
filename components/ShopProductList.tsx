@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 
 interface ShopProductListProps {
     products: Product[];
-    offerProducts?: Product[]; // New prop
+    offerProducts?: Product[];
     categories: string[];
     pagination: PaginatedResponse<Product>['pagination'];
     filters: ProductFilters;
@@ -64,7 +64,7 @@ export default function ShopProductList({
     const getCategoryIcon = (category: string) => {
         const lower = category.toLowerCase();
         if (lower.includes('shirt')) return <Shirt className="w-4 h-4" />;
-        if (lower.includes('pant') || lower.includes('bottom') || lower.includes('trouser')) return <Scissors className="w-4 h-4" />; // Scissors as abstraction for tailoring/pants
+        if (lower.includes('pant') || lower.includes('bottom') || lower.includes('trouser')) return <Scissors className="w-4 h-4" />;
         if (lower.includes('formal') || lower.includes('suit')) return <Briefcase className="w-4 h-4" />;
         if (lower.includes('watch')) return <Watch className="w-4 h-4" />;
         if (lower.includes('glass')) return <Glasses className="w-4 h-4" />;
@@ -83,12 +83,11 @@ export default function ShopProductList({
                 />
 
                 {/* Main Content */}
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
 
                     {/* Offer Section - Always visible at top of main content */}
                     {!loading && offerProducts.length > 0 && (
                         <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-600 via-red-600 to-pink-600 p-6 shadow-2xl">
-                            {/* Animated Background Pattern */}
                             <div className="absolute inset-0 opacity-20">
                                 <div className="absolute inset-0" style={{
                                     backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%),
@@ -110,12 +109,15 @@ export default function ShopProductList({
                                 {/* 2-Row Horizontal Scroll Grid */}
                                 <div
                                     ref={offerScrollRef}
-                                    className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-2 px-2"
-                                    style={{ overscrollBehaviorX: 'contain' }}
+                                    className="overflow-x-scroll overflow-y-hidden scrollbar-hide -mx-2 px-2"
+                                    style={{
+                                        overscrollBehaviorX: 'contain',
+                                        WebkitOverflowScrolling: 'touch'
+                                    }}
                                 >
-                                    <div className="grid grid-rows-2 grid-flow-col gap-4 w-max pb-2">
+                                    <div className="grid grid-rows-2 grid-flow-col auto-cols-[200px] gap-4 pb-2">
                                         {offerProducts.map((product) => (
-                                            <div key={product.id} className="w-[200px] bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                                            <div key={product.id} className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
                                                 <ProductCard
                                                     product={product}
                                                     onSelect={setSelectedProduct}
@@ -134,8 +136,8 @@ export default function ShopProductList({
                             <button
                                 onClick={() => onFilterChange({ ...filters, category: undefined, page: 1 })}
                                 className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${!filters.category
-                                    ? 'bg-indigo-600 text-white shadow-md'
-                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                        ? 'bg-indigo-600 text-white shadow-md'
+                                        : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
                                     }`}
                             >
                                 <LayoutGrid className="w-4 h-4 mr-2" />
@@ -146,8 +148,8 @@ export default function ShopProductList({
                                     key={cat}
                                     onClick={() => onFilterChange({ ...filters, category: cat, page: 1 })}
                                     className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${filters.category === cat
-                                        ? 'bg-indigo-600 text-white shadow-md'
-                                        : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                            ? 'bg-indigo-600 text-white shadow-md'
+                                            : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
                                         }`}
                                 >
                                     <span className="mr-2">{getCategoryIcon(cat)}</span>
@@ -159,7 +161,7 @@ export default function ShopProductList({
 
                     {/* Product Grid */}
                     {loading ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <div key={i} className="min-w-full h-[300px] bg-slate-100 rounded-xl animate-pulse"></div>
                             ))}
@@ -176,7 +178,7 @@ export default function ShopProductList({
                             </button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-4 gap-6">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
                             {products.map((product) => (
                                 <ProductCard
                                     key={product.id}
@@ -190,7 +192,6 @@ export default function ShopProductList({
                     {/* Pagination (if needed) */}
                     {totalPages > 1 && (
                         <div className="mt-8 flex justify-center">
-                            {/* ... simple pagination controls matching previous style but centered ... */}
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => handlePageChange(page - 1)}
