@@ -68,7 +68,7 @@ function PaymentSuccessContent() {
                     </div>
                     <h1 className="text-3xl font-bold text-slate-900">Payment Successful!</h1>
                     <p className="text-slate-500">
-                        Transaction ID: <span className="font-mono font-medium text-slate-900">{order.transactionId || order.cashfreePaymentId}</span>
+                        Transaction ID: <span className="font-mono font-medium text-slate-900">{order.transactionId || order.razorpayPaymentId || order.cashfreePaymentId || 'N/A'}</span>
                     </p>
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-800 text-left mt-4">
                         <p className="font-semibold mb-1">Important:</p>
