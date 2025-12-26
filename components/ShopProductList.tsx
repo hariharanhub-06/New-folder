@@ -64,26 +64,38 @@ export default function ShopProductList({
 
                     {/* Offer Section - Always visible at top of main content */}
                     {!loading && offerProducts.length > 0 && (
-                        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-900 via-yellow-800 to-amber-900 p-6 shadow-xl">
-                            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-600 via-red-600 to-pink-600 p-6 shadow-2xl">
+                            {/* Animated Background Pattern */}
+                            <div className="absolute inset-0 opacity-20">
+                                <div className="absolute inset-0" style={{
+                                    backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%),
+                                                     radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2) 0%, transparent 50%),
+                                                     radial-gradient(circle at 40% 20%, rgba(255,255,255,0.15) 0%, transparent 50%)`
+                                }}></div>
+                            </div>
+
                             <div className="relative z-10">
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="p-1.5 bg-yellow-500 rounded-lg shadow-lg rotate-3">
-                                        <Sparkles className="w-5 h-5 text-white" />
+                                    <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg">
+                                        <Sparkles className="w-6 h-6 text-white" />
                                     </div>
-                                    <h2 className="text-xl font-bold text-white tracking-tight">
+                                    <h2 className="text-2xl font-bold text-white tracking-tight drop-shadow-lg">
                                         Exclusive Offers
                                     </h2>
                                 </div>
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {offerProducts.map((product) => (
-                                        <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-                                            <ProductCard
-                                                product={product}
-                                                onSelect={setSelectedProduct}
-                                            />
-                                        </div>
-                                    ))}
+
+                                {/* 2-Row Horizontal Scroll Grid */}
+                                <div className="overflow-x-auto scrollbar-hide -mx-2 px-2">
+                                    <div className="grid grid-rows-2 grid-flow-col gap-4 w-max">
+                                        {offerProducts.map((product) => (
+                                            <div key={product.id} className="w-[200px] bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                                                <ProductCard
+                                                    product={product}
+                                                    onSelect={setSelectedProduct}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -95,8 +107,8 @@ export default function ShopProductList({
                             <button
                                 onClick={() => onFilterChange({ ...filters, category: undefined, page: 1 })}
                                 className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${!filters.category
-                                        ? 'bg-indigo-600 text-white shadow-md'
-                                        : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                    ? 'bg-indigo-600 text-white shadow-md'
+                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
                                     }`}
                             >
                                 <LayoutGrid className="w-4 h-4 mr-2" />
@@ -107,8 +119,8 @@ export default function ShopProductList({
                                     key={cat}
                                     onClick={() => onFilterChange({ ...filters, category: cat, page: 1 })}
                                     className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${filters.category === cat
-                                            ? 'bg-indigo-600 text-white shadow-md'
-                                            : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                        ? 'bg-indigo-600 text-white shadow-md'
+                                        : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
                                         }`}
                                 >
                                     <span className="mr-2">{getCategoryIcon(cat)}</span>
