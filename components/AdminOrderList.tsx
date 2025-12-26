@@ -666,8 +666,9 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                 </div>
                             </div>
                         </div>
-                )}
                     </div>
+                )}
+            </div>
         </div>
-            );
+    );
 }
