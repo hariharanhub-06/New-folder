@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import db from '@/lib/db';
+import { sendMail } from '@/lib/email';
 
 export async function POST(request: Request) {
     try {
@@ -45,9 +46,8 @@ export async function POST(request: Request) {
                 INSERT INTO orders (
                     id, customer_name, customer_email, customer_mobile,
                     shipping_address, total_amount, shipping_cost, status,
-                    transaction_id, razorpay_order_id, razorpay_payment_id,
-                    cashfree_order_id, cashfree_payment_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $9, $10, $9)
+                    razorpay_order_id, razorpay_payment_id
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             `, [
                 orderId,
                 customerDetails.name,
@@ -57,8 +57,8 @@ export async function POST(request: Request) {
                 totals.grandTotal,
                 totals.shippingCost,
                 'Payment Confirmed',
-                razorpay_payment_id,
-                razorpay_order_id
+                razorpay_order_id,
+                razorpay_payment_id
             ]);
 
             // Insert Items & Decrement Stock
@@ -99,6 +99,37 @@ export async function POST(request: Request) {
             }
 
             await client.query('COMMIT');
+
+            // 3. Send Confirmation Email (Triggered now!)
+            try {
+                const orderSummaryHtml = `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded-xl">
+                        <h1 style="color: #4f46e5; text-align: center;">Order Confirmed!</h1>
+                        <p>Hi ${customerDetails.name},</p>
+                        <p>Thank you for your purchase from <b>Startup Men's Wear</b>. Your order has been successfully placed and is being processed.</p>
+                        
+                        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <h3 style="margin-top: 0;">Order Details:</h3>
+                            <p><b>Order ID:</b> ${orderId.slice(0, 8)}</p>
+                            <p><b>Total Amount:</b> ₹${totals.grandTotal.toFixed(2)}</p>
+                            <p><b>Delivery to:</b> ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state}, ${shippingAddress.zipCode}</p>
+                        </div>
+                        
+                        <p>We'll notify you once your parcel is prepared for shipping.</p>
+                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                        <p style="text-align: center; color: #64748b; font-size: 12px;">© 2025 Startup Men's Wear. All rights reserved.</p>
+                    </div>
+                `;
+
+                await sendMail(
+                    customerDetails.email,
+                    `Order Confirmed - #${orderId.slice(0, 8)}`,
+                    orderSummaryHtml
+                ).catch(e => console.error('Email send failed:', e)); // Don't fail the whole request if email fails
+
+            } catch (emailError) {
+                console.error('Email dispatch error:', emailError);
+            }
 
             return NextResponse.json({ success: true, orderId });
 

@@ -191,8 +191,17 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                             placeholder="Search ID, Name or Payment ID..."
                             value={searchId}
                             onChange={(e) => setSearchId(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            className="w-full pl-9 pr-10 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                         />
+                        {searchId && (
+                            <button
+                                onClick={() => setSearchId('')}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                title="Clear search"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
