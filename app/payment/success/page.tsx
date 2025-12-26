@@ -67,9 +67,6 @@ function PaymentSuccessContent() {
                         <CheckCircle className="w-8 h-8 text-green-600" />
                     </div>
                     <h1 className="text-3xl font-bold text-slate-900">Payment Successful!</h1>
-                    <p className="text-slate-500">
-                        Transaction ID: <span className="font-mono font-medium text-slate-900">{order.transactionId || order.razorpayPaymentId || order.cashfreePaymentId || 'N/A'}</span>
-                    </p>
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-800 text-left mt-4">
                         <p className="font-semibold mb-1">Important:</p>
                         <p>Your parcel will be packed after 2 days from the confirmation date.</p>
