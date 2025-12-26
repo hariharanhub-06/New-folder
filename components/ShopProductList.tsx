@@ -37,7 +37,7 @@ export default function ShopProductList({
 
         const scrollInterval = setInterval(() => {
             if (offerScrollRef.current) {
-                const scrollAmount = 220; // Card width (200) + gap (20)
+                const scrollAmount = 165; // Card width (150) + gap (15)
                 offerScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 
                 // Reset to start if we've reached the end
@@ -85,9 +85,9 @@ export default function ShopProductList({
                 {/* Main Content */}
                 <div className="flex-1 min-w-0">
 
-                    {/* Offer Section - Always visible at top of main content */}
+                    {/* Offer Section - 50% smaller */}
                     {!loading && offerProducts.length > 0 && (
-                        <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-600 via-red-600 to-pink-600 p-6 shadow-2xl">
+                        <div className="mb-4 relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-600 via-red-600 to-pink-600 p-3 shadow-xl">
                             <div className="absolute inset-0 opacity-20">
                                 <div className="absolute inset-0" style={{
                                     backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%),
@@ -97,27 +97,27 @@ export default function ShopProductList({
                             </div>
 
                             <div className="relative z-10">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl shadow-lg">
-                                        <Sparkles className="w-6 h-6 text-white" />
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="p-1 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg">
+                                        <Sparkles className="w-4 h-4 text-white" />
                                     </div>
-                                    <h2 className="text-2xl font-bold text-white tracking-tight drop-shadow-lg">
+                                    <h2 className="text-lg font-bold text-white tracking-tight drop-shadow-lg">
                                         Exclusive Offers
                                     </h2>
                                 </div>
 
-                                {/* 2-Row Horizontal Scroll Grid */}
+                                {/* 2-Row Horizontal Scroll Grid - smaller cards */}
                                 <div
                                     ref={offerScrollRef}
-                                    className="overflow-x-scroll overflow-y-hidden scrollbar-hide -mx-2 px-2"
+                                    className="overflow-x-scroll overflow-y-hidden scrollbar-hide -mx-1 px-1"
                                     style={{
                                         overscrollBehaviorX: 'contain',
                                         WebkitOverflowScrolling: 'touch'
                                     }}
                                 >
-                                    <div className="grid grid-rows-2 grid-flow-col auto-cols-[200px] gap-4 pb-2">
+                                    <div className="grid grid-rows-2 grid-flow-col auto-cols-[150px] gap-2 pb-1">
                                         {offerProducts.map((product) => (
-                                            <div key={product.id} className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                                            <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
                                                 <ProductCard
                                                     product={product}
                                                     onSelect={setSelectedProduct}
