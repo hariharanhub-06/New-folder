@@ -7,8 +7,38 @@ import { Instagram } from "lucide-react";
 import ScrollFix from "@/components/ScrollFix";
 
 export const metadata: Metadata = {
-    title: "Startup Men's Wear",
-    description: "Premium Men's Fashion",
+    metadataBase: new URL('https://startupmenswear.in'),
+    title: {
+        default: "Startup Men's Wear | Premium Men's Fashion",
+        template: "%s | Startup Men's Wear"
+    },
+    description: "Discover premium men's fashion at Startup Men's Wear. Shop our exclusive collection of shirts, trousers, and accessories designed for the modern professional.",
+    keywords: ["mens wear", "startup mens wear", "premium shirts", "mens fashion india", "formal shirts", "casual shirts", "coimbatore mens wear"],
+    openGraph: {
+        type: 'website',
+        locale: 'en_IN',
+        url: 'https://startupmenswear.in',
+        siteName: "Startup Men's Wear",
+        images: [
+            {
+                url: '/opengraph-image.png', // We can add a diverse default image later if needed
+                width: 1200,
+                height: 630,
+                alt: "Startup Men's Wear Collection",
+            },
+        ],
+    },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+        },
+    },
 };
 
 export default function RootLayout({
