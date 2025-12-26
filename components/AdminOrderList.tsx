@@ -625,7 +625,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-start mb-1">
                                                         <span className="font-bold text-slate-800 truncate">{item.name}</span>
-                                                        <span className="font-bold text-slate-900 ml-2">₹{item.price}</span>
+                                                        <span className="font-bold text-slate-900 ml-2">₹{item.price * item.quantity}</span>
                                                     </div>
 
                                                     <div className="flex flex-wrap items-center gap-2 mb-2">
