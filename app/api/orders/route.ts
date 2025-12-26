@@ -42,6 +42,7 @@ export async function GET() {
                 cashfreeOrderId: order.cashfree_order_id,
                 cashfreePaymentId: order.cashfree_payment_id,
                 logisticsId: order.logistics_id,
+                courierName: order.courier_name,
                 createdAt: order.created_at,
                 updatedAt: order.updated_at,
                 items: items.map((item: any): OrderItem => ({

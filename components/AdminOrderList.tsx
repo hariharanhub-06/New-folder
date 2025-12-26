@@ -1,7 +1,7 @@
 import { Order } from '@/lib/types';
 import { useState, useMemo, useEffect } from 'react';
 import { updateOrderStatus, removeOrder, updateOrderDetails, syncRazorpayPayments } from '@/lib/actions';
-import { Loader2, Search, Calendar, Download, Filter, Eye, X, Edit2, Trash2, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Search, Calendar, Download, Filter, Eye, X, Edit2, Trash2, RefreshCw, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -323,7 +323,30 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                 </button>
                                             </div>
                                             <div className="text-xs text-gray-400">{order.customerEmail}</div>
-                                            <div className="text-xs text-gray-400">{order.customerMobile}</div>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <div className="text-xs text-gray-400">{order.customerMobile}</div>
+                                                <a
+                                                    href={`https://wa.me/91${order.customerMobile}?text=${encodeURIComponent(
+                                                        order.status === 'Couried' && order.logisticsId && order.courierName
+                                                            ? `Hello ${order.customerName},
+
+Your order #${order.id.slice(0, 8)} has been shipped via ${order.courierName}
+
+Tracking ID: ${order.logisticsId}
+
+You can track your package using this number.
+
+Thank you for shopping with Startup Mens Wear`
+                                                            : `Hello ${order.customerName}, regarding your order #${order.id.slice(0, 8)}`
+                                                    )}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-green-500 hover:text-green-600 transition-colors"
+                                                    title="Chat on WhatsApp"
+                                                >
+                                                    <MessageCircle className="w-4 h-4" />
+                                                </a>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
