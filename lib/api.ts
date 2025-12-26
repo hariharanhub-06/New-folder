@@ -138,7 +138,7 @@ export async function processTestPayment(
 }
 
 export async function getCategories(): Promise<string[]> {
-    const response = await fetch('/api/categories');
+    const response = await fetch('/api/categories', { cache: 'no-store' });
     if (!response.ok) throw new Error('Failed to fetch categories');
     return response.json();
 }

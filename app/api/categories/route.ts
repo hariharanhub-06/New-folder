@@ -1,6 +1,7 @@
-
 import { NextResponse } from 'next/server';
 import { getUniqueCategories } from '@/lib/db';
+
+export const dynamic = 'force-dynamic'; // Prevent caching of category list
 
 export async function GET() {
     try {
