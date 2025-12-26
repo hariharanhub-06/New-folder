@@ -45,8 +45,9 @@ export async function POST(request: Request) {
                 INSERT INTO orders (
                     id, customer_name, customer_email, customer_mobile,
                     shipping_address, total_amount, shipping_cost, status,
-                    transaction_id, cashfree_payment_id, cashfree_order_id
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $10)
+                    transaction_id, razorpay_order_id, razorpay_payment_id,
+                    cashfree_order_id, cashfree_payment_id
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $9, $10, $9)
             `, [
                 orderId,
                 customerDetails.name,
@@ -54,10 +55,8 @@ export async function POST(request: Request) {
                 customerDetails.mobile,
                 JSON.stringify(shippingAddress),
                 totals.grandTotal,
-                totals.shippingCost, // This includes gateway fee effectively in logic, or we store separately? 
-                // DB schema has shipping_cost. Let's store actual shipping cost. 
-                // Total amount is what user paid.
-                'Payment Confirmed', // Direct to confirmed status
+                totals.shippingCost,
+                'Payment Confirmed',
                 razorpay_payment_id,
                 razorpay_order_id
             ]);

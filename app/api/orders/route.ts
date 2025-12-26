@@ -11,24 +11,33 @@ export async function GET() {
         `);
         const orders = ordersRes.rows;
 
-        // Hydrate items
-        // Note: For large datasets, use a JOIN. Keeping it simple as per original logic for now, but parallelizing.
         const ordersWithItems = await Promise.all(orders.map(async (order) => {
             const itemsRes = await db.query(`
                 SELECT * FROM order_items WHERE order_id = $1
             `, [order.id]);
             const items = itemsRes.rows;
 
+            let shippingAddress = {};
+            try {
+                shippingAddress = typeof order.shipping_address === 'string'
+                    ? JSON.parse(order.shipping_address)
+                    : (order.shipping_address || {});
+            } catch (e) {
+                console.error(`Failed to parse shipping address for order ${order.id}:`, e);
+            }
+
             return {
                 id: order.id,
                 customerName: order.customer_name,
                 customerEmail: order.customer_email,
                 customerMobile: order.customer_mobile,
-                shippingAddress: order.shipping_address ? JSON.parse(order.shipping_address) : {},
+                shippingAddress: shippingAddress,
                 totalAmount: parseFloat(order.total_amount),
                 shippingCost: parseFloat(order.shipping_cost),
                 status: order.status,
                 transactionId: order.transaction_id,
+                razorpayOrderId: order.razorpay_order_id,
+                razorpayPaymentId: order.razorpay_payment_id,
                 cashfreeOrderId: order.cashfree_order_id,
                 cashfreePaymentId: order.cashfree_payment_id,
                 logisticsId: order.logistics_id,
@@ -40,6 +49,7 @@ export async function GET() {
                     name: item.name,
                     quantity: item.quantity,
                     price: parseFloat(item.price),
+                    size: item.size
                 })),
             };
         }));
@@ -68,8 +78,9 @@ export async function POST(request: Request) {
             await client.query(`
                 INSERT INTO orders (
                     id, customer_name, customer_email, customer_mobile,
-                    shipping_address, total_amount, shipping_cost, status
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    shipping_address, total_amount, shipping_cost, status,
+                    transaction_id, razorpay_order_id, razorpay_payment_id
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             `, [
                 orderId,
                 order.customerName,
@@ -78,7 +89,10 @@ export async function POST(request: Request) {
                 JSON.stringify(order.shippingAddress),
                 order.totalAmount,
                 order.shippingCost || 0,
-                'Payment Confirmed'
+                'Payment Confirmed',
+                order.transactionId || null,
+                order.razorpayOrderId || null,
+                order.razorpayPaymentId || null
             ]);
 
             for (const item of order.items) {
