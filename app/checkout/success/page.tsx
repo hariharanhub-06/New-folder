@@ -45,7 +45,7 @@ export default async function SuccessPage({
                 </div>
 
                 {/* Invoice */}
-                <Invoice order={order} />
+                <Invoice order={order} showActions={false} />
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8 print:hidden">

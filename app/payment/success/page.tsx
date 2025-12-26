@@ -76,27 +76,20 @@ function PaymentSuccessContent() {
                         <p className="mt-1">Once the shipment is done, you will receive the courier order ID/tracking no for your reference on your <strong>WhatsApp number</strong>.</p>
                     </div>
 
-                    <div className="flex justify-center gap-4 pt-4">
-                        <button
-                            onClick={() => window.print()}
-                            className="flex items-center gap-2 px-6 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors font-medium shadow-sm"
-                        >
-                            <Download className="w-4 h-4" />
-                            Download Invoice
-                        </button>
+                    <div className="flex justify-center pt-4">
                         <button
                             onClick={() => router.push('/')}
-                            className="flex items-center gap-2 px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                            className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-200"
                         >
-                            <Home className="w-4 h-4" />
-                            Continue Shopping
+                            <Home className="w-5 h-5" />
+                            <span className="font-bold">Continue Shopping</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Invoice Display */}
-                <div className="bg-white shadow-lg rounded-xl overflow-hidden">
-                    <Invoice order={order} />
+                <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-slate-100">
+                    <Invoice order={order} showActions={false} />
                 </div>
             </div>
         </div>

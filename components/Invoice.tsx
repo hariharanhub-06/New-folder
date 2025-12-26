@@ -4,9 +4,10 @@ import { Order } from '@/lib/types';
 
 interface InvoiceProps {
     order: Order;
+    showActions?: boolean;
 }
 
-export default function Invoice({ order }: InvoiceProps) {
+export default function Invoice({ order, showActions = true }: InvoiceProps) {
     const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const shipping = order.shippingCost || 0;
     const totalBeforeFee = subtotal + shipping;
@@ -130,22 +131,24 @@ export default function Invoice({ order }: InvoiceProps) {
             </div>
 
             {/* Print Button */}
-            <div className="mt-8 flex gap-4 print:hidden">
-                <button
-                    onClick={() => window.print()}
-                    className="px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
-                >
-                    Print Invoice
-                </button>
-                <button
-                    onClick={() => {
-                        window.print();
-                    }}
-                    className="px-6 py-3 border border-slate-900 text-slate-900 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                    Download PDF
-                </button>
-            </div>
+            {showActions && (
+                <div className="mt-8 flex gap-4 print:hidden">
+                    <button
+                        onClick={() => window.print()}
+                        className="px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                    >
+                        Print Invoice
+                    </button>
+                    <button
+                        onClick={() => {
+                            window.print();
+                        }}
+                        className="px-6 py-3 border border-slate-900 text-slate-900 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                        Download PDF
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
