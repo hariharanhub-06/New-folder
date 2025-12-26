@@ -5,7 +5,7 @@ import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import SidebarFilter from '@/components/SidebarFilter';
 import { ChevronLeft, ChevronRight, Star, Sparkles, Shirt, Scissors, Briefcase, Tag, LayoutGrid, Watch, Glasses } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface ShopProductListProps {
     products: Product[];
@@ -29,6 +29,29 @@ export default function ShopProductList({
     onFilterChange
 }: ShopProductListProps) {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const offerScrollRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll offers every 2 seconds
+    useEffect(() => {
+        if (!offerProducts.length || !offerScrollRef.current) return;
+
+        const scrollInterval = setInterval(() => {
+            if (offerScrollRef.current) {
+                const scrollAmount = 220; // Card width (200) + gap (20)
+                offerScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+
+                // Reset to start if we've reached the end
+                const { scrollLeft, scrollWidth, clientWidth } = offerScrollRef.current;
+                if (scrollLeft + clientWidth >= scrollWidth - 10) {
+                    setTimeout(() => {
+                        offerScrollRef.current?.scrollTo({ left: 0, behavior: 'smooth' });
+                    }, 2000);
+                }
+            }
+        }, 2000);
+
+        return () => clearInterval(scrollInterval);
+    }, [offerProducts.length]);
 
     const { page, totalPages, total, limit } = pagination;
 
@@ -85,7 +108,11 @@ export default function ShopProductList({
                                 </div>
 
                                 {/* 2-Row Horizontal Scroll Grid */}
-                                <div className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-2 px-2" style={{ overscrollBehaviorX: 'contain' }}>
+                                <div
+                                    ref={offerScrollRef}
+                                    className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-2 px-2"
+                                    style={{ overscrollBehaviorX: 'contain' }}
+                                >
                                     <div className="grid grid-rows-2 grid-flow-col gap-4 w-max pb-2">
                                         {offerProducts.map((product) => (
                                             <div key={product.id} className="w-[200px] bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
@@ -149,7 +176,7 @@ export default function ShopProductList({
                             </button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-4 gap-6">
                             {products.map((product) => (
                                 <ProductCard
                                     key={product.id}
