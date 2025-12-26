@@ -50,7 +50,7 @@ export default function ShopProductList({
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h1 className="text-3xl font-bold text-slate-900 mb-8">Our Collection</h1>
+            <h1 className="text-2xl font-bold text-slate-900 mb-6">Our Collection</h1>
 
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Sidebar Filter */}
@@ -85,8 +85,8 @@ export default function ShopProductList({
                                 </div>
 
                                 {/* 2-Row Horizontal Scroll Grid */}
-                                <div className="overflow-x-auto scrollbar-hide -mx-2 px-2">
-                                    <div className="grid grid-rows-2 grid-flow-col gap-4 w-max">
+                                <div className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-2 px-2" style={{ overscrollBehaviorX: 'contain' }}>
+                                    <div className="grid grid-rows-2 grid-flow-col gap-4 w-max pb-2">
                                         {offerProducts.map((product) => (
                                             <div key={product.id} className="w-[200px] bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
                                                 <ProductCard
