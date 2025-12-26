@@ -138,17 +138,6 @@ export default function SidebarFilter({ filters, onFilterChange }: SidebarFilter
                     </div>
                 )}
             </div>
-
-            {/* Highlights (Static for now based on image) */}
-            <div className="border-b border-slate-200 pb-3">
-                <h3 className="text-sm font-bold text-slate-900 mb-2">Highlights</h3>
-                <div className="space-y-1.5">
-                    <button className="text-indigo-600 hover:text-indigo-800 text-left w-full font-medium text-xs">All Products</button>
-                    <button className="text-slate-600 hover:text-slate-900 text-left w-full text-xs">Best Sellers</button>
-                    <button className="text-slate-600 hover:text-slate-900 text-left w-full text-xs">New Arrivals</button>
-                    <button className="text-red-500 hover:text-red-700 text-left w-full text-xs">Sale</button>
-                </div>
-            </div>
         </div>
     );
 }
