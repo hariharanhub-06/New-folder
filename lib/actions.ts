@@ -224,3 +224,24 @@ export async function removeDiscount(id: string) {
     await deleteDiscount(id);
     revalidatePath("/admin/discounts");
 }
+
+export async function deleteCategory(categoryToDelete: string) {
+    if (!categoryToDelete) return;
+
+    try {
+        // Reassign all products with this category to 'Uncategorized'
+        // Using pool directly for efficiency
+        await pool.query(
+            "UPDATE products SET category = 'Uncategorized' WHERE category = $1",
+            [categoryToDelete]
+        );
+
+        revalidatePath("/admin/products");
+        revalidatePath("/shop");
+        revalidatePath("/admin/products/new"); // Updates the category dropdown
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to delete category:", error);
+        throw new Error("Failed to delete category");
+    }
+}

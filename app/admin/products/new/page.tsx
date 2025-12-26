@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Upload, X, Star, Image as ImageIcon, Loader2, Plus } from 'lucide-react';
-import { PRODUCT_CATEGORIES } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
+import CategorySelector from '@/components/CategorySelector';
 
 export default function NewProductPage() {
     const router = useRouter();
@@ -18,8 +18,11 @@ export default function NewProductPage() {
     const [productId, setProductId] = useState<string>('');
     const [weightValue, setWeightValue] = useState<string>('');
     const [weightUnit, setWeightUnit] = useState<'grams' | 'kg'>('grams');
+    // Category state is now just the string
+    const [category, setCategory] = useState<string>('Shirt');
 
-    // Prevent SSR issues - only render after client-side hydration
+
+    // Prevent SSR issues
     useEffect(() => {
         setMounted(true);
         setProductId(crypto.randomUUID());
@@ -143,7 +146,7 @@ export default function NewProductPage() {
                 name: formData.get('name') as string,
                 description: formData.get('description') as string,
                 price: parseFloat(formData.get('price') as string),
-                category: formData.get('category') as string,
+                category: category,
                 stock: totalStock,
                 size: validSizes.length > 0 ? validSizes.map(s => s.size).join(', ') : '',
                 imageUrl: images[mainImageIndex],
@@ -320,40 +323,12 @@ export default function NewProductPage() {
                         </div>
 
                         <div>
-                            <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-                            <div className="mt-1 flex gap-2">
-                                <select
-                                    name="category_select"
-                                    id="category_select"
-                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                                    onChange={(e) => {
-                                        const input = document.getElementById('category_input') as HTMLInputElement;
-                                        if (e.target.value !== 'new') {
-                                            input.value = e.target.value;
-                                            input.style.display = 'none';
-                                        } else {
-                                            input.value = '';
-                                            input.style.display = 'block';
-                                            input.focus();
-                                        }
-                                    }}
-                                >
-                                    {PRODUCT_CATEGORIES.map(cat => (
-                                        <option key={cat} value={cat}>{cat}</option>
-                                    ))}
-                                    <option value="new">+ Create New Category</option>
-                                </select>
-                            </div>
-                            <input
-                                type="text"
-                                name="category"
-                                id="category_input"
-                                required
-                                defaultValue="Shirt"
-                                style={{ display: 'none' }}
-                                placeholder="Enter new category name"
-                                className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                            <CategorySelector
+                                currentCategory={category}
+                                onCategoryChange={setCategory}
                             />
+                            {/* Hidden input for form submission if needed, or we rely on state in handleSubmit */}
+                            <input type="hidden" name="category" value={category} />
                         </div>
                     </div>
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { editProduct } from '@/lib/actions';
 import { Upload, X, Star, Image as ImageIcon, Loader2, Plus } from 'lucide-react';
 import { Product } from '@/lib/types';
 import { PRODUCT_CATEGORIES } from '@/lib/constants';
+import CategorySelector from '@/components/CategorySelector';
 
 export default function EditProductForm({ product }: { product: Product }) {
     const [imageOption, setImageOption] = useState<'url' | 'upload'>('url');
@@ -30,6 +31,10 @@ export default function EditProductForm({ product }: { product: Product }) {
 
     const [weightValue, setWeightValue] = useState<string>(initialValue);
     const [weightUnit, setWeightUnit] = useState<'grams' | 'kg'>(initialUnit);
+    // Use simple category state
+    const [category, setCategory] = useState<string>(product.category || 'Shirt');
+
+    // No need for useEffect fetching here as CategorySelector handles it
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -279,41 +284,11 @@ export default function EditProductForm({ product }: { product: Product }) {
                             </div>
 
                             <div>
-                                <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-                                <div className="mt-1 flex gap-2">
-                                    <select
-                                        name="category_select"
-                                        id="category_select"
-                                        defaultValue={PRODUCT_CATEGORIES.includes(product.category as any) ? product.category : 'new'}
-                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
-                                        onChange={(e) => {
-                                            const input = document.getElementById('category_input') as HTMLInputElement;
-                                            if (e.target.value !== 'new') {
-                                                input.value = e.target.value;
-                                                input.style.display = 'none';
-                                            } else {
-                                                input.value = '';
-                                                input.style.display = 'block';
-                                                input.focus();
-                                            }
-                                        }}
-                                    >
-                                        {PRODUCT_CATEGORIES.map(cat => (
-                                            <option key={cat} value={cat}>{cat}</option>
-                                        ))}
-                                        <option value="new">+ Create New Category</option>
-                                    </select>
-                                </div>
-                                <input
-                                    type="text"
-                                    name="category"
-                                    id="category_input"
-                                    required
-                                    defaultValue={product.category}
-                                    style={{ display: PRODUCT_CATEGORIES.includes(product.category as any) ? 'none' : 'block' }}
-                                    placeholder="Enter new category name"
-                                    className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                <CategorySelector
+                                    currentCategory={category}
+                                    onCategoryChange={setCategory}
                                 />
+                                <input type="hidden" name="category" value={category} />
                             </div>
 
                             <div>
