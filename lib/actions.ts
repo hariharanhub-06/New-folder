@@ -184,14 +184,16 @@ export async function syncRazorpayPayments() {
 
                 // Add a placeholder item
                 await pool.query(`
-                    INSERT INTO order_items (id, order_id, name, quantity, price)
-                    VALUES ($1, $2, $3, $4, $5)
+                    INSERT INTO order_items (id, order_id, name, quantity, price, size, image_url)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
                 `, [
                     crypto.randomUUID(),
                     orderId,
-                    'Recovered Razorpay Order',
+                    payment.notes?.product_name || 'Recovered Razorpay Order',
                     1,
-                    (payment.amount as number) / 100
+                    (payment.amount as number) / 100,
+                    payment.notes?.size || 'N/A',
+                    payment.notes?.image_url || null
                 ]);
 
                 syncedCount++;

@@ -24,10 +24,13 @@ export interface Product {
 }
 
 export interface OrderItem {
+    id: string;
     productId: string;
     name: string;
     quantity: number;
     price: number;
+    imageUrl?: string;
+    size?: string;
 }
 
 export interface Order {

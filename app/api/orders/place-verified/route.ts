@@ -64,8 +64,8 @@ export async function POST(request: Request) {
             // Insert Items & Decrement Stock
             for (const item of cartItems) {
                 await client.query(`
-                    INSERT INTO order_items (id, order_id, product_id, name, quantity, price, size)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    INSERT INTO order_items (id, order_id, product_id, name, quantity, price, size, image_url)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 `, [
                     crypto.randomUUID(),
                     orderId,
@@ -73,7 +73,8 @@ export async function POST(request: Request) {
                     item.name,
                     item.quantity,
                     item.price,
-                    item.selectedSize || null
+                    item.selectedSize || null,
+                    item.imageUrl || null
                 ]);
 
                 // Decrement Stock

@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { updateOrderStatus, removeOrder, updateOrderDetails, syncRazorpayPayments } from '@/lib/actions';
 import { Loader2, Search, Calendar, Download, Filter, Eye, X, Edit2, Trash2, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function AdminOrderList({ orders: initialOrders }: { orders: Order[] }) {
     const router = useRouter();
@@ -529,20 +530,66 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                     </div>
                                 </div>
                                 <div>
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Item Summary</h4>
-                                    <div className="space-y-3">
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Item Summary</h4>
+                                    <div className="space-y-4">
                                         {viewAddressOrder.items.map((item, idx) => (
-                                            <div key={idx} className="flex justify-between items-center text-sm pb-2 border-b border-slate-50 last:border-0 last:pb-0">
-                                                <div className="flex flex-col">
-                                                    <span className="font-semibold text-slate-800">{item.name}</span>
-                                                    <span className="text-xs text-slate-500">Qty: {item.quantity}</span>
+                                            <div key={idx} className="flex gap-4 pb-4 border-b border-slate-50 last:border-0 last:pb-0">
+                                                {/* Product Image */}
+                                                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
+                                                    {item.imageUrl ? (
+                                                        <Image
+                                                            src={item.imageUrl}
+                                                            alt={item.name}
+                                                            fill
+                                                            className="object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                            <Eye className="w-6 h-6 opacity-20" />
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <span className="font-bold text-slate-900">₹{item.price}</span>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className="font-bold text-slate-800 truncate">{item.name}</span>
+                                                        <span className="font-bold text-slate-900 ml-2">₹{item.price}</span>
+                                                    </div>
+
+                                                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                        {item.size && (
+                                                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase rounded border border-indigo-100">
+                                                                Size: {item.size}
+                                                            </span>
+                                                        )}
+                                                        <span className="text-xs text-slate-500 font-medium tracking-tight">
+                                                            Qty: <span className="text-slate-900">{item.quantity}</span>
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-1.5 pt-1 border-t border-slate-50">
+                                                        <span className="text-[10px] font-bold text-slate-300 uppercase">Item ID:</span>
+                                                        <span className="text-[10px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded truncate select-all" title={item.id}>
+                                                            {item.id.slice(0, 13)}...
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         ))}
-                                        <div className="pt-3 flex justify-between items-center font-black text-lg text-slate-900">
-                                            <span>Total Paid</span>
-                                            <span className="text-indigo-600 font-mono">₹{viewAddressOrder.totalAmount.toFixed(2)}</span>
+
+                                        <div className="pt-2">
+                                            <div className="flex justify-between items-center text-slate-500 text-sm mb-1">
+                                                <span>Subtotal</span>
+                                                <span className="font-medium">₹{(viewAddressOrder.totalAmount - viewAddressOrder.shippingCost).toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-slate-500 text-sm mb-3">
+                                                <span>Shipping</span>
+                                                <span className="font-medium">₹{viewAddressOrder.shippingCost.toFixed(2)}</span>
+                                            </div>
+                                            <div className="pt-3 border-t-2 border-slate-100 flex justify-between items-center font-black text-xl text-slate-900">
+                                                <span className="tracking-tight uppercase text-xs text-slate-400">Total Paid</span>
+                                                <span className="text-indigo-600 font-mono">₹{viewAddressOrder.totalAmount.toFixed(2)}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
