@@ -90,7 +90,11 @@ export default function CategorySection({ title, products, className = '' }: Cat
                     onScroll={checkScroll}
                     className="overflow-x-auto scrollbar-hide pb-4 px-4 sm:px-8 scroll-smooth"
                 >
-                    <div className={`grid grid-rows-3 grid-flow-col gap-4 w-max ${products.length < 5 ? 'mx-0' : ''}`}>
+                    {/* Dynamic Grid Rows: 1 row if <= 5 items, 2 if <= 10, 3 if > 10 */}
+                    <div className={`grid gap-4 w-max ${products.length <= 5 ? 'grid-rows-1' :
+                            products.length <= 10 ? 'grid-rows-2' :
+                                'grid-rows-3'
+                        } grid-flow-col ${products.length < 5 ? 'mx-0' : ''}`}>
                         {products.map((product) => (
                             <div key={product.id} className="w-[160px] sm:w-[200px]">
                                 <ProductCard product={product} />
