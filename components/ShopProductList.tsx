@@ -31,9 +31,53 @@ export default function ShopProductList({
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const offerScrollRef = useRef<HTMLDivElement>(null);
 
+    const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+    const scrollPauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Handle manual scroll/interaction to pause auto-scroll
+    const handleUserInteraction = () => {
+        setIsAutoScrolling(false);
+
+        // Clear any existing resume timeout
+        if (scrollPauseTimeoutRef.current) {
+            clearTimeout(scrollPauseTimeoutRef.current);
+        }
+
+        // Set a new timeout to resume auto-scroll after 6 seconds of inactivity
+        scrollPauseTimeoutRef.current = setTimeout(() => {
+            setIsAutoScrolling(true);
+        }, 6000);
+    };
+
+    // Handle browser back button for modal
+    useEffect(() => {
+        const handlePopState = () => {
+            if (selectedProduct) {
+                setSelectedProduct(null);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [selectedProduct]);
+
+    const handleProductSelect = (product: Product) => {
+        setSelectedProduct(product);
+        // Push a state so back button closes the modal
+        window.history.pushState({ modalOpen: true }, '');
+    };
+
+    const handleModalClose = () => {
+        setSelectedProduct(null);
+        // If we opened a modal and pushed state, go back to clean it up
+        if (window.history.state?.modalOpen) {
+            window.history.back();
+        }
+    };
+
     // Auto-scroll offers every 1 second
     useEffect(() => {
-        if (!offerProducts.length || !offerScrollRef.current) return;
+        if (!offerProducts.length || !offerScrollRef.current || !isAutoScrolling) return;
 
         const scrollInterval = setInterval(() => {
             if (offerScrollRef.current) {
@@ -51,7 +95,7 @@ export default function ShopProductList({
         }, 1000);
 
         return () => clearInterval(scrollInterval);
-    }, [offerProducts.length]);
+    }, [offerProducts.length, isAutoScrolling]);
 
     const { page, totalPages, total, limit } = pagination;
 
@@ -82,7 +126,7 @@ export default function ShopProductList({
                 <div className="grid grid-rows-1 grid-flow-col auto-cols-[150px] gap-2 pb-1">
                     {offerProducts.map((product) => (
                         <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                            <ProductCard product={product} onSelect={setSelectedProduct} />
+                            <ProductCard product={product} onSelect={handleProductSelect} />
                         </div>
                     ))}
                 </div>
@@ -94,7 +138,7 @@ export default function ShopProductList({
             <div className="grid grid-rows-2 grid-flow-col auto-cols-[150px] gap-2 pb-1">
                 {offerProducts.map((product) => (
                     <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                        <ProductCard product={product} onSelect={setSelectedProduct} />
+                        <ProductCard product={product} onSelect={handleProductSelect} />
                     </div>
                 ))}
             </div>
@@ -139,6 +183,9 @@ export default function ShopProductList({
                                 {/* Dynamic Grid Layout */}
                                 <div
                                     ref={offerScrollRef}
+                                    onWheel={handleUserInteraction}
+                                    onTouchStart={handleUserInteraction}
+                                    onPointerDown={handleUserInteraction}
                                     className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-1 px-1"
                                     style={{
                                         overscrollBehaviorX: 'contain',
@@ -204,7 +251,7 @@ export default function ShopProductList({
                                 <ProductCard
                                     key={product.id}
                                     product={product}
-                                    onSelect={setSelectedProduct}
+                                    onSelect={handleProductSelect}
                                 />
                             ))}
                         </div>
@@ -241,7 +288,7 @@ export default function ShopProductList({
             {selectedProduct && (
                 <ProductDetailModal
                     product={selectedProduct}
-                    onClose={() => setSelectedProduct(null)}
+                    onClose={handleModalClose}
                 />
             )}
         </div>
