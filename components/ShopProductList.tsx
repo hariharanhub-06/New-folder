@@ -31,7 +31,7 @@ export default function ShopProductList({
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const offerScrollRef = useRef<HTMLDivElement>(null);
 
-    // Auto-scroll offers every 2 seconds
+    // Auto-scroll offers every 1 second
     useEffect(() => {
         if (!offerProducts.length || !offerScrollRef.current) return;
 
@@ -45,10 +45,10 @@ export default function ShopProductList({
                 if (scrollLeft + clientWidth >= scrollWidth - 10) {
                     setTimeout(() => {
                         offerScrollRef.current?.scrollTo({ left: 0, behavior: 'smooth' });
-                    }, 2000);
+                    }, 1000);
                 }
             }
-        }, 2000);
+        }, 1000);
 
         return () => clearInterval(scrollInterval);
     }, [offerProducts.length]);
@@ -71,19 +71,16 @@ export default function ShopProductList({
         return <Tag className="w-4 h-4" />;
     };
 
-    // Dynamic grid: first row gets min 5 items, then second row, max 10 visible
+    // Horizontal scroll grid: 1-9 = single row, 10+ = 2 rows
     const getOfferGridLayout = () => {
         const count = offerProducts.length;
         if (count === 0) return null;
 
-        // Show max 10 products, rest in overflow
-        const visibleProducts = offerProducts.slice(0, 10);
-
-        // 5 to 9 products: single row
-        if (count >= 5 && count <= 9) {
+        // 1 to 9 products: single row horizontal scroll
+        if (count <= 9) {
             return (
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 pb-1">
-                    {visibleProducts.map((product) => (
+                <div className="grid grid-rows-1 grid-flow-col auto-cols-[150px] gap-2 pb-1">
+                    {offerProducts.map((product) => (
                         <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
                             <ProductCard product={product} onSelect={setSelectedProduct} />
                         </div>
@@ -92,42 +89,14 @@ export default function ShopProductList({
             );
         }
 
-        // Less than 5: single row
-        if (count < 5) {
-            return (
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 pb-1">
-                    {visibleProducts.map((product) => (
-                        <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                            <ProductCard product={product} onSelect={setSelectedProduct} />
-                        </div>
-                    ))}
-                </div>
-            );
-        }
-
-        // 10 or more: first row gets exactly 5, second row gets rest
-        const firstRowCount = 5;
-        const firstRow = visibleProducts.slice(0, firstRowCount);
-        const secondRow = visibleProducts.slice(firstRowCount);
-
+        // 10+ products: 2 rows horizontal scroll
         return (
-            <div className="space-y-2">
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">
-                    {firstRow.map((product) => (
-                        <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                            <ProductCard product={product} onSelect={setSelectedProduct} />
-                        </div>
-                    ))}
-                </div>
-                {secondRow.length > 0 && (
-                    <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">
-                        {secondRow.map((product) => (
-                            <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                                <ProductCard product={product} onSelect={setSelectedProduct} />
-                            </div>
-                        ))}
+            <div className="grid grid-rows-2 grid-flow-col auto-cols-[150px] gap-2 pb-1">
+                {offerProducts.map((product) => (
+                    <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                        <ProductCard product={product} onSelect={setSelectedProduct} />
                     </div>
-                )}
+                ))}
             </div>
         );
     };
