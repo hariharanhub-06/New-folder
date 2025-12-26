@@ -151,9 +151,9 @@ export default function ShopProductList({
                         </div>
                     )}
 
-                    {/* Category Tabs */}
-                    <div className="mb-8 overflow-x-auto pb-2 scrollbar-hide">
-                        <div className="flex space-x-2">
+                    {/* Category Tabs - Wrap on mobile, no horizontal scroll */}
+                    <div className="mb-8">
+                        <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={() => onFilterChange({ ...filters, category: undefined, page: 1 })}
                                 className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${!filters.category
@@ -182,7 +182,7 @@ export default function ShopProductList({
 
                     {/* Product Grid */}
                     {loading ? (
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <div key={i} className="min-w-full h-[300px] bg-slate-100 rounded-xl animate-pulse"></div>
                             ))}
@@ -199,7 +199,7 @@ export default function ShopProductList({
                             </button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
                             {products.map((product) => (
                                 <ProductCard
                                     key={product.id}
