@@ -1,13 +1,16 @@
 import { Order } from '@/lib/types';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { updateOrderStatus, removeOrder, updateOrderDetails, syncRazorpayPayments } from '@/lib/actions';
-import { Loader2, Search, Calendar, Download, Filter, Eye, X, Edit2, Trash2, RefreshCw } from 'lucide-react';
+import { Loader2, Search, Calendar, Download, Filter, Eye, X, Edit2, Trash2, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+
+const ITEMS_PER_PAGE = 25;
 
 export default function AdminOrderList({ orders: initialOrders }: { orders: Order[] }) {
     const router = useRouter();
     const [orders, setOrders] = useState<Order[]>(initialOrders);
+    const [currentPage, setCurrentPage] = useState(1);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [isSyncing, setIsSyncing] = useState(false);
     const [logisticsId, setLogisticsId] = useState('');
@@ -51,6 +54,18 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
             return true;
         });
     }, [orders, searchId, statusFilter, dateRange]);
+
+    // Pagination Calculations
+    const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+    const paginatedOrders = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredOrders, currentPage]);
+
+    // Reset to first page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchId, statusFilter, dateRange]);
 
     const handleStatusChange = async (orderId: string, newStatus: string) => {
         if (newStatus === 'Couried') {
@@ -265,7 +280,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                     </td>
                                 </tr>
                             ) : (
-                                filteredOrders.map((order) => (
+                                paginatedOrders.map((order) => (
                                     <tr key={order.id} className="hover:bg-gray-50 relative group">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
@@ -374,6 +389,62 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination UI */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50">
+                        <div className="text-sm text-slate-500">
+                            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredOrders.length)} of {filteredOrders.length} orders
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="p-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-white hover:border-slate-400 hover:text-indigo-600 bg-white shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+                                title="Previous Page"
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                                    let pageNum;
+                                    if (totalPages <= 5) {
+                                        pageNum = i + 1;
+                                    } else if (currentPage <= 3) {
+                                        pageNum = i + 1;
+                                    } else if (currentPage >= totalPages - 2) {
+                                        pageNum = totalPages - 4 + i;
+                                    } else {
+                                        pageNum = currentPage - 2 + i;
+                                    }
+
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => setCurrentPage(pageNum)}
+                                            className={`px-3 py-1 rounded-lg font-bold text-sm transition-all focus:ring-2 focus:ring-indigo-200 ${currentPage === pageNum
+                                                ? 'bg-indigo-600 text-white shadow-md border-transparent'
+                                                : 'border border-slate-300 text-slate-600 hover:bg-white hover:border-slate-400 hover:text-indigo-600 bg-white'
+                                                }`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="p-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-white hover:border-slate-400 hover:text-indigo-600 bg-white shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+                                title="Next Page"
+                            >
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Logistics Modal (Reuse existing logic) */}
                 {showLogisticsModal && (

@@ -4,6 +4,7 @@ import { CartProvider } from "@/lib/cart-context";
 import Navbar from "@/components/Navbar";
 import { Analytics } from "@vercel/analytics/react";
 import { Instagram } from "lucide-react";
+import ScrollFix from "@/components/ScrollFix";
 
 export const metadata: Metadata = {
     title: "Startup Men's Wear",
@@ -57,6 +58,7 @@ export default function RootLayout({
                         </div>
                     </footer>
                 </CartProvider>
+                <ScrollFix />
                 <Analytics />
             </body>
         </html>

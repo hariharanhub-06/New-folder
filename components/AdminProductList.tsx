@@ -140,7 +140,8 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage === 1 || isPending}
-                                className="p-2 rounded-lg border border-slate-300 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="p-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-white hover:border-slate-400 hover:text-indigo-600 bg-white shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+                                title="Previous Page"
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
@@ -163,9 +164,9 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                                             key={pageNum}
                                             onClick={() => handlePageChange(pageNum)}
                                             disabled={isPending}
-                                            className={`px-3 py-1 rounded-lg font-medium text-sm transition-all ${currentPage === pageNum
-                                                ? 'bg-indigo-600 text-white shadow-md'
-                                                : 'border border-slate-300 hover:bg-white'
+                                            className={`px-3 py-1 rounded-lg font-bold text-sm transition-all focus:ring-2 focus:ring-indigo-200 ${currentPage === pageNum
+                                                ? 'bg-indigo-600 text-white shadow-md border-transparent'
+                                                : 'border border-slate-300 text-slate-600 hover:bg-white hover:border-slate-400 hover:text-indigo-600 bg-white'
                                                 } disabled:opacity-50`}
                                         >
                                             {pageNum}
@@ -177,7 +178,8 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                             <button
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage === totalPages || isPending}
-                                className="p-2 rounded-lg border border-slate-300 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="p-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-white hover:border-slate-400 hover:text-indigo-600 bg-white shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+                                title="Next Page"
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </button>
