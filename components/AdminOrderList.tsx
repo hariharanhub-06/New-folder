@@ -665,13 +665,9 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-slate-50 px-6 py-4 flex justify-end">
-                                <button onClick={() => setViewAddressOrder(null)} className="px-6 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">Close View</button>
-                            </div>
                         </div>
-                    </div>
                 )}
-            </div>
+                    </div>
         </div>
-    );
+            );
 }
