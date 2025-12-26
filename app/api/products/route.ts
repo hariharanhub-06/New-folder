@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { getProduct, saveProduct, deleteProduct } from '@/lib/db';
 import pool from '@/lib/db'; // Keep pool for the list query or move list query to db.ts
 
+export const dynamic = 'force-dynamic'; // Disable caching
+
 // GET: Fetch products with filters and pagination
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -25,6 +27,7 @@ export async function GET(request: Request) {
         const sort = (searchParams.get('sort') as any) || 'newest';
         const search = searchParams.get('search') || undefined;
         const isAdmin = searchParams.get('admin') === 'true';
+        const isOffer = searchParams.get('isOffer') === 'true' ? true : searchParams.get('isOffer') === 'false' ? false : undefined;
 
         // Admin view might want to see inactive products and potentially a larger list, 
         // but for now we stick to the requested limit or a default higher one for admin if not specified?
@@ -39,7 +42,8 @@ export async function GET(request: Request) {
             maxPrice,
             sort,
             search,
-            includeInactive: isAdmin
+            includeInactive: isAdmin,
+            isOffer
         }));
 
         return NextResponse.json(result);
