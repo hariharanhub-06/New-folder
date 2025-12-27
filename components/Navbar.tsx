@@ -108,9 +108,13 @@ export default function Navbar() {
                         </div>
 
                         <div className="flex items-center gap-3 md:gap-5">
-                            <Link href="/wishlist" className="relative p-1 hover:text-brand-red transition-colors">
+                            <Link href="/wishlist" className="relative p-1 hover:text-red-600 transition-colors">
                                 <Heart className="w-5 h-5" />
-                                {mounted && <span className="absolute -top-1 -right-1 bg-brand-red text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">{wishlistCount}</span>}
+                                {mounted && (
+                                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                                        {wishlistCount}
+                                    </span>
+                                )}
                             </Link>
                             <Link href="/checkout" className="relative p-1 hover:text-brand-red transition-colors flex items-center gap-2">
                                 <div className="relative">
