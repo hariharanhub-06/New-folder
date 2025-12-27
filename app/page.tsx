@@ -5,7 +5,9 @@ import { ArrowRight, Zap, ShieldCheck, Truck, MapPin } from "lucide-react";
 import Image from "next/image";
 import { UnifrakturMaguntia } from "next/font/google";
 import { useEffect, useState, useRef } from "react";
-import { getFullCategories, getSettings } from "@/lib/api";
+import { getFullCategories, getSettings, getProductsPaginated } from "@/lib/api";
+import { Product } from "@/lib/types";
+import ProductCarousel from "@/components/ProductCarousel";
 
 const gothic = UnifrakturMaguntia({
     weight: "400",
@@ -15,6 +17,9 @@ const gothic = UnifrakturMaguntia({
 export default function HomePage() {
     const [categories, setCategories] = useState<any[]>([]);
     const [settings, setSettings] = useState<Record<string, string>>({});
+    const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
+    const [newArrivalProducts, setNewArrivalProducts] = useState<Product[]>([]);
+    const [bestOfferProducts, setBestOfferProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAutoScrolling, setIsAutoScrolling] = useState(true);
     const categoryScrollRef = useRef<HTMLDivElement>(null);
@@ -33,14 +38,20 @@ export default function HomePage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const [cats, sets] = await Promise.all([
+                const [cats, sets, trendingRes, newArrivalRes, bestOfferRes] = await Promise.all([
                     getFullCategories(),
-                    getSettings()
+                    getSettings(),
+                    getProductsPaginated({ isTrending: true, limit: 10, page: 1 }),
+                    getProductsPaginated({ isNewArrival: true, limit: 10, page: 1 }),
+                    getProductsPaginated({ isOffer: true, limit: 10, page: 1 })
                 ]);
                 // Filter active categories and take top 4 or all? 
                 // Let's show all active categories in a grid
                 setCategories(cats.filter(c => c.is_active));
                 setSettings(sets);
+                setTrendingProducts(trendingRes.data);
+                setNewArrivalProducts(newArrivalRes.data);
+                setBestOfferProducts(bestOfferRes.data);
             } catch (err) {
                 console.error("Failed to load homepage data", err);
             } finally {
@@ -178,6 +189,33 @@ export default function HomePage() {
                 `}</style>
             </section>
 
+            {/* Trending Now Products */}
+            <ProductCarousel
+                products={trendingProducts}
+                title="Trending Now"
+                subtitle="Explore the newest additions to our collection crafted for the modern man who loves to stay ahead in fashion."
+                ctaText="SHOP MORE"
+                ctaLink="/shop?isTrending=true"
+            />
+
+            {/* New Arrivals Products */}
+            <ProductCarousel
+                products={newArrivalProducts}
+                title="New Arrivals"
+                subtitle="Explore our newest arrivals featuring trendy shirts, jeans, and T-shirts crafted for comfort and confidence. Step into the season with style that sets you apart."
+                ctaText="EXPLORE NOW"
+                ctaLink="/shop?isNewArrival=true"
+            />
+
+            {/* Best Offers Products */}
+            <ProductCarousel
+                products={bestOfferProducts}
+                title="Best Offers"
+                subtitle="Don't miss out on our exclusive deals and limited-time offers. Quality meets affordability in our handpicked collection of premium menswear."
+                ctaText="GRAB DEALS"
+                ctaLink="/shop?isOffer=true"
+            />
+
             {/* Brand Pillars */}
             <section className="bg-black text-white py-16 border-y border-gray-800">
                 <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
@@ -251,7 +289,7 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
-        </div>
+        </div >
     );
 }
 
