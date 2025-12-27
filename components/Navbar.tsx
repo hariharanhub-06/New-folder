@@ -131,7 +131,7 @@ export default function Navbar() {
                             <Menu className="w-4 h-4" />
                             Shop By Categories
                         </Link>
-                        <Link href="/shop?sort=newest" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">New Arrivals</Link>
+                        <Link href="/shop?isNewArrival=true" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">New Arrivals</Link>
                         <Link href="/shop?isTrending=true" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">Trending Now</Link>
                         <Link href="/shop?category=Pant" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">Bottoms</Link>
                         <Link href="/shop?category=Hoodie" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">Hoodies</Link>
@@ -157,7 +157,7 @@ export default function Navbar() {
                             />
                             <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         </div>
-                        <Link href="/shop" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">New Arrivals</Link>
+                        <Link href="/shop?isNewArrival=true" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">New Arrivals</Link>
                         <Link href="/shop" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Trending Now</Link>
                         <Link href="/shop" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Shop By Category</Link>
                         <Link href="/shop?isOffer=true" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider text-brand-red">Best Offers</Link>

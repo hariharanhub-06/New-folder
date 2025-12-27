@@ -39,7 +39,8 @@ export default function HomePage() {
                 ]);
                 // Filter active categories and take top 4 or all? 
                 // Let's show all active categories in a grid
-                setCategories(cats.filter(c => c.is_active));
+                // User Request: "In the front page catergories only hoodie should be visible no other products"
+                setCategories(cats.filter(c => c.is_active && c.name.toLowerCase().includes('hoodie')));
                 setSettings(sets);
             } catch (err) {
                 console.error("Failed to load homepage data", err);
