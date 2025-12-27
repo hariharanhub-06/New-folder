@@ -37,13 +37,7 @@ export default function HomePage() {
         loadData();
     }, []);
 
-    // Fallback categories if none in DB
-    const displayCategories = categories.length > 0 ? categories : [
-        { name: "Hoodie", image_url: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1000&auto=format&fit=crop" },
-        { name: "T-Shirt", image_url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1000&auto=format&fit=crop" },
-        { name: "Pant", image_url: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=1000&auto=format&fit=crop" },
-        { name: "Accessory", image_url: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1000&auto=format&fit=crop" }
-    ];
+    // Categories are now merged inline in the render method to ensure full grid
 
     return (
         <div className="min-h-screen bg-[#F4F3EF] font-jost text-black">
@@ -111,9 +105,31 @@ export default function HomePage() {
                     <Link href="/shop" className="text-xs font-bold uppercase tracking-widest border-b-2 border-black hover:text-brand-red hover:border-brand-red transition-all">View All</Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {displayCategories.slice(0, 4).map((cat, idx) => (
-                        <CategoryCard key={idx} title={cat.name} category={cat.id || cat.name} img={cat.image_url} />
-                    ))}
+                    {(() => {
+                        const defaultCats = [
+                            { name: "Hoodie", image_url: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1000&auto=format&fit=crop" },
+                            { name: "T-Shirt", image_url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1000&auto=format&fit=crop" },
+                            { name: "Pant", image_url: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=1000&auto=format&fit=crop" },
+                            { name: "Accessory", image_url: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1000&auto=format&fit=crop" }
+                        ];
+
+                        // Merge DB categories into defaults by name
+                        const merged = defaultCats.map(def => {
+                            const fromDb = categories.find(c => c.name.toLowerCase() === def.name.toLowerCase());
+                            return fromDb || def;
+                        });
+
+                        // Add any DB categories that aren't in defaults
+                        const extras = categories.filter(c =>
+                            !defaultCats.find(def => def.name.toLowerCase() === c.name.toLowerCase())
+                        );
+
+                        const final = [...merged, ...extras].slice(0, 4);
+
+                        return final.map((cat, idx) => (
+                            <CategoryCard key={idx} title={cat.name} category={cat.id || cat.name} img={cat.image_url} />
+                        ));
+                    })()}
                 </div>
             </section>
 
@@ -122,18 +138,18 @@ export default function HomePage() {
                 <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
                     <div className="flex flex-col items-center">
                         <Zap className="w-10 h-10 text-brand-red mb-4" />
-                        <h3 className="text-lg font-bold uppercase tracking-widest mb-2">Fast Logistics</h3>
-                        <p className="text-xs text-gray-500 uppercase tracking-widest">Global delivery in 4-6 days</p>
+                        <h3 className="text-lg font-bold uppercase tracking-widest mb-2">Lightspeed Delivery</h3>
+                        <p className="text-xs text-gray-500 uppercase tracking-widest">Global shipping in 4-6 days</p>
                     </div>
                     <div className="flex flex-col items-center">
                         <ShieldCheck className="w-10 h-10 text-brand-red mb-4" />
-                        <h3 className="text-lg font-bold uppercase tracking-widest mb-2">Premium Quality</h3>
-                        <p className="text-xs text-gray-500 uppercase tracking-widest">Hand-picked fabrics only</p>
+                        <h3 className="text-lg font-bold uppercase tracking-widest mb-2">Elite Quality</h3>
+                        <p className="text-xs text-gray-500 uppercase tracking-widest">Strictly premium battle-tested gear</p>
                     </div>
                     <div className="flex flex-col items-center">
                         <Truck className="w-10 h-10 text-brand-red mb-4" />
-                        <h3 className="text-lg font-bold uppercase tracking-widest mb-2">COD Available</h3>
-                        <p className="text-xs text-gray-500 uppercase tracking-widest">Secure payments at your door</p>
+                        <h3 className="text-lg font-bold uppercase tracking-widest mb-2">Pay on Arrival</h3>
+                        <p className="text-xs text-gray-500 uppercase tracking-widest">Verify the fit, then pay at your door</p>
                     </div>
                 </div>
             </section>
