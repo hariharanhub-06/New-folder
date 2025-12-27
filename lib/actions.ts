@@ -126,6 +126,7 @@ export async function editProduct(id: string, formData: FormData) {
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${id}`);
     revalidatePath("/shop");
+    revalidatePath("/");
     revalidatePath(`/product/${id}`);
     redirect("/admin/products");
 }
@@ -134,12 +135,14 @@ export async function removeProduct(id: string) {
     await deleteProductDb(id);
     revalidatePath("/admin/products");
     revalidatePath("/shop");
+    revalidatePath("/");
 }
 
 export async function toggleProductStatus(id: string) {
     await toggleStatusDb(id);
     revalidatePath("/admin/products");
     revalidatePath("/shop");
+    revalidatePath("/");
 }
 
 export async function updateOrderStatus(orderId: string, status: string, logisticsId?: string, courierName?: string) {

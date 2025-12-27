@@ -172,14 +172,17 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         countQuery += ` AND is_new_arrival = $${params.length}`;
     }
 
+    // 1.5 Strict Visibility Logic
+    // If we're in a public view (!includeInactive) AND no specific collection/category/tag filter is applied,
+    // we only show products with NO visibility tags. This keeps the main "All" view clean.
+    const isFiltered = tag || category || isOffer || isTrending || isOfferDrop || isNewArrival;
+
     if (tag) {
         params.push(tag);
         query += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
         countQuery += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
-    } else if (!includeInactive) {
-        // Strict Visibility: ONLY apply to public shop view (includeInactive is false)
-        // If no specific tag is filtered, EXCLUDE products that have ANY tags assigned.
-        // This ensures a product tagged only for "Formal Shirts" doesn't leak into "All" or other categories.
+    } else if (!includeInactive && !isFiltered) {
+        // Only exclude tagged products from generic "All" or un-filtered views
         query += ` AND (visibility_tags IS NULL OR visibility_tags = '[]'::jsonb)`;
         countQuery += ` AND (visibility_tags IS NULL OR visibility_tags = '[]'::jsonb)`;
     }
