@@ -179,8 +179,8 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
 
     if (tag) {
         params.push(tag);
-        query += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
-        countQuery += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
+        query += ` AND visibility_tags @> jsonb_build_array($${params.length}::text)`;
+        countQuery += ` AND visibility_tags @> jsonb_build_array($${params.length}::text)`;
     } else if (!includeInactive && !isFiltered) {
         // Only exclude tagged products from generic "All" or un-filtered views
         query += ` AND (visibility_tags IS NULL OR visibility_tags = '[]'::jsonb)`;

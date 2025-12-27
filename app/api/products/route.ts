@@ -11,6 +11,12 @@ export async function GET(request: Request) {
     const id = searchParams.get('id');
 
     try {
+        const fs = require('fs');
+        const path = require('path');
+        fs.appendFileSync(path.join(process.cwd(), 'api_debug.log'), `[${new Date().toISOString()}] Params: ${searchParams.toString()}\n`);
+    } catch (e) { }
+
+    try {
         if (id) {
             const product = await getProduct(id);
             if (!product) {
