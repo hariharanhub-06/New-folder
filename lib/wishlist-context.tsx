@@ -36,6 +36,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     }, [items, mounted]);
 
     const addToWishlist = (product: Product) => {
+        console.log("Adding to wishlist:", product.name);
         setItems(prev => {
             if (prev.some(item => item.id === product.id)) return prev;
             return [...prev, product];
@@ -43,6 +44,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     };
 
     const removeFromWishlist = (productId: string) => {
+        console.log("Removing from wishlist:", productId);
         setItems(prev => prev.filter(item => item.id !== productId));
     };
 
@@ -51,6 +53,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     };
 
     const toggleWishlist = (product: Product) => {
+        console.log("Toggling wishlist for:", product.name);
         if (isInWishlist(product.id)) {
             removeFromWishlist(product.id);
         } else {

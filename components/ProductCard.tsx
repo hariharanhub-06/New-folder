@@ -39,6 +39,7 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
 
     const handleToggleWishlist = (e: React.MouseEvent) => {
         e.stopPropagation();
+        console.log("ProductCard: Toggling wishlist for", product.id, product.name, "Current state:", isWishlisted);
         toggleWishlist(product);
     };
 
