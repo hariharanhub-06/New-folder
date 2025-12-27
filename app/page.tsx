@@ -169,7 +169,7 @@ export default function HomePage() {
                                 <div className="flex items-start gap-4">
                                     <MapPin className="w-5 h-5 text-brand-red shrink-0" />
                                     <div className="text-xs font-bold uppercase tracking-widest leading-relaxed">
-                                        {settings.contact_address || '160/1, CAR ST, SOWRI PALAYAM, COIMBATORE'}
+                                        {settings.contact_address || '160/1, CAR ST, SOWRIPALAYAM, COIMBATORE'}
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -179,7 +179,7 @@ export default function HomePage() {
                                     </div>
                                 </div>
                                 <Link
-                                    href="https://maps.app.goo.gl/YourMapLink"
+                                    href="https://www.google.com/maps/search/?api=1&query=Startup+mens+wear+Coimbatore"
                                     target="_blank"
                                     className="inline-flex items-center gap-2 mt-4 px-8 py-4 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-brand-red transition-all"
                                 >

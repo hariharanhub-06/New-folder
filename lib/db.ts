@@ -511,7 +511,7 @@ export async function getFullCategories() {
     return res.rows;
 }
 
-export async function upsertCategory(category: { id?: string, name: string, imageUrl?: string, displayOrder?: number, isActive?: boolean }) {
+export async function upsertCategory(category: { id?: string, name: string, image_url?: string, display_order?: number, is_active?: boolean }) {
     const id = category.id || category.name.toLowerCase().replace(/\s+/g, '-');
     await pool.query(`
         INSERT INTO categories (id, name, image_url, display_order, is_active)
@@ -521,7 +521,7 @@ export async function upsertCategory(category: { id?: string, name: string, imag
             image_url = EXCLUDED.image_url,
             display_order = EXCLUDED.display_order,
             is_active = EXCLUDED.is_active
-    `, [id, category.name, category.imageUrl, category.displayOrder || 0, category.isActive !== undefined ? category.isActive : true]);
+    `, [id, category.name, category.image_url, category.display_order || 0, category.is_active !== undefined ? category.is_active : true]);
     return { success: true, id };
 }
 

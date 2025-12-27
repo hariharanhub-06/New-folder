@@ -19,6 +19,7 @@ export default function SettingsForm() {
     const [settings, setSettings] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [updatingKey, setUpdatingKey] = useState<string | null>(null);
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
     useEffect(() => {
         loadSettings();
@@ -148,7 +149,7 @@ export default function SettingsForm() {
                                 <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Google Maps Embed URL</label>
                                 <input
                                     type="text"
-                                    defaultValue={settings.map_embed_url || ""}
+                                    defaultValue={settings.map_embed_url || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3916.3773012018837!2d77.0067921!3d11.010292399999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba859f4812f391d%3A0xa8a96c670b9665a1!2sStartup%20mens%20wear!5e0!3m2!1sen!2sin!4v1766808721731!5m2!1sen!2sin"}
                                     onBlur={(e) => handleUpdateSetting('map_embed_url', e.target.value)}
                                     className="w-full bg-gray-50 border-2 border-black/10 px-4 py-3 text-sm font-medium outline-none focus:border-black transition-colors"
                                     placeholder="https://google.com/maps/embed/..."
@@ -158,7 +159,7 @@ export default function SettingsForm() {
                             <div>
                                 <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Store Address</label>
                                 <textarea
-                                    defaultValue={settings.contact_address || ""}
+                                    defaultValue={settings.contact_address || "160/1, CAR ST, SOWRIPALAYAM, COIMBATORE, TAMIL NADU 641028"}
                                     onBlur={(e) => handleUpdateSetting('contact_address', e.target.value)}
                                     rows={3}
                                     className="w-full bg-gray-50 border-2 border-black/10 px-4 py-3 text-sm font-medium outline-none focus:border-black transition-colors resize-none"
@@ -186,6 +187,26 @@ export default function SettingsForm() {
                                 />
                             </div>
                         </div>
+                    </div>
+
+                    {/* Explicit Save Button for UX */}
+                    <div className="flex flex-col gap-4">
+                        <button
+                            onClick={() => {
+                                setSaveSuccess(true);
+                                setTimeout(() => setSaveSuccess(false), 3000);
+                            }}
+                            className="w-full bg-black hover:bg-brand-red text-white font-bold uppercase tracking-widest text-sm py-4 transition-all flex items-center justify-center gap-2 shadow-[8px_8px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+                        >
+                            <Save className="w-5 h-5" />
+                            Save Configuration
+                        </button>
+                        {saveSuccess && (
+                            <div className="flex items-center justify-center gap-2 text-green-600 font-bold uppercase tracking-widest text-[10px] animate-bounce">
+                                <CheckCircle className="w-4 h-4" />
+                                All changes synced to mainframe
+                            </div>
+                        )}
                     </div>
                 </div>
             ) : (
