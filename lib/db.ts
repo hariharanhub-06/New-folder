@@ -561,3 +561,15 @@ export async function toggleProductOffer(id: string) {
     return { success: false };
 }
 
+
+export async function toggleProductTrending(id: string) {
+    const product = await getProduct(id);
+    if (product) {
+        await pool.query('UPDATE products SET is_trending = $1 WHERE id = $2', [
+            !product.isTrending,
+            id
+        ]);
+        return { success: true };
+    }
+    return { success: false };
+}

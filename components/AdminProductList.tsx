@@ -5,7 +5,7 @@ import { Plus, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { Product } from '@/lib/types';
 import DeleteProductButton from '@/components/DeleteProductButton';
 import ToggleStatusButton from '@/components/ToggleStatusButton';
-import ToggleOfferButton from '@/components/ToggleOfferButton';
+import ToggleTrendingButton from '@/components/ToggleTrendingButton';
 import AdminProductFilter from '@/components/AdminProductFilter';
 import { useState, useMemo, useTransition, useCallback } from 'react';
 
@@ -103,13 +103,13 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
                                             {product.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                         <div className="inline-block flex-shrink-0 ml-2 align-middle">
-                                            <ToggleOfferButton
+                                            <ToggleTrendingButton
                                                 id={product.id}
-                                                isOffer={product.isOffer || false}
+                                                isTrending={product.isTrending || false}
                                                 onToggle={() => {
                                                     setDisplayProducts(current =>
                                                         current.map(p =>
-                                                            p.id === product.id ? { ...p, isOffer: !p.isOffer } : p
+                                                            p.id === product.id ? { ...p, isTrending: !p.isTrending } : p
                                                         )
                                                     );
                                                 }}

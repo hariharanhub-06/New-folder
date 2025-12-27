@@ -7,6 +7,7 @@ import {
     deleteProduct,
     toggleProductStatus as toggleStatusDb,
     toggleProductOffer as toggleOfferDb,
+    toggleProductTrending as toggleTrendingDb,
     updateOrderStatus as updateOrderStatusDb,
     getProduct,
     createDiscount,
@@ -257,6 +258,12 @@ export async function deleteCategory(categoryToDelete: string) {
 
 export async function toggleProductOffer(id: string) {
     await toggleOfferDb(id);
+    revalidatePath("/admin/products");
+    revalidatePath("/shop");
+}
+
+export async function toggleProductTrending(id: string) {
+    await toggleTrendingDb(id);
     revalidatePath("/admin/products");
     revalidatePath("/shop");
 }
