@@ -74,9 +74,17 @@ export default function Navbar() {
             <div className="bg-white border-b border-gray-100 py-4 md:py-6">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
-                    {/* Left: Search Bar (Desktop) */}
-                    <div className="hidden md:flex flex-1 items-center max-w-xs">
-                        <div className="relative w-full">
+                    {/* Left: Search Bar (Desktop) & Menu Toggle (Mobile) */}
+                    <div className="flex-1 flex items-center justify-start md:max-w-xs">
+                        {/* Mobile Menu Toggle */}
+                        <div className="md:hidden flex items-center mr-4">
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-1">
+                                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                            </button>
+                        </div>
+
+                        {/* Desktop Search */}
+                        <div className="hidden md:block relative w-full">
                             <input
                                 type="text"
                                 placeholder="Search products..."
@@ -100,12 +108,6 @@ export default function Navbar() {
 
                     {/* Right: Icons (Cart, Account) */}
                     <div className="flex-1 flex items-center justify-end gap-3 md:gap-6">
-                        {/* Mobile Search/Menu Toggle (Left on mobile, but here for order) */}
-                        <div className="md:hidden flex items-center gap-4 mr-auto">
-                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-1">
-                                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                            </button>
-                        </div>
 
                         <div className="flex items-center gap-3 md:gap-5">
                             <Link href="/wishlist" className="relative p-1 hover:text-red-600 transition-colors">
