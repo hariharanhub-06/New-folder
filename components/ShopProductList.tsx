@@ -49,10 +49,10 @@ export default function ShopProductList({
             clearTimeout(scrollPauseTimeoutRef.current);
         }
 
-        // Set a new timeout to resume auto-scroll after 6 seconds of inactivity
+        // Set a new timeout to resume auto-scroll after 4 seconds of inactivity
         scrollPauseTimeoutRef.current = setTimeout(() => {
             setIsAutoScrolling(true);
-        }, 6000);
+        }, 4000);
     };
 
     // Handle browser back button for modal
@@ -87,15 +87,12 @@ export default function ShopProductList({
 
         const scrollInterval = setInterval(() => {
             if (offerScrollRef.current) {
-                const scrollAmount = 165; // Card width (150) + gap (15)
-                offerScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-
-                // Reset to start if we've reached the end
                 const { scrollLeft, scrollWidth, clientWidth } = offerScrollRef.current;
                 if (scrollLeft + clientWidth >= scrollWidth - 10) {
-                    setTimeout(() => {
-                        offerScrollRef.current?.scrollTo({ left: 0, behavior: 'smooth' });
-                    }, 1000);
+                    offerScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    const scrollAmount = 165; // Card width (150) + gap (15)
+                    offerScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
                 }
             }
         }, 1000);

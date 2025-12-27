@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Zap, ShieldCheck, Truck, MapPin } from "lucide-react";
 import Image from "next/image";
 import { UnifrakturMaguntia } from "next/font/google";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getFullCategories, getSettings } from "@/lib/api";
 
 const gothic = UnifrakturMaguntia({
@@ -16,6 +16,19 @@ export default function HomePage() {
     const [categories, setCategories] = useState<any[]>([]);
     const [settings, setSettings] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
+    const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+    const categoryScrollRef = useRef<HTMLDivElement>(null);
+    const scrollPauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleUserInteraction = () => {
+        setIsAutoScrolling(false);
+        if (scrollPauseTimeoutRef.current) {
+            clearTimeout(scrollPauseTimeoutRef.current);
+        }
+        scrollPauseTimeoutRef.current = setTimeout(() => {
+            setIsAutoScrolling(true);
+        }, 4000);
+    };
 
     useEffect(() => {
         async function loadData() {
@@ -37,7 +50,22 @@ export default function HomePage() {
         loadData();
     }, []);
 
-    // Categories are now merged inline in the render method to ensure full grid
+    useEffect(() => {
+        if (!categories.length || !categoryScrollRef.current || !isAutoScrolling) return;
+
+        const scrollInterval = setInterval(() => {
+            if (categoryScrollRef.current) {
+                const { scrollLeft, scrollWidth, clientWidth } = categoryScrollRef.current;
+                if (scrollLeft + clientWidth >= scrollWidth - 10) {
+                    categoryScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    categoryScrollRef.current.scrollBy({ left: 350, behavior: 'smooth' });
+                }
+            }
+        }, 1000);
+
+        return () => clearInterval(scrollInterval);
+    }, [categories.length, isAutoScrolling]);
 
     return (
         <div className="min-h-screen bg-[#F4F3EF] font-jost text-black">
@@ -106,6 +134,10 @@ export default function HomePage() {
                 </div>
                 <div className="relative overflow-hidden group">
                     <div
+                        ref={categoryScrollRef}
+                        onWheel={handleUserInteraction}
+                        onTouchStart={handleUserInteraction}
+                        onPointerDown={handleUserInteraction}
                         className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory"
                         id="category-carousel"
                     >
@@ -144,21 +176,6 @@ export default function HomePage() {
                         scrollbar-width: none;
                     }
                 `}</style>
-
-                <script dangerouslySetInnerHTML={{
-                    __html: `
-                    (function() {
-                        const el = document.getElementById('category-carousel');
-                        if (!el) return;
-                        setInterval(() => {
-                            if (el.scrollLeft + el.offsetWidth >= el.scrollWidth - 10) {
-                                el.scrollTo({ left: 0, behavior: 'smooth' });
-                            } else {
-                                el.scrollBy({ left: 350, behavior: 'smooth' });
-                            }
-                        }, 3000);
-                    })();
-                `}} />
             </section>
 
             {/* Brand Pillars */}
