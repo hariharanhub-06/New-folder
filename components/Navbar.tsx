@@ -110,7 +110,7 @@ export default function Navbar() {
                         <div className="flex items-center gap-3 md:gap-5">
                             <Link href="/wishlist" className="relative p-1 hover:text-brand-red transition-colors">
                                 <Heart className="w-5 h-5" />
-                                {mounted && wishlistCount > 0 && <span className="absolute -top-1 -right-1 bg-brand-red text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">{wishlistCount}</span>}
+                                {mounted && <span className="absolute -top-1 -right-1 bg-brand-red text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">{wishlistCount}</span>}
                             </Link>
                             <Link href="/checkout" className="relative p-1 hover:text-brand-red transition-colors flex items-center gap-2">
                                 <div className="relative">

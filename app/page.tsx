@@ -10,6 +10,7 @@ import { Product } from "@/lib/types";
 import ProductCarousel from "@/components/ProductCarousel";
 import ProductDetailModal from "@/components/ProductDetailModal";
 import ProductCard from "@/components/ProductCard";
+import ShopCategoryCircles from "@/components/ShopCategoryCircles";
 
 const gothic = UnifrakturMaguntia({
     weight: "400",
@@ -234,56 +235,14 @@ export default function HomePage() {
                 </section>
             )}
 
-            {/* Featured Categories: Horizontal Carousel */}
+            {/* NEW: Shop By Categories (Circular Design) */}
             <section className="py-20 container mx-auto px-4">
-                <div className="flex items-center justify-between mb-10">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter italic">Featured <span className="text-brand-red">Drops</span></h2>
-                    <Link href="/shop" className="text-xs font-bold uppercase tracking-widest border-b-2 border-black hover:text-brand-red hover:border-brand-red transition-all">View All</Link>
-                </div>
-                <div className="relative overflow-hidden group">
-                    <div
-                        ref={categoryScrollRef}
-                        onWheel={handleUserInteraction}
-                        onTouchStart={handleUserInteraction}
-                        onPointerDown={handleUserInteraction}
-                        className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory"
-                        id="category-carousel"
-                    >
-                        {categories.map((cat, idx) => (
-                            <div key={idx} className="min-w-[280px] md:min-w-[320px] lg:min-w-[350px] snap-center">
-                                <CategoryCard title={cat.name} category={cat.id || cat.name} img={cat.image_url} />
-                            </div>
-                        ))}
-                    </div>
-                    <button
-                        onClick={() => {
-                            const el = document.getElementById('category-carousel');
-                            if (el) el.scrollLeft -= 350;
-                        }}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 bg-black/50 text-white p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10 hidden md:block"
-                    >
-                        &lt;
-                    </button>
-                    <button
-                        onClick={() => {
-                            const el = document.getElementById('category-carousel');
-                            if (el) el.scrollLeft += 350;
-                        }}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-black/50 text-white p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10 hidden md:block"
-                    >
-                        &gt;
-                    </button>
-                </div>
-
-                <style jsx global>{`
-                    .no-scrollbar::-webkit-scrollbar {
-                        display: none;
-                    }
-                    .no-scrollbar {
-                        -ms-overflow-style: none;
-                        scrollbar-width: none;
-                    }
-                `}</style>
+                <ShopCategoryCircles
+                    categories={categories}
+                    onSelectCategory={(catName) => {
+                        window.location.href = `/shop?category=${encodeURIComponent(catName)}`;
+                    }}
+                />
             </section>
 
             {/* Trending Now Products */}

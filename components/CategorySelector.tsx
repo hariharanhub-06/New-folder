@@ -57,10 +57,8 @@ export default function CategorySelector({ currentCategory, onCategoryChange }: 
     }, [fetchCategories]);
 
     const handleDelete = async () => {
-        if (!currentCategory || PRODUCT_CATEGORIES.includes(currentCategory as any)) {
-            alert("Cannot delete default categories.");
-            return;
-        }
+        if (!currentCategory) return;
+
 
         if (!confirm(`Are you sure you want to delete the category "${currentCategory}"? All products in this category will be marked as 'Uncategorized'.`)) {
             return;
@@ -149,8 +147,8 @@ export default function CategorySelector({ currentCategory, onCategoryChange }: 
                     </div>
                 )}
 
-                {/* Delete Button - Only show if selected category is custom and we are not in 'new' mode */}
-                {!isCustomInput && currentCategory && !PRODUCT_CATEGORIES.includes(currentCategory as any) && (
+                {/* Delete Button - Show for any existing category */}
+                {!isCustomInput && currentCategory && (
                     <button
                         type="button"
                         onClick={handleDelete}

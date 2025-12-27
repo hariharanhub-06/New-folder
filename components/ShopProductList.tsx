@@ -13,7 +13,24 @@ const gothic = UnifrakturMaguntia({
     subsets: ["latin"],
 });
 
-import ShopCategoryCircles from '@/components/ShopCategoryCircles';
+import { PaginatedResponse, Product, ProductFilters } from '@/lib/types';
+import SidebarFilter from './SidebarFilter';
+import ProductCard from './ProductCard';
+import ProductModal from './ProductModal';
+import { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight, X, SlidersHorizontal, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
+import { useCart } from '@/lib/cart-context';
+import { useRouter } from 'next/navigation';
+import { PaginatedResponse, Product, ProductFilters } from '@/lib/types';
+import SidebarFilter from './SidebarFilter';
+import ProductCard from './ProductCard';
+import ProductModal from './ProductModal';
+import { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight, X, SlidersHorizontal, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
+import { useCart } from '@/lib/cart-context';
+import { useRouter } from 'next/navigation';
+import ShopCategoryPills from '@/components/ShopCategoryPills';
+import OfferDropGrid from '@/components/OfferDropGrid';
 import { getProduct } from '@/lib/api';
 
 interface ShopProductListProps {
@@ -102,12 +119,19 @@ export default function ShopProductList({
                 {/* Main Content */}
                 <div className="flex-1 min-w-0">
 
-                    {/* New Circular Category Navigation */}
-                    <ShopCategoryCircles
+                    <ShopCategoryPills
                         categories={categories}
                         selectedCategory={filters.category}
                         onSelectCategory={(cat) => onFilterChange({ ...filters, tag: undefined, category: cat, page: 1 })}
                     />
+
+                    {/* Offer Drops (Dynamic Grid) */}
+                    {offerProducts.length > 0 && !filters.tag && !filters.category && !filters.search && !filters.isNewArrival && !filters.isTrending && !filters.isOffer && (
+                        <OfferDropGrid
+                            products={offerProducts}
+                            onProductSelect={handleProductSelect}
+                        />
+                    )}
 
                     {/* Product Grid */}
                     {loading ? (
