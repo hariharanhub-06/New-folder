@@ -5,6 +5,19 @@ import { Upload, X, Star, Image as ImageIcon, Loader2, Plus } from 'lucide-react
 import { useRouter } from 'next/navigation';
 import CategorySelector from '@/components/CategorySelector';
 
+const VISIBILITY_HEADERS = [
+    { id: 'new-arrivals', label: 'New Arrival' },
+    { id: 'trending-now', label: 'Trending Now' },
+    { id: 'formal-shirts', label: 'Formal Shirts' },
+    { id: 'baggy-shirts', label: 'Baggy Shirts' },
+    { id: 'premium-shirts', label: 'Premium Shirts' },
+    { id: 'bottoms', label: 'Bottoms' },
+    { id: 'trousers', label: 'Trousers' },
+    { id: 'hoodies', label: 'Hoodies' },
+    { id: 't-shirts', label: 'T-Shirts' },
+    { id: 'best-offers', label: 'Best Offers' },
+];
+
 export default function NewProductPage() {
     const router = useRouter();
     const [mounted, setMounted] = useState(false);
@@ -23,6 +36,7 @@ export default function NewProductPage() {
     const [isOffer, setIsOffer] = useState(false);
     const [isTrending, setIsTrending] = useState(false);
     const [isNewArrival, setIsNewArrival] = useState(false);
+    const [visibilityTags, setVisibilityTags] = useState<string[]>([]);
 
 
     // Prevent SSR issues
@@ -159,7 +173,8 @@ export default function NewProductPage() {
                 isActive: true,
                 isOffer: isOffer,
                 isTrending: isTrending,
-                isNewArrival: isNewArrival
+                isNewArrival: isNewArrival,
+                visibilityTags: visibilityTags
             };
 
             // Call API directly
@@ -378,10 +393,33 @@ export default function NewProductPage() {
                                         className="w-4 h-4 text-brand-red border-gray-300 rounded focus:ring-brand-red"
                                     />
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-gray-900">New Arrival</span>
-                                        <span className="text-[10px] text-gray-500">Always show in &quot;New Arrivals&quot; regardless of date</span>
+                                        <span className="text-sm font-bold text-gray-900">Legacy: New Arrival Flag</span>
+                                        <span className="text-[10px] text-gray-500">Old system flag</span>
                                     </div>
                                 </label>
+                            </div>
+
+                            <hr className="border-slate-200" />
+
+                            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Navigation Visibility</h3>
+                            <div className="grid grid-cols-1 gap-2">
+                                {VISIBILITY_HEADERS.map(header => (
+                                    <label key={header.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-md transition-colors cursor-pointer border border-slate-100 hover:border-slate-200 bg-white/50">
+                                        <input
+                                            type="checkbox"
+                                            checked={visibilityTags.includes(header.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setVisibilityTags(prev => [...prev, header.id]);
+                                                } else {
+                                                    setVisibilityTags(prev => prev.filter(t => t !== header.id));
+                                                }
+                                            }}
+                                            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">{header.label}</span>
+                                    </label>
+                                ))}
                             </div>
                         </div>
 

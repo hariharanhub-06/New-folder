@@ -23,6 +23,7 @@ export interface Product {
     weight?: number;              // Weight in grams
     discountPercentage?: number;  // Individual product discount
     activeDiscount?: Discount;    // The best applicable discount (bundle or percentage)
+    visibilityTags?: string[];    // Array of header tags for visibility control
     createdAt?: string;
     updatedAt?: string;
 }
@@ -107,4 +108,5 @@ export interface ProductFilters {
     isTrending?: boolean; // Filter by trending status
     isOfferDrop?: boolean; // Filter by offer drop status
     isNewArrival?: boolean; // Filter by new arrival status
+    tag?: string;           // Filter by visibility tag
 }

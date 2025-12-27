@@ -2,7 +2,7 @@
 export const PRODUCT_CATEGORIES = [
     'Hoodie',
     'T-Shirt',
-    'Pant',
+    'Bottoms',
     'Shirt',
     'Accessory'
 ] as const;

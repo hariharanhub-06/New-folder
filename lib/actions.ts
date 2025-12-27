@@ -43,10 +43,13 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
     const weightStr = formData.get("weight") as string;
     const weight = weightStr ? parseInt(weightStr) : 750;
 
-    // Parse boolean flags (handle both 'true'/'false' strings and checkbox presence)
     const isOffer = formData.get("isOffer") === 'true';
     const isTrending = formData.get("isTrending") === 'true';
     const isNewArrival = formData.get("isNewArrival") === 'true';
+
+    // Parse visibility tags
+    const visibilityTagsStr = formData.get("visibilityTags") as string;
+    const visibilityTags = visibilityTagsStr ? JSON.parse(visibilityTagsStr) : [];
 
     return {
         name,
@@ -61,7 +64,8 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
         weight,
         isOffer,
         isTrending,
-        isNewArrival
+        isNewArrival,
+        visibilityTags
     };
 }
 

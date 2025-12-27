@@ -7,6 +7,19 @@ import { Product } from '@/lib/types';
 import { PRODUCT_CATEGORIES } from '@/lib/constants';
 import CategorySelector from '@/components/CategorySelector';
 
+const VISIBILITY_HEADERS = [
+    { id: 'new-arrivals', label: 'New Arrival' },
+    { id: 'trending-now', label: 'Trending Now' },
+    { id: 'formal-shirts', label: 'Formal Shirts' },
+    { id: 'baggy-shirts', label: 'Baggy Shirts' },
+    { id: 'premium-shirts', label: 'Premium Shirts' },
+    { id: 'bottoms', label: 'Bottoms' },
+    { id: 'trousers', label: 'Trousers' },
+    { id: 'hoodies', label: 'Hoodies' },
+    { id: 't-shirts', label: 'T-Shirts' },
+    { id: 'best-offers', label: 'Best Offers' },
+];
+
 export default function EditProductForm({ product }: { product: Product }) {
     const [imageOption, setImageOption] = useState<'url' | 'upload'>('url');
     // Initialize images from product.images if available, otherwise fallback to [product.imageUrl]
@@ -36,6 +49,7 @@ export default function EditProductForm({ product }: { product: Product }) {
     const [isOffer, setIsOffer] = useState(product.isOffer || false);
     const [isTrending, setIsTrending] = useState(product.isTrending || false);
     const [isNewArrival, setIsNewArrival] = useState(product.isNewArrival || false);
+    const [visibilityTags, setVisibilityTags] = useState<string[]>(product.visibilityTags || []);
 
     // No need for useEffect fetching here as CategorySelector handles it
 
@@ -170,6 +184,7 @@ export default function EditProductForm({ product }: { product: Product }) {
         formData.set('isOffer', isOffer.toString());
         formData.set('isTrending', isTrending.toString());
         formData.set('isNewArrival', isNewArrival.toString());
+        formData.set('visibilityTags', JSON.stringify(visibilityTags));
 
         try {
             await editProduct(product.id, formData);
@@ -369,10 +384,33 @@ export default function EditProductForm({ product }: { product: Product }) {
                                         className="w-4 h-4 text-brand-red border-gray-300 rounded focus:ring-brand-red"
                                     />
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-gray-900">New Arrival</span>
-                                        <span className="text-[10px] text-gray-500">Always show in &quot;New Arrivals&quot; regardless of date</span>
+                                        <span className="text-sm font-bold text-gray-900">Legacy: New Arrival Flag</span>
+                                        <span className="text-[10px] text-gray-500">Old system flag</span>
                                     </div>
                                 </label>
+                            </div>
+
+                            <hr className="border-slate-200" />
+
+                            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Navigation Visibility</h3>
+                            <div className="grid grid-cols-1 gap-2">
+                                {VISIBILITY_HEADERS.map(header => (
+                                    <label key={header.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-md transition-colors cursor-pointer border border-slate-100 hover:border-slate-200 bg-white/50">
+                                        <input
+                                            type="checkbox"
+                                            checked={visibilityTags.includes(header.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setVisibilityTags(prev => [...prev, header.id]);
+                                                } else {
+                                                    setVisibilityTags(prev => prev.filter(t => t !== header.id));
+                                                }
+                                            }}
+                                            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">{header.label}</span>
+                                    </label>
+                                ))}
                             </div>
                         </div>
 

@@ -44,7 +44,7 @@ const products = [
         name: 'Slim Fit Chinos',
         description: 'Comfortable and stylish chinos for the modern man.',
         price: 1499,
-        category: 'Pants',
+        category: 'Bottoms',
         stock: 40,
         imageUrl: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=1897&auto=format&fit=crop',
         isActive: true,

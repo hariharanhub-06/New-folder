@@ -130,19 +130,22 @@ export default function Navbar() {
 
             {/* Tier 3: Category Navigation (Desktop) */}
             <div className="bg-white border-b border-gray-100 hidden md:block">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-center space-x-12 py-3">
-                        <Link href="/shop" className="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar">
+                    <div className="flex items-center justify-start md:justify-center space-x-6 md:space-x-8 py-3 px-2">
+                        <Link href="/shop" className="group flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">
                             <Menu className="w-4 h-4" />
                             Shop By Categories
                         </Link>
-                        <Link href="/shop?isNewArrival=true" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">New Arrivals</Link>
-                        <Link href="/shop?isTrending=true" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">Trending Now</Link>
-                        <Link href="/shop?category=Pant" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">Bottoms</Link>
-                        <Link href="/shop?category=Hoodie" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">Hoodies</Link>
-                        <Link href="/shop?category=T-Shirt" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">T-Shirts</Link>
-                        <Link href="/shop?category=Shirt" className="text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors">Shirts</Link>
-                        <Link href="/shop?isOffer=true" className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-brand-red hover:opacity-80 transition-opacity">
+                        <Link href="/shop?tag=new-arrivals" className="text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">New Arrivals</Link>
+                        <Link href="/shop?tag=trending-now" className="text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">Trending Now</Link>
+                        <Link href="/shop?tag=formal-shirts" className="text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">Formal Shirts</Link>
+                        <Link href="/shop?tag=baggy-shirts" className="text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">Baggy Shirts</Link>
+                        <Link href="/shop?tag=premium-shirts" className="text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">Premium Shirts</Link>
+                        <Link href="/shop?tag=bottoms" className="text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">Bottoms</Link>
+                        <Link href="/shop?tag=trousers" className="text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">Trousers</Link>
+                        <Link href="/shop?tag=hoodies" className="text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">Hoodies</Link>
+                        <Link href="/shop?tag=t-shirts" className="text-[10px] font-bold uppercase tracking-widest hover:text-brand-red transition-colors whitespace-nowrap">T-Shirts</Link>
+                        <Link href="/shop?tag=best-offers" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-brand-red hover:opacity-80 transition-opacity whitespace-nowrap">
                             <Tag className="w-4 h-4" />
                             Best Offers
                         </Link>
@@ -152,8 +155,8 @@ export default function Navbar() {
 
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
-                <div className="md:hidden fixed inset-0 z-[60] bg-white pt-20">
-                    <div className="px-6 py-8 space-y-6">
+                <div className="md:hidden fixed inset-0 z-[60] bg-white pt-20 overflow-y-auto">
+                    <div className="px-6 py-8 space-y-4">
                         <div className="relative mb-8">
                             <input
                                 type="text"
@@ -162,10 +165,17 @@ export default function Navbar() {
                             />
                             <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                         </div>
-                        <Link href="/shop?isNewArrival=true" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">New Arrivals</Link>
-                        <Link href="/shop" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Trending Now</Link>
                         <Link href="/shop" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Shop By Category</Link>
-                        <Link href="/shop?isOffer=true" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider text-brand-red">Best Offers</Link>
+                        <Link href="/shop?tag=new-arrivals" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">New Arrivals</Link>
+                        <Link href="/shop?tag=trending-now" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Trending Now</Link>
+                        <Link href="/shop?tag=formal-shirts" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Formal Shirts</Link>
+                        <Link href="/shop?tag=baggy-shirts" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Baggy Shirts</Link>
+                        <Link href="/shop?tag=premium-shirts" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Premium Shirts</Link>
+                        <Link href="/shop?tag=bottoms" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Bottoms</Link>
+                        <Link href="/shop?tag=trousers" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Trousers</Link>
+                        <Link href="/shop?tag=hoodies" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">Hoodies</Link>
+                        <Link href="/shop?tag=t-shirts" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider border-b border-gray-100 pb-4">T-Shirts</Link>
+                        <Link href="/shop?tag=best-offers" onClick={() => setIsMenuOpen(false)} className="block text-lg font-bold uppercase tracking-wider text-brand-red">Best Offers</Link>
                     </div>
                     <button onClick={() => setIsMenuOpen(false)} className="absolute top-6 right-6 p-2">
                         <X className="w-8 h-8" />

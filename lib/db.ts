@@ -87,6 +87,7 @@ export async function getProduct(id: string): Promise<Product | null> {
         size: row.size,
         sizes: sizeRes.rows.map(r => ({ size: r.size, stock: r.stock, id: r.id })), // Map DB rows to Size objects
         weight: row.weight || 750,  // Default to 750 grams if not set
+        visibilityTags: row.visibility_tags || [],
         activeDiscount: bestDiscount,
         discountPercentage: bestDiscount?.discountType === 'percentage' ? bestDiscount.percentage : undefined,
         createdAt: row.created_at,
@@ -107,13 +108,14 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         isOffer,
         isTrending,
         isOfferDrop,
-        isNewArrival
+        isNewArrival,
+        tag
     } = filters;
 
     const offset = (page - 1) * limit;
     const params: any[] = [];
     // Optimize: Exclude 'images' column (huge JSON) from list view to prevent RSC payload crash
-    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, is_offer, is_trending, is_offer_drop, is_new_arrival, size, weight, created_at, updated_at FROM products WHERE 1=1';
+    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, is_offer, is_trending, is_offer_drop, is_new_arrival, visibility_tags, size, weight, created_at, updated_at FROM products WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM products WHERE 1=1';
 
     // 1. Build Filters
@@ -168,6 +170,12 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         params.push(isNewArrival);
         query += ` AND is_new_arrival = $${params.length}`;
         countQuery += ` AND is_new_arrival = $${params.length}`;
+    }
+
+    if (tag) {
+        params.push(tag);
+        query += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
+        countQuery += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
     }
 
     // 2. Sorting
@@ -271,6 +279,7 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
             size: row.size,
             sizes: sizesMap.get(row.id) || [],
             weight: row.weight || 750,  // Default to 750 grams if not set
+            visibilityTags: row.visibility_tags || [],
             activeDiscount: bestDiscount,
             discountPercentage: bestDiscount?.discountType === 'percentage' ? bestDiscount.percentage : undefined,
             createdAt: row.created_at,
@@ -313,9 +322,10 @@ export async function saveProduct(product: Product) {
             // Update Product
             await client.query(`
                 UPDATE products 
-                SET name = $1, description = $2, price = $3, category = $4, 
-                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, weight = $10, is_offer = $11, is_trending = $12, is_offer_drop = $13, is_new_arrival = $14, updated_at = CURRENT_TIMESTAMP
-                WHERE id = $15
+                SET name = $1, description = $2, price = $3, category = $4,
+                stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, weight = $10, is_offer = $11, is_trending = $12, is_offer_drop = $13, is_new_arrival = $14,
+                visibility_tags = $15, updated_at = CURRENT_TIMESTAMP
+                WHERE id = $16
             `, [
                 product.name,
                 product.description,
@@ -331,12 +341,13 @@ export async function saveProduct(product: Product) {
                 product.isTrending || false,
                 product.isOfferDrop || false,
                 product.isNewArrival || false,
+                JSON.stringify(product.visibilityTags || []),
                 finalId
             ]);
         } else {
             await client.query(`
-                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size, weight, is_offer, is_trending, is_offer_drop, is_new_arrival)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size, weight, is_offer, is_trending, is_offer_drop, is_new_arrival, visibility_tags)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             `, [
                 finalId,
                 product.name,
@@ -352,7 +363,8 @@ export async function saveProduct(product: Product) {
                 product.isOffer || false,
                 product.isTrending || false,
                 product.isOfferDrop || false,
-                product.isNewArrival || false
+                product.isNewArrival || false,
+                JSON.stringify(product.visibilityTags || [])
             ]);
         }
 
@@ -365,8 +377,8 @@ export async function saveProduct(product: Product) {
             for (const s of product.sizes) {
                 const sizeId = crypto.randomUUID();
                 await client.query(`
-                    INSERT INTO product_sizes (id, product_id, size, stock)
-                    VALUES ($1, $2, $3, $4)
+                    INSERT INTO product_sizes(id, product_id, size, stock)
+            VALUES($1, $2, $3, $4)
                 `, [sizeId, finalId, s.size, s.stock]); // Use finalId
             }
         }
@@ -422,7 +434,7 @@ export async function updateOrder(id: string, details: { customerName: string, c
         UPDATE orders 
         SET customer_name = $1, customer_email = $2, customer_mobile = $3, shipping_address = $4, updated_at = CURRENT_TIMESTAMP
         WHERE id = $5
-    `, [
+                `, [
         details.customerName,
         details.customerEmail,
         details.customerMobile,
@@ -525,14 +537,14 @@ export async function getFullCategories() {
 export async function upsertCategory(category: { id?: string, name: string, image_url?: string, display_order?: number, is_active?: boolean }) {
     const id = category.id || category.name.toLowerCase().replace(/\s+/g, '-');
     await pool.query(`
-        INSERT INTO categories (id, name, image_url, display_order, is_active)
-        VALUES ($1, $2, $3, $4, $5)
-        ON CONFLICT (id) DO UPDATE SET
+        INSERT INTO categories(id, name, image_url, display_order, is_active)
+            VALUES($1, $2, $3, $4, $5)
+        ON CONFLICT(id) DO UPDATE SET
             name = EXCLUDED.name,
-            image_url = EXCLUDED.image_url,
-            display_order = EXCLUDED.display_order,
-            is_active = EXCLUDED.is_active
-    `, [id, category.name, category.image_url, category.display_order || 0, category.is_active !== undefined ? category.is_active : true]);
+                image_url = EXCLUDED.image_url,
+                display_order = EXCLUDED.display_order,
+                is_active = EXCLUDED.is_active
+                    `, [id, category.name, category.image_url, category.display_order || 0, category.is_active !== undefined ? category.is_active : true]);
     return { success: true, id };
 }
 
@@ -551,12 +563,12 @@ export async function getSiteSettings() {
 
 export async function updateSiteSetting(key: string, value: string) {
     await pool.query(`
-        INSERT INTO site_settings (key, value)
-        VALUES ($1, $2)
-        ON CONFLICT (key) DO UPDATE SET
+        INSERT INTO site_settings(key, value)
+            VALUES($1, $2)
+        ON CONFLICT(key) DO UPDATE SET
             value = EXCLUDED.value,
-            updated_at = CURRENT_TIMESTAMP
-    `, [key, value]);
+                updated_at = CURRENT_TIMESTAMP
+                    `, [key, value]);
     return { success: true };
 }
 

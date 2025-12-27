@@ -3,7 +3,7 @@ import { Jost } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
 import Navbar from "@/components/Navbar";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { Instagram } from "lucide-react";
 import ScrollFix from "@/components/ScrollFix";
 
