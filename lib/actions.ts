@@ -127,7 +127,7 @@ export async function editProduct(id: string, formData: FormData) {
 }
 
 export async function removeProduct(id: string) {
-    await deleteProduct(id);
+    await deleteProductDb(id);
     revalidatePath("/admin/products");
     revalidatePath("/shop");
 }
