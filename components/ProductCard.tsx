@@ -10,9 +10,10 @@ import { useRouter } from 'next/navigation';
 interface ProductCardProps {
     product: Product;
     onSelect?: (product: Product) => void;
+    variant?: 'default' | 'small';
 }
 
-const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCardProps) {
+const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'default' }: ProductCardProps) {
     const router = useRouter();
     const { addToCart, items } = useCart();
 
@@ -36,7 +37,7 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
     return (
         <div
             onClick={() => onSelect?.(product)}
-            className="group bg-white rounded-sm overflow-hidden border border-gray-100 cursor-pointer active:scale-[0.98] transition-all flex flex-col h-full font-jost"
+            className={`group bg-white rounded-sm overflow-hidden border border-gray-100 cursor-pointer active:scale-[0.98] transition-all flex flex-col h-full font-jost ${variant === 'small' ? 'max-w-[120px]' : ''}`}
         >
             {/* Image Section */}
             <div className="relative aspect-[3/4] w-full bg-[#f9f9f9] overflow-hidden">
@@ -44,7 +45,7 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
                     src={product.imageUrl || "https://images.unsplash.com/photo-1552066344-24632e509613?q=80&w=1000&auto=format&fit=crop"}
                     alt={product.name}
                     fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    sizes={variant === 'small' ? "120px" : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"}
                     className="object-cover group-hover:scale-110 transition-transform duration-700"
                     unoptimized={!!product.imageUrl?.startsWith('http')}
                 />
@@ -80,23 +81,23 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
             </div>
 
             {/* Content Section */}
-            <div className="p-4 flex flex-col flex-1">
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1">{product.category}</div>
-                <h3 className="text-sm font-medium text-black line-clamp-2 leading-tight mb-2 group-hover:text-brand-red transition-colors">
+            <div className={`${variant === 'small' ? 'p-2' : 'p-4'} flex flex-col flex-1`}>
+                {!variant || variant === 'default' && <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1">{product.category}</div>}
+                <h3 className={`${variant === 'small' ? 'text-[10px]' : 'text-sm'} font-medium text-black line-clamp-2 leading-tight mb-2 group-hover:text-brand-red transition-colors`}>
                     {product.name}
                 </h3>
 
                 <div className="mt-auto flex items-end justify-between">
                     <div className="flex flex-col">
                         {product.activeDiscount?.percentage ? (
-                            <div className="flex items-center gap-2">
-                                <span className="text-base font-bold text-brand-red">
+                            <div className="flex items-center gap-1 flex-wrap">
+                                <span className={`${variant === 'small' ? 'text-sm' : 'text-base'} font-bold text-brand-red`}>
                                     ₹{Math.floor(product.price * (1 - product.activeDiscount.percentage / 100))}
                                 </span>
-                                <span className="text-xs text-gray-400 line-through">₹{product.price}</span>
+                                <span className={`${variant === 'small' ? 'text-[8px]' : 'text-xs'} text-gray-400 line-through`}>₹{product.price}</span>
                             </div>
                         ) : (
-                            <span className="text-base font-bold text-black">₹{product.price}</span>
+                            <span className={`${variant === 'small' ? 'text-sm' : 'text-base'} font-bold text-black`}>₹{product.price}</span>
                         )}
                     </div>
                     {quantityInCart > 0 && (

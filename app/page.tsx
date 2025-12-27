@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Zap, ShieldCheck, Truck, MapPin } from "lucide-react";
+import { ArrowRight, Zap, ShieldCheck, Truck, MapPin, Flame } from "lucide-react";
 import Image from "next/image";
 import { UnifrakturMaguntia } from "next/font/google";
 import { useEffect, useState, useRef } from "react";
@@ -9,6 +9,7 @@ import { getFullCategories, getSettings, getProductsPaginated } from "@/lib/api"
 import { Product } from "@/lib/types";
 import ProductCarousel from "@/components/ProductCarousel";
 import ProductDetailModal from "@/components/ProductDetailModal";
+import ProductCard from "@/components/ProductCard";
 
 const gothic = UnifrakturMaguntia({
     weight: "400",
@@ -21,10 +22,12 @@ export default function HomePage() {
     const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
     const [newArrivalProducts, setNewArrivalProducts] = useState<Product[]>([]);
     const [bestOfferProducts, setBestOfferProducts] = useState<Product[]>([]);
+    const [offerDropProducts, setOfferDropProducts] = useState<Product[]>([]);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [isAutoScrolling, setIsAutoScrolling] = useState(true);
     const categoryScrollRef = useRef<HTMLDivElement>(null);
+    const offerScrollRef = useRef<HTMLDivElement>(null);
     const scrollPauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Handle browser back button for modal
@@ -66,18 +69,20 @@ export default function HomePage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const [cats, sets, trendingRes, newArrivalRes, bestOfferRes] = await Promise.all([
+                const [cats, sets, trendingRes, newArrivalRes, bestOfferRes, offerDropRes] = await Promise.all([
                     getFullCategories(),
                     getSettings(),
                     getProductsPaginated({ isTrending: true, limit: 10, page: 1 }),
                     getProductsPaginated({ isNewArrival: true, limit: 10, page: 1 }),
-                    getProductsPaginated({ isOffer: true, limit: 10, page: 1 })
+                    getProductsPaginated({ isOffer: true, limit: 10, page: 1 }),
+                    getProductsPaginated({ isOfferDrop: true, limit: 20, page: 1 })
                 ]);
                 setCategories(cats.filter(c => c.is_active));
                 setSettings(sets);
                 setTrendingProducts(trendingRes.data);
                 setNewArrivalProducts(newArrivalRes.data);
                 setBestOfferProducts(bestOfferRes.data);
+                setOfferDropProducts(offerDropRes.data);
             } catch (err) {
                 console.error("Failed to load homepage data", err);
             } finally {
@@ -103,6 +108,25 @@ export default function HomePage() {
 
         return () => clearInterval(scrollInterval);
     }, [categories.length, isAutoScrolling]);
+
+    // Auto-scroll logic for Offer Drops
+    useEffect(() => {
+        if (!offerDropProducts.length || !offerScrollRef.current || !isAutoScrolling) return;
+
+        const scrollInterval = setInterval(() => {
+            if (offerScrollRef.current) {
+                const { scrollLeft, scrollWidth, clientWidth } = offerScrollRef.current;
+                if (scrollLeft + clientWidth >= scrollWidth - 10) {
+                    offerScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    const scrollAmount = 140; // Small card width + gap
+                    offerScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                }
+            }
+        }, 1500);
+
+        return () => clearInterval(scrollInterval);
+    }, [offerDropProducts.length, isAutoScrolling]);
 
     return (
         <div className="min-h-screen bg-[#F4F3EF] font-jost text-black">
@@ -162,6 +186,53 @@ export default function HomePage() {
                     STREETWEAR
                 </div>
             </section>
+
+            {/* Offer Drops Section - Smaller size requested */}
+            {!loading && offerDropProducts.length > 0 && (
+                <section className="bg-black py-6 overflow-hidden border-b-4 border-brand-red">
+                    <div className="container mx-auto px-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-1.5 bg-brand-red text-white">
+                                    <Flame className="w-4 h-4 fill-current" />
+                                </div>
+                                <div className="flex flex-col leading-none">
+                                    <span className={`${gothic.className} text-brand-red text-lg`}>Exclusive</span>
+                                    <h2 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">
+                                        Offer Drops <span className="text-brand-red ml-1">{`(${offerDropProducts.length})`}</span>
+                                    </h2>
+                                </div>
+                            </div>
+                            <div className="hidden sm:block">
+                                <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest border border-gray-800 px-2 py-0.5">Limited Time Only</span>
+                            </div>
+                        </div>
+
+                        {/* Smaller Horizontal Scroll Grid */}
+                        <div
+                            ref={offerScrollRef}
+                            onWheel={handleUserInteraction}
+                            onTouchStart={handleUserInteraction}
+                            onPointerDown={handleUserInteraction}
+                            className="overflow-x-auto scrollbar-hide flex gap-3 pb-2 no-scrollbar"
+                            style={{
+                                overscrollBehaviorX: 'contain',
+                                WebkitOverflowScrolling: 'touch'
+                            }}
+                        >
+                            {offerDropProducts.map((product) => (
+                                <div key={product.id} className="min-w-[100px] md:min-w-[120px] flex-shrink-0">
+                                    <ProductCard
+                                        product={product}
+                                        onSelect={handleProductSelect}
+                                        variant="small"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Featured Categories: Horizontal Carousel */}
             <section className="py-20 container mx-auto px-4">
