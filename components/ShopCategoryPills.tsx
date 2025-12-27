@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Tag, Shirt, Scissors, Footprints, Watch, LayoutGrid } from "lucide-react";
 
 interface ShopCategoryPillsProps {
@@ -27,12 +26,7 @@ export default function ShopCategoryPills({ categories, selectedCategory, onSele
         <div className="flex flex-wrap gap-3 mb-8">
             <button
                 onClick={() => onSelectCategory('All Categories')}
-                className={cn(
-                    "flex items-center gap-2 px-4 py-2 border rounded-full text-xs font-bold uppercase tracking-wider transition-all",
-                    !selectedCategory || selectedCategory === 'All Categories'
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black"
-                )}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-full text-xs font-bold uppercase tracking-wider transition-all ${!selectedCategory || selectedCategory === 'All Categories' ? "bg-black text-white border-black" : "bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black"}`}
             >
                 <LayoutGrid className="w-3 h-3" />
                 All Products
@@ -42,12 +36,7 @@ export default function ShopCategoryPills({ categories, selectedCategory, onSele
                 <button
                     key={cat.id || cat.name}
                     onClick={() => onSelectCategory(cat.name)}
-                    className={cn(
-                        "flex items-center gap-2 px-4 py-2 border rounded-full text-xs font-bold uppercase tracking-wider transition-all",
-                        selectedCategory === cat.name
-                            ? "bg-black text-white border-black"
-                            : "bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black"
-                    )}
+                    className={`flex items-center gap-2 px-4 py-2 border rounded-full text-xs font-bold uppercase tracking-wider transition-all ${selectedCategory === cat.name ? "bg-black text-white border-black" : "bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black"}`}
                 >
                     {getIcon(cat.name)}
                     {cat.name}
