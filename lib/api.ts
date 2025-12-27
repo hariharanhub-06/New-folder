@@ -44,6 +44,7 @@ export async function getProductsPaginated(filters: ProductFilters): Promise<Pag
     if (filters.isTrending !== undefined) params.append('isTrending', filters.isTrending.toString());
     if (filters.isOfferDrop !== undefined) params.append('isOfferDrop', filters.isOfferDrop.toString());
     if (filters.isNewArrival !== undefined) params.append('isNewArrival', filters.isNewArrival.toString());
+    if (filters.tag) params.append('tag', filters.tag);
 
     const response = await fetch(`${API_ENDPOINTS.products}?${params.toString()}`, {
         cache: 'no-store' // Prevent caching

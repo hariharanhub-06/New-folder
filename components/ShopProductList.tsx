@@ -194,8 +194,8 @@ export default function ShopProductList({
                     <div className="mb-10 overflow-x-auto scrollbar-hide">
                         <div className="flex gap-2">
                             <button
-                                onClick={() => onFilterChange({ ...filters, tag: undefined, page: 1 })}
-                                className={`flex items-center px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap border ${!filters.tag
+                                onClick={() => onFilterChange({ ...filters, tag: undefined, category: undefined, page: 1 })}
+                                className={`flex items-center px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap border ${!filters.tag && !filters.category
                                     ? 'bg-black text-white border-black shadow-lg shadow-black/10'
                                     : 'bg-white text-gray-400 border-gray-100 hover:text-black hover:border-black'
                                     }`}
@@ -206,8 +206,8 @@ export default function ShopProductList({
                             {categories.map((cat) => (
                                 <button
                                     key={cat}
-                                    onClick={() => onFilterChange({ ...filters, tag: cat.toLowerCase(), page: 1 })}
-                                    className={`flex items-center px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap border ${filters.tag === cat.toLowerCase()
+                                    onClick={() => onFilterChange({ ...filters, tag: undefined, category: cat, page: 1 })}
+                                    className={`flex items-center px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap border ${filters.category === cat
                                         ? 'bg-black text-white border-black shadow-lg shadow-black/10'
                                         : 'bg-white text-gray-400 border-gray-100 hover:text-black hover:border-black'
                                         }`}
