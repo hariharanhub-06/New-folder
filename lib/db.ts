@@ -113,7 +113,7 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
     const offset = (page - 1) * limit;
     const params: any[] = [];
     // Optimize: Exclude 'images' column (huge JSON) from list view to prevent RSC payload crash
-    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, is_offer, is_trending, is_new_arrival, size, weight, created_at, updated_at FROM products WHERE 1=1';
+    let query = 'SELECT id, name, description, price, category, stock, image_url, is_active, is_offer, is_trending, is_offer_drop, is_new_arrival, size, weight, created_at, updated_at FROM products WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM products WHERE 1=1';
 
     // 1. Build Filters
@@ -191,9 +191,9 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
     query += ` LIMIT ${limit} OFFSET ${offset}`;
 
     // Execute Queries
-    const [countRes, productsRes] = await Promise.all([
-        pool.query(countQuery, params),
-        pool.query(query, params)
+    const [productsRes, countRes] = await Promise.all([
+        pool.query(query, params),
+        pool.query(countQuery, params)
     ]);
 
     const total = parseInt(countRes.rows[0].count);
@@ -266,6 +266,7 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
             isActive: row.is_active,
             isOffer: row.is_offer,
             isTrending: row.is_trending,
+            isOfferDrop: row.is_offer_drop,
             isNewArrival: row.is_new_arrival,
             size: row.size,
             sizes: sizesMap.get(row.id) || [],

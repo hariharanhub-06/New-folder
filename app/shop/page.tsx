@@ -32,6 +32,7 @@ function Shop() {
         const sort = searchParams.get('sort') || 'newest';
         const isOffer = searchParams.get('isOffer') === 'true' ? true : undefined;
         const isTrending = searchParams.get('isTrending') === 'true' ? true : undefined;
+        const isOfferDrop = searchParams.get('isOfferDrop') === 'true' ? true : undefined;
         const isNewArrival = searchParams.get('isNewArrival') === 'true' ? true : undefined;
         const search = searchParams.get('search') || undefined;
 
@@ -65,7 +66,8 @@ function Shop() {
                 // Determine if we're viewing a filtered collection (Best Offers, New Arrivals, Trending)
                 const isFilteredView = filters.isOffer !== undefined ||
                     filters.isNewArrival !== undefined ||
-                    filters.isTrending !== undefined;
+                    filters.isTrending !== undefined ||
+                    filters.isOfferDrop !== undefined;
 
                 let regularRes, offerRes;
 

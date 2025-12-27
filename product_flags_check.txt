@@ -1,0 +1,65 @@
+[
+  {
+    "id": "7dbc9fda-852a-4098-ae5c-6f9f89e17f25",
+    "name": "Baggy shirt ",
+    "is_offer": true,
+    "is_offer_drop": false,
+    "is_trending": true
+  },
+  {
+    "id": "c7f2dd43-8214-44c5-aa2c-dbc9de6d34dc",
+    "name": "Baggy shirt ",
+    "is_offer": true,
+    "is_offer_drop": false,
+    "is_trending": false
+  },
+  {
+    "id": "32d5152d-6993-4233-bf2d-7ea2817f3fc7",
+    "name": "Baggy shirt ",
+    "is_offer": true,
+    "is_offer_drop": true,
+    "is_trending": true
+  },
+  {
+    "id": "e5100e96-f139-4223-9325-a89972ab34c5",
+    "name": "Acid wash hoodie ",
+    "is_offer": true,
+    "is_offer_drop": true,
+    "is_trending": false
+  },
+  {
+    "id": "a2dbdb2d-0018-4593-b2f2-d842eb755160",
+    "name": "Baggy shirt ",
+    "is_offer": true,
+    "is_offer_drop": false,
+    "is_trending": true
+  },
+  {
+    "id": "15bab37a-1f26-4198-82ec-4e31570a8611",
+    "name": "Baggy shirt ",
+    "is_offer": true,
+    "is_offer_drop": false,
+    "is_trending": true
+  },
+  {
+    "id": "bd3df07e-96ff-493e-aba6-e1fe8fd7adfc",
+    "name": "Baggy shirt ",
+    "is_offer": true,
+    "is_offer_drop": true,
+    "is_trending": false
+  },
+  {
+    "id": "d6f2aaf6-2d39-4287-a5f2-afc5275c1234",
+    "name": "test",
+    "is_offer": false,
+    "is_offer_drop": false,
+    "is_trending": true
+  },
+  {
+    "id": "3bccac1e-53b7-4270-8f97-e0148d0dbf88",
+    "name": "Acid wash hoodie ",
+    "is_offer": true,
+    "is_offer_drop": true,
+    "is_trending": false
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "distribution": [
+    {
+      "is_offer_drop": false,
+      "count": "43"
+    },
+    {
+      "is_offer_drop": true,
+      "count": "4"
+    }
+  ],
+  "schema": [
+    {
+      "column_name": "is_offer_drop",
+      "data_type": "boolean",
+      "column_default": "false",
+      "is_nullable": "YES"
+    }
+  ]
+}
