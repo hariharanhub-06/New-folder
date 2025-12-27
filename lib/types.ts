@@ -105,5 +105,6 @@ export interface ProductFilters {
     includeInactive?: boolean;
     isOffer?: boolean; // Filter by offer status
     isTrending?: boolean; // Filter by trending status
+    isOfferDrop?: boolean; // Filter by offer drop status
     isNewArrival?: boolean; // Filter by new arrival status
 }
