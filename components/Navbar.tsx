@@ -119,8 +119,8 @@ export default function Navbar() {
                             <Link href="/checkout" className="relative p-1 hover:text-brand-red transition-colors flex items-center gap-2">
                                 <div className="relative">
                                     <ShoppingCart className="w-6 h-6" />
-                                    {mounted && cartCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 bg-brand-red text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                                    {mounted && (
+                                        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
                                             {cartCount}
                                         </span>
                                     )}
