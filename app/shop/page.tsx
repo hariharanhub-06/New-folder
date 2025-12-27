@@ -57,30 +57,33 @@ function Shop() {
         async function loadProducts() {
             setLoading(true);
             try {
-                // Fetch Regular Products (allows isOffer to show in grid if checked) AND Offer Drops (isTrending: true)
                 const queryFilters = {
                     ...filters,
                     limit: 2000
                 };
 
-                // Regular products fetch: We do NOT exclude offers anymore, so checked "Hot Offer" items appear here.
-                // We might want to respect the 'isOffer' filter if the user explicitly set it in the URL, which 'filters' already has.
-                // But for the initial load, we want everything.
-                // Wait, 'filters' comes from URL. If URL has no filters, we just want everything.
+                // Determine if we're viewing a filtered collection (Best Offers, New Arrivals, Trending)
+                const isFilteredView = filters.isOffer !== undefined ||
+                    filters.isNewArrival !== undefined ||
+                    filters.isTrending !== undefined;
 
-                const [regularRes, offerRes] = await Promise.all([
-                    getProductsPaginated({ ...queryFilters, isTrending: false }), // Exclude drops from grid? User said "should not be in the offer drop" for checkbox.
-                    // But for Star (Trending), "available in offer drops".
-                    // Usually if it's in the special carousel, we might not want it in the grid, or we do?
-                    // "If the check box is clicked that should be at the best offer column and should not be in the offer drop"
-                    // implies distinction.
-                    // Let's assume Drops are exclusive to the top carousel for now, or at least highlighted there.
-                    // If I filter isTrending: false here, then Star items vanish from grid.
-                    // If I leave it, they appear in both.
-                    // Let's filter isTrending: false to keep them unique to the carousel if that's the standard pattern for "Drops".
-                    getProductsPaginated({ ...queryFilters, isTrending: true })
-                ]);
+                let regularRes, offerRes;
 
+                if (isFilteredView) {
+                    // User is filtering by a specific flag - only fetch those products
+                    // Don't show Offer Drops carousel on filtered views
+                    regularRes = await getProductsPaginated(queryFilters);
+                    offerRes = { data: [], pagination: { total: 0, page: 1, limit: 0, totalPages: 0 } };
+                } else {
+                    // Default shop view: show all products EXCEPT trending (those go to Offer Drops)
+                    // AND fetch trending products separately for the Offer Drops carousel
+                    [regularRes, offerRes] = await Promise.all([
+                        getProductsPaginated({ ...queryFilters, isTrending: false }),
+                        getProductsPaginated({ ...queryFilters, isTrending: true })
+                    ]);
+                }
+
+                console.log('Regular products fetched:', regularRes.data.length);
                 console.log('Trending (Drops) products fetched:', offerRes.data.length);
 
                 setProducts(regularRes.data);

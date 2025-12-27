@@ -1,0 +1,26 @@
+[
+  {
+    "id": "8ba093a4-6897-4751-8a73-7b1b8bc9a21a",
+    "name": "Old money flip flop ",
+    "is_offer": false,
+    "is_trending": false,
+    "is_new_arrival": false,
+    "is_active": true
+  },
+  {
+    "id": "af137502-5321-409c-bb53-caa7dd744eb2",
+    "name": "Old money flip flop",
+    "is_offer": false,
+    "is_trending": false,
+    "is_new_arrival": false,
+    "is_active": true
+  },
+  {
+    "id": "7864a551-ec97-435e-af26-238537c65b19",
+    "name": "Old money flip flop",
+    "is_offer": false,
+    "is_trending": false,
+    "is_new_arrival": false,
+    "is_active": true
+  }
+]
