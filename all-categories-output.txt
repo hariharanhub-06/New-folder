@@ -1,0 +1,37 @@
+[
+  {
+    "id": "shirt",
+    "name": "Shirt",
+    "image_url": "https://ik.imagekit.io/lzmpwlx08/products/1766813483182-452264899-santhosh-kumar-RqYTuWkTdEs-unsplash_vBbFAcWNf.jpg",
+    "is_active": true,
+    "created_at": "2025-12-26T18:42:16.406Z"
+  },
+  {
+    "id": "t-shirt",
+    "name": "T-Shirt",
+    "image_url": "https://ik.imagekit.io/lzmpwlx08/products/1766813562185-241698753-haryo-setyadi-acn5ERAeSb4-unsplash_1iQmSxlzZ.jpg",
+    "is_active": true,
+    "created_at": "2025-12-26T18:42:16.000Z"
+  },
+  {
+    "id": "shoes",
+    "name": "Shoes",
+    "image_url": "https://ik.imagekit.io/lzmpwlx08/products/1766813546080-472598709-irene-kredenets-dwKiHoqqxk8-unsplash_DziL5QKVG.jpg",
+    "is_active": true,
+    "created_at": "2025-12-26T18:42:15.735Z"
+  },
+  {
+    "id": "hoodie",
+    "name": "Hoodie",
+    "image_url": "https://ik.imagekit.io/lzmpwlx08/products/1766813450731-294753404-design-mockup-clothes-realistic-3d-rendering-of-blank-hoodies-ai-generated-photo_j-AcW0d4k.jpg",
+    "is_active": true,
+    "created_at": "2025-12-26T18:42:15.461Z"
+  },
+  {
+    "id": "pant",
+    "name": "Pant",
+    "image_url": "https://ik.imagekit.io/lzmpwlx08/products/1766813466494-798828992-matthew-moloney-YeGao3uk8kI-unsplash_o4DKNxcgz.jpg",
+    "is_active": true,
+    "created_at": "2025-12-26T18:42:15.185Z"
+  }
+]

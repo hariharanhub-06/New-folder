@@ -4,15 +4,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
     saveProduct,
-    deleteProduct,
+    getProduct,
+    deleteProduct as deleteProductDb,
     toggleProductStatus as toggleStatusDb,
     toggleProductOffer as toggleOfferDb,
     toggleProductTrending as toggleTrendingDb,
     updateOrderStatus as updateOrderStatusDb,
-    getProduct,
     createDiscount,
     deleteDiscount,
     deleteOrder as deleteOrderDb,
+    upsertCategory,
     updateOrder as updateOrderDb
 } from "./db";
 import pool from "./db";
@@ -68,6 +69,14 @@ export async function addProduct(formData: FormData) {
     try {
         const productData = parseProductFormData(formData);
 
+        // Auto-create category if it doesn't exist
+        if (productData.category) {
+            await upsertCategory({
+                name: productData.category,
+                is_active: true
+            });
+        }
+
         await saveProduct({
             id: crypto.randomUUID(),
             ...productData,
@@ -91,6 +100,14 @@ export async function addProduct(formData: FormData) {
 
 export async function editProduct(id: string, formData: FormData) {
     const productData = parseProductFormData(formData);
+
+    // Auto-create category if it doesn't exist
+    if (productData.category) {
+        await upsertCategory({
+            name: productData.category,
+            is_active: true
+        });
+    }
 
     // We need to keep the existing isActive status and createdAt
     const existingProduct = await getProduct(id);
