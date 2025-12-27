@@ -60,10 +60,10 @@ export default function ProductCarousel({ products, title, subtitle, ctaText, ct
     if (!products || products.length === 0) return null;
 
     return (
-        <section className="py-12 md:py-16 bg-white">
+        <section className="py-8 md:py-10 bg-white">
             <div className="container mx-auto px-4">
                 {/* Title and Subtitle */}
-                <div className="text-center mb-8 md:mb-12">
+                <div className="text-center mb-6 md:mb-8">
                     <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter mb-4">
                         {title}
                     </h2>
