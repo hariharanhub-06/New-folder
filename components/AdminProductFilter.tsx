@@ -10,12 +10,26 @@ interface FilterSortProps {
     onFilterSort: (filtered: Product[]) => void;
 }
 
+const VISIBILITY_TAGS = [
+    { label: 'New Arrivals', value: 'new-arrivals' },
+    { label: 'Trending Now', value: 'trending-now' },
+    { label: 'Best Offers', value: 'best-offers' },
+    { label: 'Formal Shirts', value: 'formal-shirts' },
+    { label: 'Baggy Shirts', value: 'baggy-shirts' },
+    { label: 'Premium Shirts', value: 'premium-shirts' },
+    { label: 'Bottoms', value: 'bottoms' },
+    { label: 'Trousers', value: 'trousers' },
+    { label: 'Hoodies', value: 'hoodies' },
+    { label: 'T-Shirts', value: 't-shirts' },
+];
+
 export default function AdminProductFilter({ products, availableCategories, onFilterSort }: FilterSortProps) {
     const [category, setCategory] = useState<string>("All");
     const [sortBy, setSortBy] = useState<string>("name");
     const [status, setStatus] = useState<string>("All");
     const [stockFilter, setStockFilter] = useState<string>("All");
     const [attributeFilter, setAttributeFilter] = useState<string>("All");
+    const [visibilityFilter, setVisibilityFilter] = useState<string>("All");
 
     // Apply filters whenever filter options change
     useEffect(() => {
@@ -24,6 +38,11 @@ export default function AdminProductFilter({ products, availableCategories, onFi
         // Filter by category
         if (category !== "All") {
             filtered = filtered.filter(p => p.category === category);
+        }
+
+        // Filter by Visibility Tag
+        if (visibilityFilter !== "All") {
+            filtered = filtered.filter(p => p.visibilityTags && p.visibilityTags.includes(visibilityFilter));
         }
 
         // Filter by status
@@ -63,11 +82,11 @@ export default function AdminProductFilter({ products, availableCategories, onFi
         }
 
         onFilterSort(filtered);
-    }, [category, sortBy, status, stockFilter, attributeFilter, products, onFilterSort]);
+    }, [category, sortBy, status, stockFilter, attributeFilter, visibilityFilter, products, onFilterSort]);
 
     return (
         <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center">
                         <Filter className="w-4 h-4 mr-2" />
@@ -81,6 +100,23 @@ export default function AdminProductFilter({ products, availableCategories, onFi
                         <option value="All">All Categories</option>
                         {availableCategories.map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center">
+                        <Filter className="w-4 h-4 mr-2" />
+                        Navbar Visibility
+                    </label>
+                    <select
+                        value={visibilityFilter}
+                        onChange={(e) => setVisibilityFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="All">All Visibility</option>
+                        {VISIBILITY_TAGS.map(tag => (
+                            <option key={tag.value} value={tag.value}>{tag.label}</option>
                         ))}
                     </select>
                 </div>
