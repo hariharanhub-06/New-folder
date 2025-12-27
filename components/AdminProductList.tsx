@@ -7,7 +7,7 @@ import DeleteProductButton from '@/components/DeleteProductButton';
 import ToggleStatusButton from '@/components/ToggleStatusButton';
 import ToggleOfferDropButton from '@/components/ToggleOfferDropButton';
 import AdminProductFilter from '@/components/AdminProductFilter';
-import { useState, useMemo, useTransition, useCallback } from 'react';
+import { useState, useMemo, useTransition, useCallback, useEffect } from 'react';
 
 interface AdminProductListProps {
     initialProducts: Product[];
@@ -19,6 +19,11 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
     const [displayProducts, setDisplayProducts] = useState<Product[]>(initialProducts);
     const [currentPage, setCurrentPage] = useState(1);
     const [isPending, startTransition] = useTransition();
+
+    // Sync products if prop changes (e.g. after refresh/edit)
+    useEffect(() => {
+        setDisplayProducts(initialProducts);
+    }, [initialProducts]);
 
     // Extract unique categories
     const availableCategories = useMemo(

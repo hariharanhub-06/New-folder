@@ -65,18 +65,6 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const productData = await request.json();
-        // saveProduct handles insert if ID missing (generates it) or provided.
-        // But saveProduct takes a Product object.
-        await saveProduct(productData);
-        // We might want to return the ID. usage in lib/api.ts expects { success: true, id }.
-        // saveProduct generates ID but doesn't return it? 
-        // I should update saveProduct to return ID or handle it here.
-        // Actually saveProduct in lib/db.ts:
-        // const id = product.id || crypto.randomUUID();
-        // It uses product.id if present.
-        // If I pass productData without ID, it generates one inside but I don't get it back easily.
-        // I should generate ID here if missing.
-
         const id = productData.id || crypto.randomUUID();
         productData.id = id;
         productData.isActive = true; // Default

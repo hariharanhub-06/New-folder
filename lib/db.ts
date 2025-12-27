@@ -176,9 +176,9 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         params.push(tag);
         query += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
         countQuery += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
-    } else {
-        // Strict Visibility: If no specific tag is filtered, 
-        // EXCLUDE products that have ANY tags assigned.
+    } else if (!includeInactive) {
+        // Strict Visibility: ONLY apply to public shop view (includeInactive is false)
+        // If no specific tag is filtered, EXCLUDE products that have ANY tags assigned.
         // This ensures a product tagged only for "Formal Shirts" doesn't leak into "All" or other categories.
         query += ` AND (visibility_tags IS NULL OR visibility_tags = '[]'::jsonb)`;
         countQuery += ` AND (visibility_tags IS NULL OR visibility_tags = '[]'::jsonb)`;
@@ -307,6 +307,12 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
 export async function saveProduct(product: Product) {
     const client = await pool.connect();
     try {
+        console.log('--- SAVE PRODUCT DEBUG ---');
+        console.log('ID:', product.id);
+        console.log('Name:', product.name);
+        console.log('Visibility Tags:', product.visibilityTags);
+        console.log('Is Active:', product.isActive);
+
         await client.query('BEGIN');
 
         // Determine Final ID
@@ -341,7 +347,7 @@ export async function saveProduct(product: Product) {
                 product.imageUrl,
                 JSON.stringify(product.images || []),
                 product.size,
-                product.isActive,
+                product.isActive !== undefined ? product.isActive : true,
                 product.weight || 750,
                 product.isOffer || false,
                 product.isTrending || false,
@@ -363,7 +369,7 @@ export async function saveProduct(product: Product) {
                 totalStock,
                 product.imageUrl,
                 JSON.stringify(product.images || []),
-                product.isActive,
+                product.isActive !== undefined ? product.isActive : true,
                 product.size,
                 product.weight || 750,
                 product.isOffer || false,
