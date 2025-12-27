@@ -98,39 +98,67 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* Featured Categories: Visual Grid */}
+            {/* Featured Categories: Horizontal Carousel */}
             <section className="py-20 container mx-auto px-4">
                 <div className="flex items-center justify-between mb-10">
                     <h2 className="text-3xl font-black uppercase tracking-tighter italic">Featured <span className="text-brand-red">Drops</span></h2>
                     <Link href="/shop" className="text-xs font-bold uppercase tracking-widest border-b-2 border-black hover:text-brand-red hover:border-brand-red transition-all">View All</Link>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {(() => {
-                        const defaultCats = [
-                            { name: "Hoodie", image_url: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1000&auto=format&fit=crop" },
-                            { name: "T-Shirt", image_url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1000&auto=format&fit=crop" },
-                            { name: "Pant", image_url: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=1000&auto=format&fit=crop" },
-                            { name: "Accessory", image_url: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1000&auto=format&fit=crop" }
-                        ];
-
-                        // Merge DB categories into defaults by name
-                        const merged = defaultCats.map(def => {
-                            const fromDb = categories.find(c => c.name.toLowerCase() === def.name.toLowerCase());
-                            return fromDb || def;
-                        });
-
-                        // Add any DB categories that aren't in defaults
-                        const extras = categories.filter(c =>
-                            !defaultCats.find(def => def.name.toLowerCase() === c.name.toLowerCase())
-                        );
-
-                        const final = [...merged, ...extras].slice(0, 4);
-
-                        return final.map((cat, idx) => (
-                            <CategoryCard key={idx} title={cat.name} category={cat.id || cat.name} img={cat.image_url} />
-                        ));
-                    })()}
+                <div className="relative overflow-hidden group">
+                    <div
+                        className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory"
+                        id="category-carousel"
+                    >
+                        {categories.map((cat, idx) => (
+                            <div key={idx} className="min-w-[280px] md:min-w-[320px] lg:min-w-[350px] snap-center">
+                                <CategoryCard title={cat.name} category={cat.id || cat.name} img={cat.image_url} />
+                            </div>
+                        ))}
+                    </div>
+                    <button
+                        onClick={() => {
+                            const el = document.getElementById('category-carousel');
+                            if (el) el.scrollLeft -= 350;
+                        }}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 bg-black/50 text-white p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10 hidden md:block"
+                    >
+                        &lt;
+                    </button>
+                    <button
+                        onClick={() => {
+                            const el = document.getElementById('category-carousel');
+                            if (el) el.scrollLeft += 350;
+                        }}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-black/50 text-white p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10 hidden md:block"
+                    >
+                        &gt;
+                    </button>
                 </div>
+
+                <style jsx global>{`
+                    .no-scrollbar::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .no-scrollbar {
+                        -ms-overflow-style: none;
+                        scrollbar-width: none;
+                    }
+                `}</style>
+
+                <script dangerouslySetInnerHTML={{
+                    __html: `
+                    (function() {
+                        const el = document.getElementById('category-carousel');
+                        if (!el) return;
+                        setInterval(() => {
+                            if (el.scrollLeft + el.offsetWidth >= el.scrollWidth - 10) {
+                                el.scrollTo({ left: 0, behavior: 'smooth' });
+                            } else {
+                                el.scrollBy({ left: 350, behavior: 'smooth' });
+                            }
+                        }, 3000);
+                    })();
+                `}} />
             </section>
 
             {/* Brand Pillars */}
@@ -148,7 +176,7 @@ export default function HomePage() {
                     </div>
                     <div className="flex flex-col items-center">
                         <Truck className="w-10 h-10 text-brand-red mb-4" />
-                        <h3 className="text-lg font-bold uppercase tracking-widest mb-2">Pay on Arrival</h3>
+                        <h3 className="text-lg font-bold uppercase tracking-widest mb-2">100% Trusted Service</h3>
                         <p className="text-xs text-gray-500 uppercase tracking-widest">Verify the fit, then pay at your door</p>
                     </div>
                 </div>
