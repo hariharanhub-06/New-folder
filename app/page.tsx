@@ -177,7 +177,7 @@ export default function HomePage() {
                     <div className="flex flex-col items-center">
                         <Truck className="w-10 h-10 text-brand-red mb-4" />
                         <h3 className="text-lg font-bold uppercase tracking-widest mb-2">100% Trusted Service</h3>
-                        <p className="text-xs text-gray-500 uppercase tracking-widest">Verify the fit, then pay at your door</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-widest">We Build Trust</p>
                     </div>
                 </div>
             </section>
