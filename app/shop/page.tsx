@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, Suspense } from 'react';
-import { getProductsPaginated, getCategories } from '@/lib/api';
+import { getProductsPaginated, getFullCategories } from '@/lib/api';
 import ShopProductList from '@/components/ShopProductList';
 import { Product, ProductFilters, PaginatedResponse } from '@/lib/types';
 import { useSearchParams } from 'next/navigation';
@@ -12,7 +12,7 @@ function Shop() {
     const searchParams = useSearchParams();
     const [products, setProducts] = useState<Product[]>([]);
     const [offerProducts, setOfferProducts] = useState<Product[]>([]);
-    const [categories, setCategories] = useState<string[]>([]);
+    const [categories, setCategories] = useState<any[]>([]); // Full category objects
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<ProductFilters>({
         page: 1,
@@ -52,7 +52,7 @@ function Shop() {
 
     // Load initial categories
     useEffect(() => {
-        getCategories().then(setCategories).catch(console.error);
+        getFullCategories().then(setCategories).catch(console.error);
     }, []);
 
     // Load products whenever filters change
@@ -123,6 +123,7 @@ function Shop() {
             loading={loading}
             onPageChange={handlePageChange}
             onFilterChange={handleFilterChange}
+            initialProductId={searchParams.get('productId') || undefined}
         />
     );
 }

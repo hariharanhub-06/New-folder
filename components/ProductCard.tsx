@@ -2,9 +2,10 @@
 
 import { Product } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
+import { useWishlist } from '@/lib/wishlist-context';
 import Image from 'next/image';
-import { ShoppingBag, Search, Plus, ArrowRight } from 'lucide-react';
-import { memo } from 'react';
+import { ShoppingBag, Search, Plus, ArrowRight, Share2, Check, Heart } from 'lucide-react';
+import { memo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface ProductCardProps {
@@ -16,12 +17,14 @@ interface ProductCardProps {
 const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'default' }: ProductCardProps) {
     const router = useRouter();
     const { addToCart, items } = useCart();
+    const { toggleWishlist, isInWishlist } = useWishlist();
 
     const hasSizes = product.sizes && product.sizes.length > 0;
     const cartItems = items.filter(item => item.id === product.id);
     const quantityInCart = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const canAddMore = quantityInCart < product.stock;
     const isOutOfStock = product.stock === 0;
+    const isWishlisted = isInWishlist(product.id);
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -31,6 +34,25 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
             onSelect?.(product);
         } else if (canAddMore) {
             addToCart(product);
+        }
+    };
+
+    const handleToggleWishlist = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        toggleWishlist(product);
+    };
+
+    const [copied, setCopied] = useState(false);
+
+    const handleShare = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const url = `${window.location.origin}/shop?productId=${product.id}`;
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy', err);
         }
     };
 
@@ -50,6 +72,27 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
                     unoptimized={!!product.imageUrl?.startsWith('http')}
                 />
 
+                {/* Vertical Icon Stack (Top Right) */}
+                <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
+                    {/* Share Button */}
+                    <button
+                        onClick={handleShare}
+                        className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full hover:bg-black hover:text-white transition-all shadow-sm border border-gray-100 group/btn"
+                        title="Copy Link"
+                    >
+                        {copied ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
+                    </button>
+
+                    {/* Wishlist Button */}
+                    <button
+                        onClick={handleToggleWishlist}
+                        className={`p-1.5 bg-white/90 backdrop-blur-sm rounded-full transition-all shadow-sm border border-gray-100 group/btn ${isWishlisted ? 'text-brand-red' : 'text-gray-400 hover:text-brand-red'}`}
+                        title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                    >
+                        <Heart className={`w-3.5 h-3.5 ${isWishlisted ? 'fill-current' : ''}`} />
+                    </button>
+                </div>
+
                 {/* Sale Badge (Top Left - Rectangular) */}
                 {product.activeDiscount && (
                     <div className="absolute top-3 left-0 z-10">
@@ -59,8 +102,8 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
                     </div>
                 )}
 
-                {/* Status Badges (Top Right) */}
-                <div className="absolute top-3 right-3 z-10 flex flex-col gap-1 items-end">
+                {/* Status Badges (Top Right - Below Icons) */}
+                <div className="absolute top-20 right-2 z-10 flex flex-col gap-1 items-end">
                     {isOutOfStock ? (
                         <span className="bg-black text-white text-[8px] font-bold px-2 py-0.5 uppercase">Out of Stock</span>
                     ) : product.stock <= 5 && (

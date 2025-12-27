@@ -13,15 +13,19 @@ const gothic = UnifrakturMaguntia({
     subsets: ["latin"],
 });
 
+import ShopCategoryCircles from '@/components/ShopCategoryCircles';
+import { getProduct } from '@/lib/api';
+
 interface ShopProductListProps {
     products: Product[];
     offerProducts?: Product[];
-    categories: string[];
+    categories: any[]; // Full category objects now
     pagination: PaginatedResponse<Product>['pagination'];
     filters: ProductFilters;
     loading: boolean;
     onPageChange: (page: number) => void;
     onFilterChange: (filters: ProductFilters) => void;
+    initialProductId?: string;
 }
 
 export default function ShopProductList({
@@ -32,28 +36,26 @@ export default function ShopProductList({
     filters,
     loading,
     onPageChange,
-    onFilterChange
+    onFilterChange,
+    initialProductId
 }: ShopProductListProps) {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-    const offerScrollRef = useRef<HTMLDivElement>(null);
 
-    const [isAutoScrolling, setIsAutoScrolling] = useState(true);
-    const scrollPauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    // Handle manual scroll/interaction to pause auto-scroll
-    const handleUserInteraction = () => {
-        setIsAutoScrolling(false);
-
-        // Clear any existing resume timeout
-        if (scrollPauseTimeoutRef.current) {
-            clearTimeout(scrollPauseTimeoutRef.current);
+    // Handle initial product load from URL (e.g. share link)
+    useEffect(() => {
+        if (initialProductId) {
+            const fetchSharedProduct = async () => {
+                const product = await getProduct(initialProductId);
+                if (product) {
+                    setSelectedProduct(product);
+                    window.history.pushState({ modalOpen: true }, '');
+                }
+            };
+            fetchSharedProduct();
         }
+    }, [initialProductId]);
 
-        // Set a new timeout to resume auto-scroll after 4 seconds of inactivity
-        scrollPauseTimeoutRef.current = setTimeout(() => {
-            setIsAutoScrolling(true);
-        }, 4000);
-    };
+    // Auto-scroll logic removed as Offer Drops section is removed
 
     // Handle browser back button for modal
     useEffect(() => {
@@ -81,25 +83,6 @@ export default function ShopProductList({
         }
     };
 
-    // Auto-scroll offers every 1 second
-    useEffect(() => {
-        if (!offerProducts.length || !offerScrollRef.current || !isAutoScrolling) return;
-
-        const scrollInterval = setInterval(() => {
-            if (offerScrollRef.current) {
-                const { scrollLeft, scrollWidth, clientWidth } = offerScrollRef.current;
-                if (scrollLeft + clientWidth >= scrollWidth - 10) {
-                    offerScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                    const scrollAmount = 165; // Card width (150) + gap (15)
-                    offerScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-                }
-            }
-        }, 1000);
-
-        return () => clearInterval(scrollInterval);
-    }, [offerProducts.length, isAutoScrolling]);
-
     const { page, totalPages, total, limit } = pagination;
 
     const handlePageChange = (newPage: number) => {
@@ -107,37 +90,8 @@ export default function ShopProductList({
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Helper to get icon for category
-    const getCategoryIcon = (category: string) => {
-        const lower = category.toLowerCase();
-        if (lower.includes('shirt')) return <Shirt className="w-4 h-4" />;
-        if (lower.includes('pant') || lower.includes('bottom') || lower.includes('trouser')) return <Scissors className="w-4 h-4" />;
-        if (lower.includes('formal') || lower.includes('suit')) return <Briefcase className="w-4 h-4" />;
-        if (lower.includes('watch')) return <Watch className="w-4 h-4" />;
-        if (lower.includes('glass')) return <Glasses className="w-4 h-4" />;
-        return <Tag className="w-4 h-4" />;
-    };
-
-    // Horizontal scroll grid: consistent card sizing for standard look
-    const getOfferGridLayout = () => {
-        const count = offerProducts.length;
-        if (count === 0) return null;
-
-        return (
-            <div className={`grid grid-rows-1 grid-flow-col auto-cols-[160px] md:auto-cols-[180px] gap-3 pb-2`}>
-                {offerProducts.map((product) => (
-                    <div key={product.id} className="h-full">
-                        <ProductCard product={product} onSelect={handleProductSelect} />
-                    </div>
-                ))}
-            </div>
-        );
-    };
-
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-jost">
-            {/* Removed 'Street Drops' heading as requested */}
-
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Sidebar Filter */}
                 <SidebarFilter
@@ -148,76 +102,12 @@ export default function ShopProductList({
                 {/* Main Content */}
                 <div className="flex-1 min-w-0">
 
-                    {/* Offer Section - "STREET HEAT" Style */}
-                    {!loading && offerProducts.length > 0 && (
-                        <div className="mb-10 relative overflow-hidden bg-black p-4 md:p-6 border-l-4 border-brand-red shadow-2xl">
-                            {/* Background Texture Overlay */}
-                            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-
-                            <div className="relative z-10">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-brand-red text-white">
-                                            <Flame className="w-5 h-5 fill-current" />
-                                        </div>
-                                        <div className="flex flex-col leading-none">
-                                            <span className={`${gothic.className} text-brand-red text-xl`}>Exclusive</span>
-                                            <h2 className="text-sm font-black text-white uppercase tracking-[0.3em]">
-                                                Offer Drops <span className="text-brand-red ml-1">{offerProducts.length > 0 && `(${offerProducts.length})`}</span>
-                                            </h2>
-                                        </div>
-                                    </div>
-                                    <div className="hidden sm:block">
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest border border-gray-800 px-3 py-1">Limited Time Only</span>
-                                    </div>
-                                </div>
-
-                                {/* Horizontal Scroll */}
-                                <div
-                                    ref={offerScrollRef}
-                                    onWheel={handleUserInteraction}
-                                    onTouchStart={handleUserInteraction}
-                                    onPointerDown={handleUserInteraction}
-                                    className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-2 px-2 pb-2"
-                                    style={{
-                                        overscrollBehaviorX: 'contain',
-                                        WebkitOverflowScrolling: 'touch'
-                                    }}
-                                >
-                                    {getOfferGridLayout()}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Category Tabs - Streetsyle styling */}
-                    <div className="mb-10 overflow-x-auto scrollbar-hide">
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => onFilterChange({ ...filters, tag: undefined, category: undefined, page: 1 })}
-                                className={`flex items-center px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap border ${!filters.tag && !filters.category
-                                    ? 'bg-black text-white border-black shadow-lg shadow-black/10'
-                                    : 'bg-white text-gray-400 border-gray-100 hover:text-black hover:border-black'
-                                    }`}
-                            >
-                                <LayoutGrid className="w-4 h-4 mr-2" />
-                                All Drops
-                            </button>
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat}
-                                    onClick={() => onFilterChange({ ...filters, tag: undefined, category: cat, page: 1 })}
-                                    className={`flex items-center px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap border ${filters.category === cat
-                                        ? 'bg-black text-white border-black shadow-lg shadow-black/10'
-                                        : 'bg-white text-gray-400 border-gray-100 hover:text-black hover:border-black'
-                                        }`}
-                                >
-                                    <span className="mr-2">{getCategoryIcon(cat)}</span>
-                                    {cat}s
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    {/* New Circular Category Navigation */}
+                    <ShopCategoryCircles
+                        categories={categories}
+                        selectedCategory={filters.category}
+                        onSelectCategory={(cat) => onFilterChange({ ...filters, tag: undefined, category: cat, page: 1 })}
+                    />
 
                     {/* Product Grid */}
                     {loading ? (

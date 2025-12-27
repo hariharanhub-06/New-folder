@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ShoppingCart, Menu, X, Search, Heart } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
+import { useWishlist } from '@/lib/wishlist-context';
 import { useState, useEffect, useRef } from 'react';
 import { getSettings } from '@/lib/api';
 import { usePathname } from 'next/navigation';
@@ -15,6 +16,7 @@ const gothic = UnifrakturMaguntia({
 
 export default function Navbar() {
     const { items, total } = useCart();
+    const { items: wishlistItems } = useWishlist();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [announcement, setAnnouncement] = useState('SPECIAL OFFER: ENJOY 40% OFF ON TWO HOT-SELLING PRODUCTS! SHOP NOW');
@@ -59,6 +61,7 @@ export default function Navbar() {
     }
 
     const cartCount = items.reduce((a, b) => a + b.quantity, 0);
+    const wishlistCount = wishlistItems.length;
 
     return (
         <nav className="w-full z-50 sticky top-0 font-jost" ref={menuRef}>
@@ -107,7 +110,7 @@ export default function Navbar() {
                         <div className="flex items-center gap-3 md:gap-5">
                             <Link href="/wishlist" className="relative p-1 hover:text-brand-red transition-colors">
                                 <Heart className="w-5 h-5" />
-                                <span className="absolute -top-1 -right-1 bg-brand-red text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">0</span>
+                                {mounted && wishlistCount > 0 && <span className="absolute -top-1 -right-1 bg-brand-red text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">{wishlistCount}</span>}
                             </Link>
                             <Link href="/checkout" className="relative p-1 hover:text-brand-red transition-colors flex items-center gap-2">
                                 <div className="relative">
