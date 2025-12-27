@@ -328,7 +328,15 @@ export default function CheckoutPage() {
                                             <span className="text-sm text-slate-500 w-4 text-center">{item.quantity}</span>
                                             <button
                                                 onClick={() => addToCart(item, item.selectedSize)}
-                                                className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                                disabled={(() => {
+                                                    let availableStock = item.stock;
+                                                    if (item.selectedSize && item.sizes) {
+                                                        const variant = item.sizes.find(s => s.size === item.selectedSize);
+                                                        availableStock = variant ? variant.stock : 0;
+                                                    }
+                                                    return item.quantity >= availableStock;
+                                                })()}
+                                                className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
                                             >
                                                 +
                                             </button>

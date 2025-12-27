@@ -42,13 +42,32 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const addToCart = (product: Product, size?: string) => {
         setItems(current => {
             const existing = current.find(item => item.id === product.id && item.selectedSize === size);
+
+            // Get available stock for this item/size
+            let availableStock = product.stock;
+            if (size && product.sizes) {
+                const variant = product.sizes.find(s => s.size === size);
+                availableStock = variant ? variant.stock : 0;
+            }
+
             if (existing) {
+                // Check if reaching stock limit
+                if (existing.quantity >= availableStock) {
+                    return current;
+                }
+
                 return current.map(item =>
                     (item.id === product.id && item.selectedSize === size)
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 );
             }
+
+            // For new items, check if any stock exists
+            if (availableStock <= 0) {
+                return current;
+            }
+
             return [...current, { ...product, quantity: 1, selectedSize: size }];
         });
     };
