@@ -105,7 +105,7 @@ export default function ProductCarousel({ products, title, subtitle, ctaText, ct
                 <div className="text-center">
                     <Link
                         href={ctaLink}
-                        className="inline-block px-10 py-3 bg-brand-red text-white font-bold uppercase tracking-widest text-sm hover:bg-black transition-all active:scale-95"
+                        className="inline-block px-10 py-3 bg-black text-white font-bold uppercase tracking-widest text-sm hover:bg-brand-red transition-all active:scale-95"
                     >
                         {ctaText}
                     </Link>
