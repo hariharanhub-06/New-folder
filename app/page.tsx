@@ -8,6 +8,7 @@ import { useEffect, useState, useRef } from "react";
 import { getFullCategories, getSettings, getProductsPaginated } from "@/lib/api";
 import { Product } from "@/lib/types";
 import ProductCarousel from "@/components/ProductCarousel";
+import ProductDetailModal from "@/components/ProductDetailModal";
 
 const gothic = UnifrakturMaguntia({
     weight: "400",
@@ -20,10 +21,37 @@ export default function HomePage() {
     const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
     const [newArrivalProducts, setNewArrivalProducts] = useState<Product[]>([]);
     const [bestOfferProducts, setBestOfferProducts] = useState<Product[]>([]);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [isAutoScrolling, setIsAutoScrolling] = useState(true);
     const categoryScrollRef = useRef<HTMLDivElement>(null);
     const scrollPauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Handle browser back button for modal
+    useEffect(() => {
+        const handlePopState = () => {
+            if (selectedProduct) {
+                setSelectedProduct(null);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [selectedProduct]);
+
+    const handleProductSelect = (product: Product) => {
+        setSelectedProduct(product);
+        // Push a state so back button closes the modal
+        window.history.pushState({ modalOpen: true }, '');
+    };
+
+    const handleModalClose = () => {
+        setSelectedProduct(null);
+        // If we opened a modal and pushed state, go back to clean it up
+        if (window.history.state?.modalOpen) {
+            window.history.back();
+        }
+    };
 
     const handleUserInteraction = () => {
         setIsAutoScrolling(false);
@@ -45,8 +73,6 @@ export default function HomePage() {
                     getProductsPaginated({ isNewArrival: true, limit: 10, page: 1 }),
                     getProductsPaginated({ isOffer: true, limit: 10, page: 1 })
                 ]);
-                // Filter active categories and take top 4 or all? 
-                // Let's show all active categories in a grid
                 setCategories(cats.filter(c => c.is_active));
                 setSettings(sets);
                 setTrendingProducts(trendingRes.data);
@@ -73,7 +99,7 @@ export default function HomePage() {
                     categoryScrollRef.current.scrollBy({ left: 350, behavior: 'smooth' });
                 }
             }
-        }, 1000);
+        }, 3000);
 
         return () => clearInterval(scrollInterval);
     }, [categories.length, isAutoScrolling]);
@@ -196,6 +222,7 @@ export default function HomePage() {
                 subtitle="Explore the newest additions to our collection crafted for the modern man who loves to stay ahead in fashion."
                 ctaText="SHOP MORE"
                 ctaLink="/shop?isTrending=true"
+                onSelect={handleProductSelect}
             />
 
             {/* New Arrivals Products */}
@@ -205,6 +232,7 @@ export default function HomePage() {
                 subtitle="Explore our newest arrivals featuring trendy shirts, jeans, and T-shirts crafted for comfort and confidence. Step into the season with style that sets you apart."
                 ctaText="EXPLORE NOW"
                 ctaLink="/shop?isNewArrival=true"
+                onSelect={handleProductSelect}
             />
 
             {/* Best Offers Products */}
@@ -214,6 +242,7 @@ export default function HomePage() {
                 subtitle="Don't miss out on our exclusive deals and limited-time offers. Quality meets affordability in our handpicked collection of premium menswear."
                 ctaText="GRAB DEALS"
                 ctaLink="/shop?isOffer=true"
+                onSelect={handleProductSelect}
             />
 
             {/* Brand Pillars */}
@@ -289,7 +318,15 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
-        </div >
+
+            {/* Product Detail Modal */}
+            {selectedProduct && (
+                <ProductDetailModal
+                    product={selectedProduct}
+                    onClose={handleModalClose}
+                />
+            )}
+        </div>
     );
 }
 

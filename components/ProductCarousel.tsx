@@ -12,9 +12,10 @@ interface ProductCarouselProps {
     subtitle: string;
     ctaText: string;
     ctaLink: string;
+    onSelect?: (product: Product) => void;
 }
 
-export default function ProductCarousel({ products, title, subtitle, ctaText, ctaLink }: ProductCarouselProps) {
+export default function ProductCarousel({ products, title, subtitle, ctaText, ctaLink, onSelect }: ProductCarouselProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [isAutoScrolling, setIsAutoScrolling] = useState(true);
     const scrollPauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -83,7 +84,7 @@ export default function ProductCarousel({ products, title, subtitle, ctaText, ct
                     >
                         {products.map((product) => (
                             <div key={product.id} className="min-w-[200px] md:min-w-[250px] snap-center flex-shrink-0">
-                                <ProductCard product={product} />
+                                <ProductCard product={product} onSelect={onSelect} />
                             </div>
                         ))}
                     </div>
