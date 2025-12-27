@@ -14,8 +14,9 @@ export interface Product {
     imageUrl: string;
     images?: string[];
     isActive: boolean;
-    isOffer?: boolean; // If true, product is highlighted and removed from normal category
-    isTrending?: boolean; // If true, shown in Trending tab
+    isOffer?: boolean; // If true, product is highlighted in Best Offers
+    isTrending?: boolean; // If true, shown in Trending Now homepage section
+    isOfferDrop?: boolean; // If true, shown in Offer Drops carousel on shop page
     isNewArrival?: boolean; // Manual override for New Arrivals
     size?: string;
     sizes?: ProductSize[];

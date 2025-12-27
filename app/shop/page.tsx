@@ -75,16 +75,16 @@ function Shop() {
                     regularRes = await getProductsPaginated(queryFilters);
                     offerRes = { data: [], pagination: { total: 0, page: 1, limit: 0, totalPages: 0 } };
                 } else {
-                    // Default shop view: show all products EXCEPT trending (those go to Offer Drops)
-                    // AND fetch trending products separately for the Offer Drops carousel
+                    // Default shop view: show all products EXCEPT offer drops in the grid
+                    // AND fetch offer drop products separately for the Offer Drops carousel
                     [regularRes, offerRes] = await Promise.all([
-                        getProductsPaginated({ ...queryFilters, isTrending: false }),
-                        getProductsPaginated({ ...queryFilters, isTrending: true })
+                        getProductsPaginated({ ...queryFilters, isOfferDrop: false }),
+                        getProductsPaginated({ ...queryFilters, isOfferDrop: true })
                     ]);
                 }
 
                 console.log('Regular products fetched:', regularRes.data.length);
-                console.log('Trending (Drops) products fetched:', offerRes.data.length);
+                console.log('Offer Drop products fetched:', offerRes.data.length);
 
                 setProducts(regularRes.data);
                 setOfferProducts(offerRes.data);
