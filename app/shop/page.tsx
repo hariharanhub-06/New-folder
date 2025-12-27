@@ -34,6 +34,7 @@ function Shop() {
         const isTrending = searchParams.get('isTrending') === 'true' ? true : undefined;
         const isOfferDrop = searchParams.get('isOfferDrop') === 'true' ? true : undefined;
         const isNewArrival = searchParams.get('isNewArrival') === 'true' ? true : undefined;
+        const tag = searchParams.get('tag') || undefined;
         const search = searchParams.get('search') || undefined;
 
         setFilters(prev => ({
@@ -43,6 +44,7 @@ function Shop() {
             isOffer,
             isTrending,
             isNewArrival,
+            tag,
             search,
             page: 1 // Reset to page 1 on param change
         }));

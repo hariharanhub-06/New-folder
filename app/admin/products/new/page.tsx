@@ -8,6 +8,8 @@ import CategorySelector from '@/components/CategorySelector';
 const VISIBILITY_HEADERS = [
     { id: 'new-arrivals', label: 'New Arrival' },
     { id: 'trending-now', label: 'Trending Now' },
+    { id: 'best-offers', label: 'Best Offers' },
+    { id: 'shirts', label: 'Shirts (All)' },
     { id: 'formal-shirts', label: 'Formal Shirts' },
     { id: 'baggy-shirts', label: 'Baggy Shirts' },
     { id: 'premium-shirts', label: 'Premium Shirts' },
@@ -15,7 +17,7 @@ const VISIBILITY_HEADERS = [
     { id: 'trousers', label: 'Trousers' },
     { id: 'hoodies', label: 'Hoodies' },
     { id: 't-shirts', label: 'T-Shirts' },
-    { id: 'best-offers', label: 'Best Offers' },
+    { id: 'accessories', label: 'Accessories' },
 ];
 
 export default function NewProductPage() {

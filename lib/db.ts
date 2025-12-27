@@ -176,6 +176,12 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         params.push(tag);
         query += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
         countQuery += ` AND visibility_tags @> jsonb_build_array($${params.length})`;
+    } else {
+        // Strict Visibility: If no specific tag is filtered, 
+        // EXCLUDE products that have ANY tags assigned.
+        // This ensures a product tagged only for "Formal Shirts" doesn't leak into "All" or other categories.
+        query += ` AND (visibility_tags IS NULL OR visibility_tags = '[]'::jsonb)`;
+        countQuery += ` AND (visibility_tags IS NULL OR visibility_tags = '[]'::jsonb)`;
     }
 
     // 2. Sorting
