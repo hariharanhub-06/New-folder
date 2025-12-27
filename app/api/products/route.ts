@@ -29,6 +29,7 @@ export async function GET(request: Request) {
         const isAdmin = searchParams.get('admin') === 'true';
         const isOffer = searchParams.get('isOffer') === 'true' ? true : searchParams.get('isOffer') === 'false' ? false : undefined;
         const isTrending = searchParams.get('isTrending') === 'true' ? true : searchParams.get('isTrending') === 'false' ? false : undefined;
+        const isOfferDrop = searchParams.get('isOfferDrop') === 'true' ? true : searchParams.get('isOfferDrop') === 'false' ? false : undefined;
         const isNewArrival = searchParams.get('isNewArrival') === 'true' ? true : searchParams.get('isNewArrival') === 'false' ? false : undefined;
 
         // Admin view might want to see inactive products and potentially a larger list, 
@@ -47,6 +48,7 @@ export async function GET(request: Request) {
             includeInactive: isAdmin,
             isOffer,
             isTrending,
+            isOfferDrop,
             isNewArrival
         }));
 

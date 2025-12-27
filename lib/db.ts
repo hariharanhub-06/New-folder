@@ -82,6 +82,7 @@ export async function getProduct(id: string): Promise<Product | null> {
         isActive: row.is_active,
         isOffer: row.is_offer,
         isTrending: row.is_trending,
+        isOfferDrop: row.is_offer_drop,
         isNewArrival: row.is_new_arrival,
         size: row.size,
         sizes: sizeRes.rows.map(r => ({ size: r.size, stock: r.stock, id: r.id })), // Map DB rows to Size objects
@@ -105,6 +106,7 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         includeInactive = false,
         isOffer,
         isTrending,
+        isOfferDrop,
         isNewArrival
     } = filters;
 
@@ -154,6 +156,12 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
         params.push(isTrending);
         query += ` AND is_trending = $${params.length}`;
         countQuery += ` AND is_trending = $${params.length}`;
+    }
+
+    if (isOfferDrop !== undefined) {
+        params.push(isOfferDrop);
+        query += ` AND is_offer_drop = $${params.length}`;
+        countQuery += ` AND is_offer_drop = $${params.length}`;
     }
 
     if (isNewArrival !== undefined) {
@@ -305,8 +313,8 @@ export async function saveProduct(product: Product) {
             await client.query(`
                 UPDATE products 
                 SET name = $1, description = $2, price = $3, category = $4, 
-                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, weight = $10, is_offer = $11, is_trending = $12, is_new_arrival = $13, updated_at = CURRENT_TIMESTAMP
-                WHERE id = $14
+                    stock = $5, image_url = $6, images = $7, size = $8, is_active = $9, weight = $10, is_offer = $11, is_trending = $12, is_offer_drop = $13, is_new_arrival = $14, updated_at = CURRENT_TIMESTAMP
+                WHERE id = $15
             `, [
                 product.name,
                 product.description,
@@ -320,13 +328,14 @@ export async function saveProduct(product: Product) {
                 product.weight || 750,
                 product.isOffer || false,
                 product.isTrending || false,
+                product.isOfferDrop || false,
                 product.isNewArrival || false,
                 finalId
             ]);
         } else {
             await client.query(`
-                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size, weight, is_offer, is_trending, is_new_arrival)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                INSERT INTO products (id, name, description, price, category, stock, image_url, images, is_active, size, weight, is_offer, is_trending, is_offer_drop, is_new_arrival)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
             `, [
                 finalId,
                 product.name,
@@ -341,6 +350,7 @@ export async function saveProduct(product: Product) {
                 product.weight || 750,
                 product.isOffer || false,
                 product.isTrending || false,
+                product.isOfferDrop || false,
                 product.isNewArrival || false
             ]);
         }

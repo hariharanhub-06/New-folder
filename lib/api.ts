@@ -42,6 +42,7 @@ export async function getProductsPaginated(filters: ProductFilters): Promise<Pag
     if (filters.includeInactive) params.append('admin', 'true');
     if (filters.isOffer !== undefined) params.append('isOffer', filters.isOffer.toString());
     if (filters.isTrending !== undefined) params.append('isTrending', filters.isTrending.toString());
+    if (filters.isOfferDrop !== undefined) params.append('isOfferDrop', filters.isOfferDrop.toString());
     if (filters.isNewArrival !== undefined) params.append('isNewArrival', filters.isNewArrival.toString());
 
     const response = await fetch(`${API_ENDPOINTS.products}?${params.toString()}`, {
