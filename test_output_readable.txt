@@ -1,0 +1,10 @@
+--- TEST 1: Requesting "formal-shirts" ---
+SQL: SELECT name, visibility_tags FROM products WHERE 1=1 AND is_active = true AND visibility_tags @> jsonb_build_array($1::text)
+PARAMS: [ 'formal-shirts' ]
+Results: 1
+- test_again
+
+--- TEST 2: Requesting Home Page Trending (isTrending=true) ---
+SQL: SELECT name, visibility_tags FROM products WHERE 1=1 AND is_active = true AND is_trending = $1
+PARAMS: [ true ]
+Results: 15

@@ -1,0 +1,15 @@
+--- DIAGNOSTIC: TAG FILTERING ---
+Sample Products:
+- Baggy shoe : []
+- Baggy shirt : []
+- Doctor sleeve shirt : []
+- Doctor sleeve shirt : []
+- Oversized T-shirt : []
+
+Testing filter for tag: "formal-shirts"
+Found 1 products with tag "formal-shirts"
+- test_again (Tags: ["formal-shirts"])
+
+Summary:
+Total Active Products: 70
+Products with "formal-shirts" tag: 1

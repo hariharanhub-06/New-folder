@@ -69,7 +69,8 @@ function Shop() {
                 const isFilteredView = filters.isOffer !== undefined ||
                     filters.isNewArrival !== undefined ||
                     filters.isTrending !== undefined ||
-                    filters.isOfferDrop !== undefined;
+                    filters.isOfferDrop !== undefined ||
+                    filters.tag !== undefined;
 
                 let regularRes, offerRes;
 
