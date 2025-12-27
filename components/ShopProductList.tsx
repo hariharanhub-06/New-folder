@@ -1,34 +1,14 @@
 "use client";
 
-import { Product, ProductFilters, PaginatedResponse } from '@/lib/types';
+import { PaginatedResponse, Product, ProductFilters } from '@/lib/types';
+import SidebarFilter from '@/components/SidebarFilter';
 import ProductCard from '@/components/ProductCard';
 import ProductDetailModal from '@/components/ProductDetailModal';
-import SidebarFilter from '@/components/SidebarFilter';
-import { ChevronLeft, ChevronRight, Star, Sparkles, Shirt, Scissors, Briefcase, Tag, LayoutGrid, Watch, Glasses, Flame } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight, X, SlidersHorizontal, ArrowDownWideNarrow, ArrowUpWideNarrow, Flame } from 'lucide-react';
+import { useCart } from '@/lib/cart-context';
+import { useRouter } from 'next/navigation';
 import { UnifrakturMaguntia } from 'next/font/google';
-
-const gothic = UnifrakturMaguntia({
-    weight: "400",
-    subsets: ["latin"],
-});
-
-import { PaginatedResponse, Product, ProductFilters } from '@/lib/types';
-import SidebarFilter from './SidebarFilter';
-import ProductCard from './ProductCard';
-import ProductModal from './ProductModal';
-import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, X, SlidersHorizontal, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
-import { useCart } from '@/lib/cart-context';
-import { useRouter } from 'next/navigation';
-import { PaginatedResponse, Product, ProductFilters } from '@/lib/types';
-import SidebarFilter from './SidebarFilter';
-import ProductCard from './ProductCard';
-import ProductModal from './ProductModal';
-import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, X, SlidersHorizontal, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
-import { useCart } from '@/lib/cart-context';
-import { useRouter } from 'next/navigation';
 import ShopCategoryPills from '@/components/ShopCategoryPills';
 import OfferDropGrid from '@/components/OfferDropGrid';
 import { getProduct } from '@/lib/api';
