@@ -3,8 +3,9 @@
 import { Product } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
 import Image from 'next/image';
-import { ShoppingBag, Search, Plus } from 'lucide-react';
+import { ShoppingBag, Search, Plus, ArrowRight } from 'lucide-react';
 import { memo } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ProductCardProps {
     product: Product;
@@ -12,6 +13,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCardProps) {
+    const router = useRouter();
     const { addToCart, items } = useCart();
 
     const hasSizes = product.sizes && product.sizes.length > 0;
@@ -22,7 +24,9 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (hasSizes) {
+        if (quantityInCart > 0 && !hasSizes) {
+            router.push('/checkout');
+        } else if (hasSizes) {
             onSelect?.(product);
         } else if (canAddMore) {
             addToCart(product);
@@ -69,8 +73,8 @@ const ProductCard = memo(function ProductCard({ product, onSelect }: ProductCard
                         onClick={handleAddToCart}
                         className="flex-1 bg-black text-white py-2.5 text-[10px] font-bold uppercase tracking-widest hover:bg-brand-red transition-colors flex items-center justify-center gap-2"
                     >
-                        <Plus className="w-3 h-3" />
-                        {hasSizes ? 'Select Size' : 'Add to Cart'}
+                        {quantityInCart > 0 && !hasSizes ? <ArrowRight className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                        {hasSizes ? 'Select Size' : (quantityInCart > 0 ? 'Go to Cart' : 'Add to Cart')}
                     </button>
                 </div>
             </div>

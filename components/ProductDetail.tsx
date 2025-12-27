@@ -7,6 +7,7 @@ import { useCart } from '@/lib/cart-context';
 import { getProduct } from '@/lib/api';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface ProductDetailProps {
     product: Product;
@@ -16,6 +17,7 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetail({ product: initialProduct, initialActiveImage, isModal = false, onClose }: ProductDetailProps) {
+    const router = useRouter();
     const [product, setProduct] = useState<Product>(initialProduct);
     const [activeImage, setActiveImage] = useState(initialActiveImage || initialProduct.imageUrl);
     const [selectedSize, setSelectedSize] = useState<string>('');
@@ -191,14 +193,24 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                     {/* Action Buttons */}
                     <div className="space-y-4 pt-4">
                         <button
-                            onClick={() => addToCart(product, selectedSize || undefined)}
-                            disabled={!canAddMore || (product.sizes && product.sizes.length > 0 && !selectedSize) || isOutOfStock}
+                            onClick={() => {
+                                if (quantityInCart > 0) {
+                                    router.push('/checkout');
+                                } else {
+                                    addToCart(product, selectedSize || undefined);
+                                }
+                            }}
+                            disabled={(!canAddMore && quantityInCart === 0) || (product.sizes && product.sizes.length > 0 && !selectedSize) || isOutOfStock}
                             className={`w-full py-5 text-sm font-bold uppercase tracking-[0.3em] shadow-xl transition-all active:scale-[0.98] ${isOutOfStock
                                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                                 : (!selectedSize && product.sizes?.length ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-brand-red shadow-brand-red/10')
                                 }`}
                         >
-                            {isOutOfStock ? 'Sold Out' : (!selectedSize && product.sizes?.length ? 'Select A Size' : 'Add to Cart')}
+                            {isOutOfStock
+                                ? 'Sold Out'
+                                : (!selectedSize && product.sizes?.length
+                                    ? 'Select A Size'
+                                    : (quantityInCart > 0 ? 'Go to Cart' : 'Add to Cart'))}
                         </button>
                         <button
                             disabled={isOutOfStock}

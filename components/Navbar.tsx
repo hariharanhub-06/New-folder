@@ -16,9 +16,14 @@ const gothic = UnifrakturMaguntia({
 export default function Navbar() {
     const { items, total } = useCart();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const [announcement, setAnnouncement] = useState('SPECIAL OFFER: ENJOY 40% OFF ON TWO HOT-SELLING PRODUCTS! SHOP NOW');
     const pathname = usePathname();
     const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         async function loadSettings() {
@@ -107,7 +112,7 @@ export default function Navbar() {
                             <Link href="/checkout" className="relative p-1 hover:text-brand-red transition-colors flex items-center gap-2">
                                 <div className="relative">
                                     <ShoppingCart className="w-6 h-6" />
-                                    {cartCount > 0 && (
+                                    {mounted && cartCount > 0 && (
                                         <span className="absolute -top-1 -right-1 bg-brand-red text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
                                             {cartCount}
                                         </span>
@@ -115,7 +120,7 @@ export default function Navbar() {
                                 </div>
                                 <div className="hidden md:flex flex-col leading-none">
                                     <span className="text-[10px] font-bold text-gray-400 uppercase">My Cart</span>
-                                    <span className="text-sm font-bold">₹{total.toFixed(2)}</span>
+                                    {mounted && <span className="text-sm font-bold">₹{total.toFixed(2)}</span>}
                                 </div>
                             </Link>
                         </div>
