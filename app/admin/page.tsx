@@ -26,21 +26,27 @@ async function getDashboardData(startDate?: string, endDate?: string) {
     const productsRes = await db.query('SELECT * FROM products');
     const ordersRes = await db.query(query, params);
 
+    const allOrders = ordersRes.rows.map(row => ({
+        ...row,
+        totalAmount: parseFloat(row.total_amount),
+        shippingCost: parseFloat(row.shipping_cost || '0'),
+        customerName: row.customer_name
+    }));
+
+    // For Main Dashboard: Only count confirmed business metrics
+    const businessOrders = allOrders.filter(o => o.status !== 'Pending Payment' && o.status !== 'Payment Failed');
+
     return {
         products: productsRes.rows.map(row => ({
             ...row,
             price: parseFloat(row.price),
             isActive: row.is_active,
-            imageUrl: row.image_url, // Ensure field mapping matches types
+            imageUrl: row.image_url,
             createdAt: row.created_at,
             updatedAt: row.updated_at
         })),
-        orders: ordersRes.rows.map(row => ({
-            ...row,
-            totalAmount: parseFloat(row.total_amount),
-            shippingCost: parseFloat(row.shipping_cost),
-            customerName: row.customer_name
-        }))
+        orders: allOrders,
+        businessOrders
     };
 }
 
@@ -50,13 +56,24 @@ export default async function AdminDashboard({
     searchParams: { startDate?: string; endDate?: string }
 }) {
     const { startDate, endDate } = searchParams;
-    const { products, orders } = await getDashboardData(startDate, endDate);
+    const { products, orders, businessOrders } = await getDashboardData(startDate, endDate);
     const lowStockProducts = products.filter((p: any) => p.stock < 5);
-    const pendingOrders = orders.filter((o: any) => o.status === 'Payment Confirmed');
 
     const stats = [
-        { label: 'Total Sales', value: `₹${orders.reduce((sum: number, o: any) => sum + o.totalAmount, 0).toFixed(2)}`, icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-100' },
-        { label: 'Total Products', value: products.length, icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-100' },
+        {
+            label: 'Total Sales',
+            value: `₹${businessOrders.reduce((sum: number, o: any) => sum + o.totalAmount, 0).toFixed(2)}`,
+            icon: ShoppingBag,
+            color: 'text-blue-600',
+            bg: 'bg-blue-100'
+        },
+        {
+            label: 'Total Products',
+            value: products.length,
+            icon: Package,
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-100'
+        },
     ];
 
     const statusCounts = {
@@ -134,7 +151,7 @@ export default async function AdminDashboard({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {orders.slice(0, 5).map((order: any) => (
+                                {businessOrders.slice(0, 5).map((order: any) => (
                                     <tr key={order.id} className="hover:bg-slate-50 transition-colors">
                                         <td className="px-6 py-4 font-mono text-slate-600">#{order.id.slice(0, 8)}</td>
                                         <td className="px-6 py-4 font-medium text-slate-900">{order.customerName}</td>
