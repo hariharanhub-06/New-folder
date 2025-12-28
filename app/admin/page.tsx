@@ -3,12 +3,28 @@ import { Product, Order } from '@/lib/types';
 import { Package, ShoppingBag, AlertTriangle, Clock, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import db from '@/lib/db';
+import DashboardDateFilter from '@/components/DashboardDateFilter';
 
 export const dynamic = 'force-dynamic';
 
-async function getDashboardData() {
+async function getDashboardData(startDate?: string, endDate?: string) {
+    let query = 'SELECT * FROM orders WHERE 1=1';
+    const params: any[] = [];
+
+    if (startDate) {
+        params.push(startDate);
+        query += ` AND created_at >= $${params.length}`;
+    }
+    if (endDate) {
+        // Add 23:59:59 to end date to include the entire day
+        params.push(`${endDate} 23:59:59`);
+        query += ` AND created_at <= $${params.length}`;
+    }
+
+    query += ' ORDER BY created_at DESC';
+
     const productsRes = await db.query('SELECT * FROM products');
-    const ordersRes = await db.query('SELECT * FROM orders ORDER BY created_at DESC');
+    const ordersRes = await db.query(query, params);
 
     return {
         products: productsRes.rows.map(row => ({
@@ -28,8 +44,13 @@ async function getDashboardData() {
     };
 }
 
-export default async function AdminDashboard() {
-    const { products, orders } = await getDashboardData();
+export default async function AdminDashboard({
+    searchParams
+}: {
+    searchParams: { startDate?: string; endDate?: string }
+}) {
+    const { startDate, endDate } = searchParams;
+    const { products, orders } = await getDashboardData(startDate, endDate);
     const lowStockProducts = products.filter((p: any) => p.stock < 5);
     const pendingOrders = orders.filter((o: any) => o.status === 'Payment Confirmed');
 
@@ -56,7 +77,10 @@ export default async function AdminDashboard() {
 
     return (
         <div className="space-y-8 font-jost">
-            <h1 className="text-3xl font-bold text-black uppercase tracking-tighter italic">Dashboard</h1>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h1 className="text-3xl font-bold text-black uppercase tracking-tighter italic">Dashboard</h1>
+                <DashboardDateFilter />
+            </div>
 
             {/* Main Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
