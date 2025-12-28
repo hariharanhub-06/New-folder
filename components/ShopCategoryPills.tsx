@@ -6,9 +6,10 @@ interface ShopCategoryPillsProps {
     categories: any[];
     selectedCategory: string | undefined;
     onSelectCategory: (category: string) => void;
+    totalProducts?: number;
 }
 
-export default function ShopCategoryPills({ categories, selectedCategory, onSelectCategory }: ShopCategoryPillsProps) {
+export default function ShopCategoryPills({ categories, selectedCategory, onSelectCategory, totalProducts }: ShopCategoryPillsProps) {
     if (!categories) return null;
 
     // Helper to get icon (simplified for now, can be expanded)
@@ -30,6 +31,11 @@ export default function ShopCategoryPills({ categories, selectedCategory, onSele
             >
                 <LayoutGrid className="w-3 h-3" />
                 All Products
+                {totalProducts !== undefined && totalProducts > 0 && (
+                    <span className={`ml-1 text-[10px] ${(!selectedCategory || selectedCategory === 'All Categories') ? "text-gray-400" : "text-gray-400 group-hover:text-gray-600"}`}>
+                        ({totalProducts})
+                    </span>
+                )}
             </button>
 
             {categories.map((cat) => (

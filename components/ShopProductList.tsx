@@ -103,6 +103,7 @@ export default function ShopProductList({
                         categories={categories}
                         selectedCategory={filters.category}
                         onSelectCategory={(cat) => onFilterChange({ ...filters, tag: undefined, category: cat, page: 1 })}
+                        totalProducts={categories.reduce((sum, cat) => sum + (cat.product_count || 0), 0)}
                     />
 
                     {/* Category Title Heading */}
