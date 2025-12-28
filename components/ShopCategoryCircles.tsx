@@ -7,6 +7,7 @@ interface Category {
     id: string;
     name: string;
     image_url?: string;
+    product_count?: number;
 }
 
 interface ShopCategoryCirclesProps {
@@ -35,9 +36,14 @@ export default function ShopCategoryCircles({ categories, selectedCategory, onSe
                         className="group flex flex-col items-center focus:outline-none"
                     >
                         <div className={`relative w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 transition-all duration-300 ${selectedCategory === cat.name
-                                ? 'border-black ring-4 ring-black/5 scale-105'
-                                : 'border-transparent group-hover:border-gray-200 group-hover:scale-105'
+                            ? 'border-black ring-4 ring-black/5 scale-105'
+                            : 'border-transparent group-hover:border-gray-200 group-hover:scale-105'
                             }`}>
+                            {cat.product_count !== undefined && cat.product_count > 0 && (
+                                <div className="absolute top-2 right-2 z-10 bg-brand-red text-white text-[8px] md:text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-md animate-in zoom-in duration-300">
+                                    {cat.product_count}
+                                </div>
+                            )}
                             {cat.image_url ? (
                                 <Image
                                     src={cat.image_url}

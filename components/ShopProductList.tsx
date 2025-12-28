@@ -111,10 +111,12 @@ export default function ShopProductList({
                             {categories.find(c => c.name === filters.category)?.title ? (
                                 <h2 className="text-3xl font-black uppercase tracking-tighter italic border-l-4 border-brand-red pl-4">
                                     {categories.find(c => c.name === filters.category).title}
+                                    <span className="text-gray-400 ml-2 not-italic font-normal lowercase">({pagination.total})</span>
                                 </h2>
                             ) : (
                                 <h2 className="text-2xl font-black uppercase tracking-tighter italic border-l-4 border-gray-200 pl-4 text-gray-400">
                                     {filters.category} Collection
+                                    <span className="text-gray-400 ml-2 not-italic font-normal lowercase">({pagination.total})</span>
                                 </h2>
                             )}
                         </div>

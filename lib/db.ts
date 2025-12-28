@@ -551,11 +551,14 @@ export async function getUniqueCategories(): Promise<string[]> {
 // Full category management
 export async function getFullCategories() {
     const res = await pool.query(`
-        SELECT * FROM categories 
+        SELECT c.*, COUNT(p.id)::int as product_count
+        FROM categories c
+        LEFT JOIN products p ON LOWER(c.name) = LOWER(p.category) AND p.is_active = true
+        GROUP BY c.id
         ORDER BY 
-            COALESCE(display_order, 999) ASC,
-            LOWER(name) ASC,
-            created_at ASC
+            COALESCE(c.display_order, 999) ASC,
+            LOWER(c.name) ASC,
+            c.created_at ASC
     `);
     return res.rows;
 }

@@ -40,6 +40,11 @@ export default function ShopCategoryPills({ categories, selectedCategory, onSele
                 >
                     {getIcon(cat.name)}
                     {cat.name}
+                    {cat.product_count !== undefined && cat.product_count > 0 && (
+                        <span className={`ml-1 text-[10px] ${selectedCategory === cat.name ? "text-gray-400" : "text-gray-400 group-hover:text-gray-600"}`}>
+                            ({cat.product_count})
+                        </span>
+                    )}
                 </button>
             ))}
         </div>
