@@ -73,16 +73,23 @@ function Shop() {
                     filters.tag !== undefined ||
                     filters.category !== undefined; // Category filtering should show ALL products in that category
 
+                console.log('=== SHOP PAGE DEBUG ===');
+                console.log('Current filters:', filters);
+                console.log('Is Filtered View:', isFilteredView);
+                console.log('Query filters:', queryFilters);
+
                 let regularRes, offerRes;
 
                 if (isFilteredView) {
                     // User is filtering by a specific flag or category - show ALL matching products
                     // Don't separate offer drops into a carousel
+                    console.log('→ Fetching ALL products for filtered view (including offer drops)');
                     regularRes = await getProductsPaginated(queryFilters);
                     offerRes = { data: [], pagination: { total: 0, page: 1, limit: 0, totalPages: 0 } };
                 } else {
                     // Default shop view (no filters): show all products EXCEPT offer drops in the grid
                     // AND fetch offer drop products separately for the Offer Drops carousel
+                    console.log('→ Fetching products: regular (no offer drops) + offer drops separately');
                     [regularRes, offerRes] = await Promise.all([
                         getProductsPaginated({ ...queryFilters, isOfferDrop: false }),
                         getProductsPaginated({ ...queryFilters, isOfferDrop: true })
@@ -91,6 +98,7 @@ function Shop() {
 
                 console.log('Regular products fetched:', regularRes.data.length);
                 console.log('Offer Drop products fetched:', offerRes.data.length);
+                console.log('=======================');
 
                 setProducts(regularRes.data);
                 setOfferProducts(offerRes.data);
