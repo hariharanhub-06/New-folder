@@ -170,6 +170,9 @@ export async function POST(request: Request) {
 
         const order = await razorpay.orders.create(options);
 
+        // 6. Update Shadow Order with Razorpay Order ID (For Admin Visibility)
+        await db.query(`UPDATE orders SET razorpay_order_id = $1 WHERE id = $2`, [order.id, dbOrderId]);
+
         // Return the Razorpay Order ID and calculated values
         return NextResponse.json({
             success: true,
