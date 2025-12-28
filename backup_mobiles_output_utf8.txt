@@ -1,0 +1,29 @@
+﻿[dotenv@17.2.3] injecting env (7) from .env.local -- tip: ≡ƒöÉ prevent building .env in docker: https://dotenvx.com/prebuild
+≡ƒöì Scanning for Pending Payments...
+Found 6 pending orders with missing mobile numbers.
+
+----------------------------------------------------------------
+Γ¥î NO MATCH for [Balu] (Email: balu56536@gmail.com)
+----------------------------------------------------------------
+Γ£à FOUND BACKUP INFO for [Srijil]
+   Pending Order ID: c0f3e536-7c61-4afa-a30a-066a11676ff3
+   Email: startupmenswear@gmail.com
+   Backup Mobile: +919060105323
+   Source: Existing Order #0608e14f-9824-4925-bf10-49cdc0ba3ddc (Email Match)
+   Razorpay Order ID: order_Rx2jPyLaTTwftm
+----------------------------------------------------------------
+Γ£à FOUND BACKUP INFO for [Seijil]
+   Pending Order ID: 53b38a38-9af9-4fad-9d99-f0ce25b54c06
+   Email: startupmenswear@gmail.com
+   Backup Mobile: +919060105323
+   Source: Existing Order #0608e14f-9824-4925-bf10-49cdc0ba3ddc (Email Match)
+   Razorpay Order ID: order_Rx2eMYRIfJWppt
+----------------------------------------------------------------
+Γ¥î NO MATCH for [Thamilalagan ] (Email: tamilalagantamil438@gmail.com)
+----------------------------------------------------------------
+Γ¥î NO MATCH for [Thamilalagan ] (Email: tamilalagantamil438@gmail.com)
+----------------------------------------------------------------
+Γ¥î NO MATCH for [Sam] (Email: jst4se00@gmail.com)
+----------------------------------------------------------------
+
+Results: Found mobile numbers for 2 out of 6 pending orders.
