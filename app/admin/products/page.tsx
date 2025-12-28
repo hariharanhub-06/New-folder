@@ -7,20 +7,25 @@ import { Product } from '@/lib/types';
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function loadProducts() {
+        async function loadData() {
             try {
-                const data = await getProducts(true);
-                setProducts(data);
+                const [productsData, categoriesData] = await Promise.all([
+                    import('@/lib/api').then(m => m.getProducts(true)),
+                    import('@/lib/api').then(m => m.getCategories())
+                ]);
+                setProducts(productsData);
+                setCategories(categoriesData);
             } catch (error) {
                 console.error('Failed to load products:', error);
             } finally {
                 setLoading(false);
             }
         }
-        loadProducts();
+        loadData();
     }, []);
 
     if (loading) {
@@ -31,5 +36,5 @@ export default function ProductsPage() {
         );
     }
 
-    return <AdminProductList initialProducts={products} />;
+    return <AdminProductList initialProducts={products} categories={categories} />;
 }

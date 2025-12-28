@@ -11,11 +11,12 @@ import { useState, useMemo, useTransition, useCallback, useEffect } from 'react'
 
 interface AdminProductListProps {
     initialProducts: Product[];
+    categories?: string[];
 }
 
 const ITEMS_PER_PAGE = 25;
 
-export default function AdminProductList({ initialProducts }: AdminProductListProps) {
+export default function AdminProductList({ initialProducts, categories }: AdminProductListProps) {
     const [displayProducts, setDisplayProducts] = useState<Product[]>(initialProducts);
     const [currentPage, setCurrentPage] = useState(1);
     const [isPending, startTransition] = useTransition();
@@ -25,10 +26,14 @@ export default function AdminProductList({ initialProducts }: AdminProductListPr
         setDisplayProducts(initialProducts);
     }, [initialProducts]);
 
-    // Extract unique categories
+    // Extract unique categories - if categories prop is provided, use that (canonical list)
+    // otherwise fallback to derivation from products
     const availableCategories = useMemo(
-        () => Array.from(new Set(initialProducts.map(p => p.category || 'Uncategorized'))).sort(),
-        [initialProducts]
+        () => {
+            if (categories && categories.length > 0) return categories;
+            return Array.from(new Set(initialProducts.map(p => p.category || 'Uncategorized'))).sort();
+        },
+        [initialProducts, categories]
     );
 
     // Pagination
