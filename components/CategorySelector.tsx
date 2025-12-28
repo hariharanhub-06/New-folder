@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Loader2, RefreshCw } from 'lucide-react';
-import { PRODUCT_CATEGORIES } from '@/lib/constants';
 import { getCategories } from '@/lib/api';
 import { deleteCategory } from '@/lib/actions';
 
@@ -19,8 +18,7 @@ export default function CategorySelector({ currentCategory, onCategoryChange }: 
         setLoading(true);
         try {
             const fetched = await getCategories();
-            // fetched is already an array of strings from getUniqueCategories call in API
-            setAvailableCategories(fetched.sort());
+            setAvailableCategories(fetched);
         } catch (error) {
             console.error("Failed to fetch categories:", error);
         } finally {

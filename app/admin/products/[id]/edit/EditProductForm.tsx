@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { editProduct } from '@/lib/actions';
 import { Upload, X, Star, Image as ImageIcon, Loader2, Plus } from 'lucide-react';
 import { Product } from '@/lib/types';
-import { PRODUCT_CATEGORIES } from '@/lib/constants';
 import CategorySelector from '@/components/CategorySelector';
 
 const VISIBILITY_HEADERS = [
