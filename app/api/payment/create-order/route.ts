@@ -71,7 +71,7 @@ export async function POST(request: Request) {
                     totalStock = stockRes.rows[0]?.stock || 0;
                 }
 
-                // 2. Get Reserved Stock (Active Pending Orders < 10 mins old)
+                // 2. Get Reserved Stock (Active Pending Orders < 2 mins old)
                 // We sum up items from other users who are currently in the payment screen.
                 // We exclude 'Payment Failed' and 'Cancelled'.
                 // We only care about 'Pending Payment' created recently.
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
                     WHERE oi.product_id = $1
                     AND ($2::text IS NULL OR oi.size = $2)
                     AND o.status = 'Pending Payment'
-                    AND o.created_at > NOW() - INTERVAL '10 minutes'
+                    AND o.created_at > NOW() - INTERVAL '2 minutes'
                 `, [productId, item.selectedSize || null]);
 
                 const reservedStock = parseInt(reservedRes.rows[0]?.reserved || '0');
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
 
                 if (availableStock < requestedQty) {
                     // Block the order
-                    throw new Error(`Item '${item.name}' is currently reserved by others. Please try again in 10 minutes.`);
+                    throw new Error(`Item '${item.name}' is currently reserved by others. Please try again in 2 minutes.`);
                 }
             }
         } finally {
