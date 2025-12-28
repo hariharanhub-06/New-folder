@@ -125,9 +125,9 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
     }
 
     if (category && category !== 'All Categories') {
-        params.push(category);
-        query += ` AND category = $${params.length}`;
-        countQuery += ` AND category = $${params.length}`;
+        params.push(category.toLowerCase());
+        query += ` AND LOWER(category) = $${params.length}`;
+        countQuery += ` AND LOWER(category) = $${params.length}`;
     }
 
     if (minPrice !== undefined) {
