@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { razorpay } from '@/lib/razorpay';
 import { calculateTotalWeight, calculateShipping } from '@/lib/shipping';
-// import { getProduct } from '@/lib/db'; // Unused for now
+import db from '@/lib/db';
 
 export async function POST(request: Request) {
     try {
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         const grandTotal = subtotal + shippingCost;
 
         // 4. Create Shadow Order in Database (Pending Payment)
-        const db = require('@/lib/db').default; // Use require to avoid top-level import issues if any
+        // const db = require('@/lib/db').default; // REMOVED: Caused undefined error
         const crypto = require('crypto');
         const dbOrderId = crypto.randomUUID();
 
