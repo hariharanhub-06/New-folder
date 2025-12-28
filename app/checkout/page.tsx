@@ -164,9 +164,12 @@ export default function CheckoutPage() {
                 body: JSON.stringify({
                     items: items.map(item => ({
                         id: item.id,
+                        name: item.name, // Required by DB
                         price: item.price,
                         quantity: item.quantity,
-                        weight: item.weight // Pass weight if available
+                        weight: item.weight,
+                        imageUrl: item.imageUrl,
+                        selectedSize: item.selectedSize
                     })),
                     address: {
                         street: formData.street,
