@@ -44,12 +44,65 @@ export async function POST(request: Request) {
         // 3. Calculate Grand Total
         const grandTotal = subtotal + shippingCost;
 
-        // 4. Create Razorpay Order
+        // 4. Create Shadow Order in Database (Pending Payment)
+        const db = require('@/lib/db').default; // Use require to avoid top-level import issues if any
+        const crypto = require('crypto');
+        const dbOrderId = crypto.randomUUID();
+
+        const client = await db.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Insert Order with 'Pending Payment' status
+            // Note: We do NOT decrement stock here. Stock is only reserved upon payment confirmation.
+            await client.query(`
+                INSERT INTO orders (
+                    id, customer_name, customer_email, customer_mobile,
+                    shipping_address, total_amount, shipping_cost, status
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `, [
+                dbOrderId,
+                customerName,
+                customerEmail,
+                '', // Mobile might not be in initial payload, empty for now, updated later
+                JSON.stringify(address), // Initial address
+                grandTotal,
+                shippingCost,
+                'Pending Payment'
+            ]);
+
+            // Insert Items (for record keeping, but no stock decrement yet)
+            for (const item of items) {
+                await client.query(`
+                    INSERT INTO order_items (id, order_id, product_id, name, quantity, price, size, image_url)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                `, [
+                    crypto.randomUUID(),
+                    dbOrderId,
+                    item.id,
+                    item.name,
+                    item.quantity,
+                    item.price,
+                    item.selectedSize || null,
+                    item.imageUrl || null
+                ]);
+            }
+
+            await client.query('COMMIT');
+        } catch (dbError) {
+            await client.query('ROLLBACK');
+            throw dbError;
+        } finally {
+            client.release();
+        }
+
+        // 5. Create Razorpay Order
         const options = {
             amount: Math.round(grandTotal * 100), // in paise
             currency: 'INR',
-            receipt: `rcpt_${Date.now()}_${Math.random().toString(36).substring(7)}`, // Temporary receipt ID
+            receipt: `rcpt_${Date.now()}_${Math.random().toString(36).substring(7)}`,
             notes: {
+                internal_order_id: dbOrderId, // Critical for Webhook linking
                 customer_name: customerName,
                 customer_email: customerEmail,
                 shipping_cost: shippingCost,
@@ -69,7 +122,8 @@ export async function POST(request: Request) {
             // Return these so frontend can verify/display if needed
             verifiedAmount: grandTotal,
             shippingCost: shippingCost,
-            gatewayFee: 0
+            gatewayFee: 0,
+            dbOrderId: dbOrderId // Return internal ID for verification step
         });
 
     } catch (error: any) {

@@ -183,6 +183,9 @@ export default function CheckoutPage() {
             const razorpayOrder = await razorpayRes.json();
             if (razorpayOrder.error) throw new Error(razorpayOrder.error);
 
+            // Capture Shadow Order ID
+            const shadowOrderId = razorpayOrder.dbOrderId;
+
             // 2. Open Razorpay Checkout
             if (!window.Razorpay) {
                 throw new Error("Razorpay SDK failed to load. Please check your connection.");
@@ -204,22 +207,11 @@ export default function CheckoutPage() {
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature
                             },
-                            cartItems: items,
-                            shippingAddress: {
-                                street: formData.street,
-                                city: formData.city,
-                                state: formData.state,
-                                country: formData.country,
-                                zipCode: formData.zipCode
-                            },
+                            orderId: shadowOrderId, // Pass Shadow ID for promotion
                             customerDetails: {
                                 name: formData.name,
                                 email: formData.email,
                                 mobile: formData.mobile
-                            },
-                            totals: {
-                                grandTotal: razorpayOrder.verifiedAmount, // Use the amount confirmed by server
-                                shippingCost: razorpayOrder.shippingCost
                             }
                         };
 
@@ -234,7 +226,7 @@ export default function CheckoutPage() {
                             clearCart();
                             router.push(`/payment/success?orderId=${placeOrderData.orderId}`);
                         } else {
-                            throw new Error('Order placement failed after payment. Please contact support.');
+                            throw new Error('Order verification failed. Use the Chat support if amount was deducted.');
                         }
 
                     } catch (verifyError: any) {

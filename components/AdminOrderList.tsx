@@ -37,8 +37,13 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
             }
 
             // Filter by Status
-            if (statusFilter !== 'All' && order.status !== statusFilter) {
-                return false;
+            if (statusFilter !== 'All') {
+                if (order.status !== statusFilter) return false;
+            } else {
+                // Default 'All' view: Hide Pending/Failed to keep list clean
+                if (order.status === 'Pending Payment' || order.status === 'Payment Failed') {
+                    return false;
+                }
             }
 
             // Filter by Date Range
@@ -167,6 +172,8 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
             case 'Couried': return 'bg-purple-100 text-purple-800';
             case 'Delivered': return 'bg-green-100 text-green-800';
             case 'Cancelled': return 'bg-red-100 text-red-800';
+            case 'Pending Payment': return 'bg-slate-100 text-slate-500 dashed border border-slate-300';
+            case 'Payment Failed': return 'bg-red-50 text-red-400';
             default: return 'bg-gray-100 text-gray-800';
         }
     };
@@ -228,12 +235,14 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                     >
-                        <option value="All">All Statuses</option>
+                        <option value="All">All Statuses (Active)</option>
                         <option value="Payment Confirmed">Payment Confirmed</option>
                         <option value="Parcel Prepared">Parcel Prepared</option>
                         <option value="Couried">Couried</option>
                         <option value="Delivered">Delivered</option>
                         <option value="Cancelled">Cancelled</option>
+                        <option value="Pending Payment">Pending Payment (Shadow)</option>
+                        <option value="Payment Failed">Payment Failed</option>
                     </select>
                 </div>
 
@@ -375,6 +384,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                     <option value="Couried">Couried</option>
                                                     <option value="Delivered">Delivered</option>
                                                     <option value="Cancelled">Cancelled</option>
+                                                    <option value="Pending Payment" disabled>Pending Payment</option>
                                                 </select>
 
                                                 <div className="flex gap-2">
