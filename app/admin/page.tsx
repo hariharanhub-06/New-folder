@@ -81,7 +81,9 @@ export default async function AdminDashboard({
         'Parcel Prepared': 0,
         'Couried': 0,
         'Delivered': 0,
-        'Cancelled': 0
+        'Cancelled': 0,
+        'Pending Payment': 0,
+        'Payment Failed': 0
     };
 
     orders.forEach((o: any) => {

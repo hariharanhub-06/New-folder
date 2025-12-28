@@ -180,6 +180,7 @@ export default function CheckoutPage() {
                     },
                     customerName: formData.name,
                     customerEmail: formData.email,
+                    customerMobile: formData.mobile,
                 })
             });
 

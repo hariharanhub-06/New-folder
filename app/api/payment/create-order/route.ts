@@ -6,9 +6,9 @@ import db from '@/lib/db';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { items, address, customerName, customerEmail } = body;
+        const { items, address, customerName, customerEmail, customerMobile } = body;
 
-        console.log("Initiating Payment for:", { customerName, itemCount: items?.length });
+        console.log("Initiating Payment for:", { customerName, mobile: customerMobile, itemCount: items?.length });
 
         if (!items || items.length === 0) {
             return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
                 dbOrderId,
                 customerName,
                 customerEmail,
-                '', // Mobile might not be in initial payload, empty for now, updated later
+                customerMobile || '',
                 JSON.stringify(address), // Initial address
                 grandTotal,
                 shippingCost,
