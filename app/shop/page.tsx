@@ -65,22 +65,23 @@ function Shop() {
                     limit: 2000
                 };
 
-                // Determine if we're viewing a filtered collection (Best Offers, New Arrivals, Trending)
+                // Determine if we're viewing a filtered collection (Best Offers, New Arrivals, Trending, or specific Category)
                 const isFilteredView = filters.isOffer !== undefined ||
                     filters.isNewArrival !== undefined ||
                     filters.isTrending !== undefined ||
                     filters.isOfferDrop !== undefined ||
-                    filters.tag !== undefined;
+                    filters.tag !== undefined ||
+                    filters.category !== undefined; // Category filtering should show ALL products in that category
 
                 let regularRes, offerRes;
 
                 if (isFilteredView) {
-                    // User is filtering by a specific flag - only fetch those products
-                    // Don't show Offer Drops carousel on filtered views
+                    // User is filtering by a specific flag or category - show ALL matching products
+                    // Don't separate offer drops into a carousel
                     regularRes = await getProductsPaginated(queryFilters);
                     offerRes = { data: [], pagination: { total: 0, page: 1, limit: 0, totalPages: 0 } };
                 } else {
-                    // Default shop view: show all products EXCEPT offer drops in the grid
+                    // Default shop view (no filters): show all products EXCEPT offer drops in the grid
                     // AND fetch offer drop products separately for the Offer Drops carousel
                     [regularRes, offerRes] = await Promise.all([
                         getProductsPaginated({ ...queryFilters, isOfferDrop: false }),
