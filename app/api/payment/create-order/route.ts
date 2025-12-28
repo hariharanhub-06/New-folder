@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         const grandTotal = subtotal + shippingCost;
 
         // --- NEW: STOCK RESERVATION CHECK ---
-        const db = require('@/lib/db').default;
+        // const db = require('@/lib/db').default; // REMOVE: Use top-level import
         const client = await db.connect();
 
         try {
