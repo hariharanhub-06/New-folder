@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from 'react';
 import { getProductsPaginated, getFullCategories } from '@/lib/api';
 import ShopProductList from '@/components/ShopProductList';
 import { Product, ProductFilters, PaginatedResponse } from '@/lib/types';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -112,15 +112,30 @@ function Shop() {
         loadProducts();
     }, [filters]);
 
-    const handlePageChange = useCallback((page: number) => {
-        setFilters(prev => ({ ...prev, page }));
-    }, []);
+    const router = useRouter();
 
     const handleFilterChange = useCallback((newFilters: ProductFilters) => {
-        // When filters change (category/price/sort), likely want to reset to page 1, 
-        // but the child component might have already set page: 1 in the newFilters object.
-        setFilters(newFilters);
-    }, []);
+        const params = new URLSearchParams();
+        if (newFilters.category && newFilters.category !== 'All Categories') params.set('category', newFilters.category);
+        if (newFilters.sort && newFilters.sort !== 'newest') params.set('sort', newFilters.sort);
+        if (newFilters.isOffer) params.set('isOffer', 'true');
+        if (newFilters.isTrending) params.set('isTrending', 'true');
+        if (newFilters.isOfferDrop) params.set('isOfferDrop', 'true');
+        if (newFilters.isNewArrival) params.set('isNewArrival', 'true');
+        if (newFilters.tag) params.set('tag', newFilters.tag);
+        if (newFilters.search) params.set('search', newFilters.search);
+        if (newFilters.minPrice && newFilters.minPrice !== 50) params.set('minPrice', newFilters.minPrice.toString());
+        if (newFilters.maxPrice && newFilters.maxPrice !== 2000) params.set('maxPrice', newFilters.maxPrice.toString());
+        // Default page is 1 for new filters
+
+        router.push(`/shop?${params.toString()}`);
+    }, [router]);
+
+    const handlePageChange = useCallback((page: number) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('page', page.toString());
+        router.push(`/shop?${params.toString()}`);
+    }, [router, searchParams]);
 
     return (
         <ShopProductList
