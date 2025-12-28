@@ -212,12 +212,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                                     ? 'Select A Size'
                                     : (quantityInCart > 0 ? 'Go to Cart' : 'Add to Cart'))}
                         </button>
-                        <button
-                            disabled={isOutOfStock}
-                            className="w-full py-5 bg-brand-red text-white text-sm font-bold uppercase tracking-[0.3em] shadow-xl shadow-brand-red/20 hover:bg-opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
-                        >
-                            Buy it Now
-                        </button>
+
                     </div>
 
                     {/* Delivery Info */}
