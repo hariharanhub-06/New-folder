@@ -1,0 +1,36 @@
+
+🔍 Searching for duplicate categories...
+
+⚠️  Found 1 duplicate category name(s):
+
+📁 Category: "OFFER BAGGY SHIRT" (2 entries)
+────────────────────────────────────────────────────────────
+  1. ID: 846f49a3-a20f-44b3-8597-b2bedfcc2a54
+     Original Name: "OFFER BAGGY SHIRT"
+     Has Image: ❌ No
+     Active: ✅ Yes
+     Created: Sun Dec 28 2025 11:13:23 GMT+0530 (India Standard Time)
+
+  2. ID: offer-baggy-shirt-
+     Original Name: "OFFER BAGGY SHIRT "
+     Has Image: ❌ No
+     Active: ✅ Yes
+     Created: Sun Dec 28 2025 11:13:23 GMT+0530 (India Standard Time)
+
+  💡 RECOMMENDATION:
+     KEEP entry #1 (oldest/created first)
+     DELETE: #2
+
+  🗑️  TO DELETE THESE IDs:
+     DELETE ID: 846f49a3-a20f-44b3-8597-b2bedfcc2a54
+     DELETE ID: offer-baggy-shirt-
+
+============================================================
+
+
+📋 NEXT STEPS:
+   1. Review the report above
+   2. Go to Admin > Categories in your website
+   3. Delete the duplicate entries (IDs listed above)
+   4. Keep the recommended entry for each category
+
