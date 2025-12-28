@@ -398,6 +398,16 @@ export async function saveProduct(product: Product) {
             }
         }
 
+        // Auto-create/activate category if specified
+        if (product.category && product.category.trim()) {
+            await client.query(`
+                INSERT INTO categories (id, name, is_active, created_at)
+                VALUES ($1, $2, true, CURRENT_TIMESTAMP)
+                ON CONFLICT (name) 
+                DO UPDATE SET is_active = true
+            `, [crypto.randomUUID(), product.category.trim()]);
+        }
+
         await client.query('COMMIT');
     } catch (e) {
         await client.query('ROLLBACK');
