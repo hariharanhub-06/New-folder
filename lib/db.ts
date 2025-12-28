@@ -398,33 +398,6 @@ export async function saveProduct(product: Product) {
             }
         }
 
-        // Auto-create/activate category if specified
-        // Use normalized name (trimmed + lowercase) to prevent duplicates from spacing/casing
-        if (product.category && product.category.trim()) {
-            const categoryName = product.category.trim();
-            const normalizedName = categoryName.toLowerCase();
-
-            // First, try to find existing category with same normalized name
-            const existingCat = await client.query(
-                'SELECT id FROM categories WHERE LOWER(TRIM(name)) = $1',
-                [normalizedName]
-            );
-
-            if (existingCat.rows.length > 0) {
-                // Update existing category to active
-                await client.query(
-                    'UPDATE categories SET is_active = true WHERE id = $1',
-                    [existingCat.rows[0].id]
-                );
-            } else {
-                // Create new category with user's preferred formatting
-                await client.query(`
-                    INSERT INTO categories (id, name, is_active, created_at)
-                    VALUES ($1, $2, true, CURRENT_TIMESTAMP)
-                `, [crypto.randomUUID(), categoryName]);
-            }
-        }
-
         await client.query('COMMIT');
     } catch (e) {
         await client.query('ROLLBACK');
