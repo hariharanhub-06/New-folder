@@ -8,7 +8,7 @@ export default function AdminCategories() {
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editForm, setEditForm] = useState({ name: "", image_url: "", is_active: true });
+    const [editForm, setEditForm] = useState({ name: "", title: "", image_url: "", is_active: true });
     const [isAdding, setIsAdding] = useState(false);
     const [uploading, setUploading] = useState(false);
 
@@ -53,7 +53,7 @@ export default function AdminCategories() {
             });
             setEditingId(null);
             setIsAdding(false);
-            setEditForm({ name: "", image_url: "", is_active: true });
+            setEditForm({ name: "", title: "", image_url: "", is_active: true });
             await loadCategories();
         } catch (err) {
             alert("Save failed");
@@ -77,7 +77,7 @@ export default function AdminCategories() {
 
     function startEdit(cat: any) {
         setEditingId(cat.id);
-        setEditForm({ name: cat.name, image_url: cat.image_url || "", is_active: cat.is_active });
+        setEditForm({ name: cat.name, title: cat.title || "", image_url: cat.image_url || "", is_active: cat.is_active });
         setIsAdding(false);
     }
 
@@ -90,7 +90,7 @@ export default function AdminCategories() {
                 </div>
                 {!isAdding && !editingId && (
                     <button
-                        onClick={() => { setIsAdding(true); setEditForm({ name: "", image_url: "", is_active: true }); }}
+                        onClick={() => { setIsAdding(true); setEditForm({ name: "", title: "", image_url: "", is_active: true }); }}
                         className="flex items-center gap-2 bg-brand-red text-white px-6 py-3 font-bold uppercase tracking-widest text-xs hover:scale-105 transition-transform"
                     >
                         <Plus className="w-4 h-4" /> Add Category
@@ -112,7 +112,16 @@ export default function AdminCategories() {
                                     value={editForm.name}
                                     onChange={e => setEditForm({ ...editForm, name: e.target.value })}
                                     className="w-full px-4 py-3 border-2 border-black outline-none focus:bg-gray-50 font-bold"
-                                    placeholder="e.g. Hoodies"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-widest mb-2">Display Title (Shown on Shop Page)</label>
+                                <input
+                                    type="text"
+                                    value={editForm.title}
+                                    onChange={e => setEditForm({ ...editForm, title: e.target.value })}
+                                    className="w-full px-4 py-3 border-2 border-black outline-none focus:bg-gray-50 font-bold"
+                                    placeholder="e.g. Premium Hoodies Collection"
                                 />
                             </div>
                             <div className="flex items-center gap-4">

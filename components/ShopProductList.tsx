@@ -105,6 +105,21 @@ export default function ShopProductList({
                         onSelectCategory={(cat) => onFilterChange({ ...filters, tag: undefined, category: cat, page: 1 })}
                     />
 
+                    {/* Category Title Heading */}
+                    {filters.category && (
+                        <div className="mb-8 mt-4">
+                            {categories.find(c => c.name === filters.category)?.title ? (
+                                <h2 className="text-3xl font-black uppercase tracking-tighter italic border-l-4 border-brand-red pl-4">
+                                    {categories.find(c => c.name === filters.category).title}
+                                </h2>
+                            ) : (
+                                <h2 className="text-2xl font-black uppercase tracking-tighter italic border-l-4 border-gray-200 pl-4 text-gray-400">
+                                    {filters.category} Collection
+                                </h2>
+                            )}
+                        </div>
+                    )}
+
                     {/* Offer Drops (Dynamic Grid) */}
                     {offerProducts.length > 0 && !filters.tag && !filters.category && !filters.search && !filters.isNewArrival && !filters.isTrending && !filters.isOffer && (
                         <OfferDropGrid

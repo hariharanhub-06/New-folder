@@ -582,17 +582,18 @@ export async function getFullCategories() {
     return res.rows;
 }
 
-export async function upsertCategory(category: { id?: string, name: string, image_url?: string, display_order?: number, is_active?: boolean }) {
+export async function upsertCategory(category: { id?: string, name: string, image_url?: string, display_order?: number, is_active?: boolean, title?: string }) {
     const id = category.id || category.name.toLowerCase().replace(/\s+/g, '-');
     await pool.query(`
-        INSERT INTO categories(id, name, image_url, display_order, is_active)
-            VALUES($1, $2, $3, $4, $5)
+        INSERT INTO categories(id, name, image_url, display_order, is_active, title)
+            VALUES($1, $2, $3, $4, $5, $6)
         ON CONFLICT(id) DO UPDATE SET
             name = EXCLUDED.name,
                 image_url = EXCLUDED.image_url,
                 display_order = EXCLUDED.display_order,
-                is_active = EXCLUDED.is_active
-                    `, [id, category.name, category.image_url, category.display_order || 0, category.is_active !== undefined ? category.is_active : true]);
+                is_active = EXCLUDED.is_active,
+                title = EXCLUDED.title
+                    `, [id, category.name, category.image_url, category.display_order || 0, category.is_active !== undefined ? category.is_active : true, category.title || null]);
     return { success: true, id };
 }
 
