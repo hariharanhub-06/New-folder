@@ -35,27 +35,29 @@ export default function ShopCategoryCircles({ categories, selectedCategory, onSe
                         onClick={() => onSelectCategory(cat.name)}
                         className="group flex flex-col items-center focus:outline-none"
                     >
-                        <div className={`relative w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 transition-all duration-300 ${selectedCategory === cat.name
-                            ? 'border-black ring-4 ring-black/5 scale-105'
-                            : 'border-transparent group-hover:border-gray-200 group-hover:scale-105'
-                            }`}>
+                        <div className="relative">
                             {cat.product_count !== undefined && cat.product_count > 0 && (
-                                <div className="absolute top-2 right-2 z-10 bg-brand-red text-white text-[8px] md:text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-md animate-in zoom-in duration-300">
+                                <div className="absolute -top-1 -right-1 z-20 bg-brand-red text-white text-[10px] md:text-xs font-black px-2 py-0.5 rounded-full shadow-lg ring-2 ring-white animate-in zoom-in duration-300">
                                     {cat.product_count}
                                 </div>
                             )}
-                            {cat.image_url ? (
-                                <Image
-                                    src={cat.image_url}
-                                    alt={cat.name}
-                                    fill
-                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                                />
-                            ) : (
-                                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs uppercase font-bold">
-                                    {cat.name.substring(0, 2)}
-                                </div>
-                            )}
+                            <div className={`relative w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 transition-all duration-300 ${selectedCategory === cat.name
+                                ? 'border-black ring-4 ring-black/5 scale-105'
+                                : 'border-transparent group-hover:border-gray-200 group-hover:scale-105'
+                                }`}>
+                                {cat.image_url ? (
+                                    <Image
+                                        src={cat.image_url}
+                                        alt={cat.name}
+                                        fill
+                                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs uppercase font-bold">
+                                        {cat.name.substring(0, 2)}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <span className={`mt-4 text-sm md:text-base font-medium tracking-wide transition-colors ${selectedCategory === cat.name ? 'text-black font-bold' : 'text-gray-600 group-hover:text-black'
                             }`}>
