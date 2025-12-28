@@ -15,9 +15,16 @@ function Shop() {
     const [categories, setCategories] = useState<any[]>([]); // Full category objects
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<ProductFilters>({
-        page: 1,
+        page: Number(searchParams.get('page')) || 1,
         limit: ITEMS_PER_PAGE,
-        sort: 'newest'
+        sort: (searchParams.get('sort') as any) || 'newest',
+        category: searchParams.get('category') || undefined,
+        isOffer: searchParams.get('isOffer') === 'true' ? true : undefined,
+        isTrending: searchParams.get('isTrending') === 'true' ? true : undefined,
+        isOfferDrop: searchParams.get('isOfferDrop') === 'true' ? true : undefined,
+        isNewArrival: searchParams.get('isNewArrival') === 'true' ? true : undefined,
+        tag: searchParams.get('tag') || undefined,
+        search: searchParams.get('search') || undefined,
     });
     const [pagination, setPagination] = useState<PaginatedResponse<Product>['pagination']>({
         total: 0,
@@ -26,7 +33,7 @@ function Shop() {
         totalPages: 0
     });
 
-    // Sync filters with URL search params
+    // Sync filters with URL search params (keep this to handle browser back/forward buttons)
     useEffect(() => {
         const category = searchParams.get('category') || undefined;
         const sort = searchParams.get('sort') || 'newest';
@@ -36,18 +43,20 @@ function Shop() {
         const isNewArrival = searchParams.get('isNewArrival') === 'true' ? true : undefined;
         const tag = searchParams.get('tag') || undefined;
         const search = searchParams.get('search') || undefined;
+        const page = Number(searchParams.get('page')) || 1;
 
-        setFilters(prev => ({
-            ...prev,
+        setFilters({
             category,
             sort: sort as any,
             isOffer,
             isTrending,
             isNewArrival,
+            isOfferDrop,
             tag,
             search,
-            page: 1 // Reset to page 1 on param change
-        }));
+            page,
+            limit: ITEMS_PER_PAGE
+        });
     }, [searchParams]);
 
     // Load initial categories

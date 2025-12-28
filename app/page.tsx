@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Zap, ShieldCheck, Truck, MapPin, Flame } from "lucide-react";
 import Image from "next/image";
 import { UnifrakturMaguntia } from "next/font/google";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { getFullCategories, getSettings, getProductsPaginated } from "@/lib/api";
 import { Product } from "@/lib/types";
@@ -18,6 +19,7 @@ const gothic = UnifrakturMaguntia({
 });
 
 export default function HomePage() {
+    const router = useRouter();
     const [categories, setCategories] = useState<any[]>([]);
     const [settings, setSettings] = useState<Record<string, string>>({});
     const [trendingProducts, setTrendingProducts] = useState<Product[]>([]);
@@ -240,7 +242,7 @@ export default function HomePage() {
                 <ShopCategoryCircles
                     categories={categories}
                     onSelectCategory={(catName) => {
-                        window.location.href = `/shop?category=${encodeURIComponent(catName)}`;
+                        router.push(`/shop?category=${encodeURIComponent(catName)}`);
                     }}
                 />
             </section>
