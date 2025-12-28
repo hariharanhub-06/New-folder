@@ -572,7 +572,13 @@ export async function getUniqueCategories(): Promise<string[]> {
 
 // Full category management
 export async function getFullCategories() {
-    const res = await pool.query('SELECT * FROM categories ORDER BY display_order ASC, name ASC');
+    const res = await pool.query(`
+        SELECT * FROM categories 
+        ORDER BY 
+            COALESCE(display_order, 999) ASC,
+            LOWER(name) ASC,
+            created_at ASC
+    `);
     return res.rows;
 }
 
