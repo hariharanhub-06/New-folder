@@ -18,11 +18,15 @@ export default function DeleteProductButton({ id, onDelete }: DeleteProductButto
         }
 
         startTransition(async () => {
-            await removeProduct(id);
-            if (onDelete) {
-                onDelete();
+            const result = await removeProduct(id);
+            if (result?.success) {
+                if (onDelete) {
+                    onDelete();
+                } else {
+                    window.location.reload();
+                }
             } else {
-                window.location.reload();
+                alert(`Error: ${result?.error || 'Failed to delete product'}`);
             }
         });
     };

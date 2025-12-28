@@ -132,10 +132,18 @@ export async function editProduct(id: string, formData: FormData) {
 }
 
 export async function removeProduct(id: string) {
-    await deleteProductDb(id);
-    revalidatePath("/admin/products");
-    revalidatePath("/shop");
-    revalidatePath("/");
+    try {
+        const deleted = await deleteProductDb(id);
+        if (!deleted) throw new Error("Product not found or already deleted");
+
+        revalidatePath("/admin/products");
+        revalidatePath("/shop");
+        revalidatePath("/");
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to remove product:', error);
+        return { success: false, error: (error as any).message || "Failed to delete product" };
+    }
 }
 
 export async function toggleProductStatus(id: string) {

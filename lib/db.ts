@@ -401,7 +401,8 @@ export async function saveProduct(product: Product) {
 }
 
 export async function deleteProduct(id: string) {
-    await pool.query('DELETE FROM products WHERE id = $1', [id]);
+    const res = await pool.query('DELETE FROM products WHERE id = $1', [id]);
+    return res.rowCount > 0;
 }
 
 export async function toggleProductStatus(id: string) {
