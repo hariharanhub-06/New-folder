@@ -31,9 +31,12 @@ export default function AdminProductFilter({ products, availableCategories, onFi
     const [attributeFilter, setAttributeFilter] = useState<string>("All");
     const [visibilityFilter, setVisibilityFilter] = useState<string>("All");
 
-    // Track mount state and previous products to prevent infinite loops/unwanted resets
+    // Track mount state, previous products, and previous filters
     const isMounted = useRef(false);
     const prevProductsRef = useRef(products);
+    const prevFiltersRef = useRef({
+        category, sortBy, status, stockFilter, attributeFilter, visibilityFilter
+    });
 
     // Apply filters whenever filter options change
     useEffect(() => {
@@ -91,12 +94,16 @@ export default function AdminProductFilter({ products, availableCategories, onFi
             filtered.sort((a, b) => a.stock - b.stock);
         }
 
-        // Check if the update was caused ONLY by products changing (data refresh)
-        // If so, do NOT reset the page.
-        const productsChanged = products !== prevProductsRef.current;
-        prevProductsRef.current = products;
+        // Determine if filters actually changed
+        const currentFilters = { category, sortBy, status, stockFilter, attributeFilter, visibilityFilter };
+        const filtersChanged = JSON.stringify(currentFilters) !== JSON.stringify(prevFiltersRef.current);
 
-        onFilterSort(filtered, !productsChanged);
+        // Update refs
+        prevProductsRef.current = products;
+        prevFiltersRef.current = currentFilters;
+
+        // Only reset page if filters changed. Data refresh or re-render shouldn't reset.
+        onFilterSort(filtered, filtersChanged);
     }, [category, sortBy, status, stockFilter, attributeFilter, visibilityFilter, products, onFilterSort]);
 
     return (
