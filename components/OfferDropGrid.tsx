@@ -1,6 +1,7 @@
 "use client";
 
 import { Product } from '@/lib/types';
+import { optimizeImageUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import { Flame } from 'lucide-react';
 
@@ -32,11 +33,12 @@ export default function OfferDropGrid({ products, onProductSelect }: OfferDropGr
                         {/* Circular Image Frame */}
                         <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-gray-100 group-hover:border-brand-red transition-colors shadow-sm mb-3">
                             <Image
-                                src={product.imageUrl || "/placeholder.jpg"}
+                                src={optimizeImageUrl(product.imageUrl, { width: 200, quality: 75, format: 'webp' })}
                                 alt={product.name}
                                 fill
                                 className="object-cover group-hover:scale-110 transition-transform duration-700"
                                 sizes="(max-width: 768px) 128px, 160px"
+                                loading="lazy"
                             />
                             {/* Overlay on hover */}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />

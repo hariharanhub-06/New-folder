@@ -1,57 +1,76 @@
-const { Pool } = require('pg');
-const fs = require('fs');
-const path = require('path');
+require('dotenv').config({ path: '.env.local' });
+const { Client } = require('pg');
 
-function loadEnv() {
-    const envPath = path.join(__dirname, '.env.local');
-    if (!fs.existsSync(envPath)) return;
-    const lines = fs.readFileSync(envPath, 'utf8').split('\n');
-    lines.forEach(line => {
-        const [key, value] = line.split('=');
-        if (key && value) {
-            process.env[key.trim()] = value.trim().replace(/^["']|["']$/g, '');
-        }
-    });
-}
+const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
 
-loadEnv();
-
-const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-const pool = new Pool({ connectionString, ssl: true });
-
-async function check() {
+async function verifyMigration() {
     try {
-        console.log("Checking products table schema...");
-        const columns = await pool.query(`
-            SELECT column_name, data_type 
-            FROM information_schema.columns 
-            WHERE table_name = 'products' 
-            AND column_name = 'visibility_tags'
-        `);
-        console.log("Column visibility_tags:", columns.rows);
+        await client.connect();
+        console.log('\n🔍 MIGRATION VERIFICATION REPORT\n');
+        console.log('='.repeat(60));
 
-        console.log("\nChecking categories...");
-        const categories = await pool.query(`
-            SELECT DISTINCT category, count(*) 
-            FROM products 
-            GROUP BY category
+        // Count products by ImageKit account
+        const result = await client.query(`
+            SELECT 
+                CASE 
+                    WHEN image_url LIKE '%lzmpw%' THEN 'Old Account (lzmpwlx08)'
+                    WHEN image_url LIKE '%6k5vfwl1j%' THEN 'New Account (6k5vfwl1j)'
+                    ELSE 'Other/External'
+                END as account_type,
+                COUNT(*) as product_count
+            FROM products
+            WHERE image_url IS NOT NULL
+            GROUP BY account_type
+            ORDER BY product_count DESC
         `);
-        console.log("Categories distribution:", categories.rows);
 
-        console.log("\nChecking products with visibility_tags...");
-        const withTags = await pool.query(`
-            SELECT id, name, category, visibility_tags 
-            FROM products 
-            WHERE visibility_tags IS NOT NULL AND visibility_tags != '[]'::jsonb
-            LIMIT 5
-        `);
-        console.log("Products with tags:", withTags.rows);
+        let totalOld = 0;
+        let totalNew = 0;
+        let totalOther = 0;
 
-    } catch (err) {
-        console.error("Check failed:", err);
+        console.log('\n📊 Products by ImageKit Account:\n');
+        result.rows.forEach(row => {
+            const emoji = row.account_type.includes('6k5vfwl1j') ? '✅' :
+                row.account_type.includes('lzmpw') ? '⚠️ ' : 'ℹ️ ';
+            console.log(`${emoji} ${row.account_type}: ${row.product_count} products`);
+
+            if (row.account_type.includes('lzmpw')) totalOld = row.product_count;
+            if (row.account_type.includes('6k5vfwl1j')) totalNew = row.product_count;
+            if (row.account_type.includes('Other')) totalOther = row.product_count;
+        });
+
+        console.log('\n' + '='.repeat(60));
+
+        if (totalOld === 0 && totalNew > 0) {
+            console.log('\n🎉 SUCCESS! All products migrated to new account!');
+            console.log(`   ✅ ${totalNew} products now using NEW account (6k5vfwl1j)`);
+            console.log(`   ❌ ${totalOld} products still on OLD account (lzmpwlx08)`);
+        } else if (totalOld > 0) {
+            console.log(`\n⚠️  PARTIAL MIGRATION: ${totalOld} products still on old account`);
+            console.log(`   ✅ ${totalNew} products migrated to NEW account`);
+            console.log(`   ❌ ${totalOld} products still on OLD account`);
+        } else {
+            console.log(`\n✅ Migration Status: ${totalNew} products on new account`);
+        }
+
+        if (totalOther > 0) {
+            console.log(`   ℹ️  ${totalOther} products using external URLs`);
+        }
+
+        console.log('\n' + '='.repeat(60) + '\n');
+
+        // Get total count
+        const totalResult = await client.query('SELECT COUNT(*) as total FROM products WHERE image_url IS NOT NULL');
+        console.log(`📦 Total products with images: ${totalResult.rows[0].total}\n`);
+
+    } catch (e) {
+        console.error("❌ Error:", e.message);
     } finally {
-        await pool.end();
+        await client.end();
     }
 }
 
-check();
+verifyMigration();

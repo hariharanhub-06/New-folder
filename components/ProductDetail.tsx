@@ -5,6 +5,7 @@ import { Product } from '@/lib/types';
 import { X, ArrowLeft, ShoppingBag, Check, Plus, Minus, Truck, CreditCard, RotateCcw, Pencil } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { getProduct } from '@/lib/api';
+import { optimizeImageUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -83,11 +84,11 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                             className={`relative aspect-[3/4] w-16 md:w-full flex-shrink-0 border-2 transition-all ${activeImage === img ? 'border-brand-red' : 'border-transparent hover:border-gray-200'}`}
                         >
                             <Image
-                                src={img || fallbackImage}
+                                src={optimizeImageUrl(img, { width: 150, quality: 75, format: 'webp' })}
                                 alt={product.name}
                                 fill
                                 className="object-cover"
-                                unoptimized={!!img?.startsWith('http')}
+                                loading="lazy"
                             />
                         </button>
                     ))}
@@ -96,12 +97,11 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                 {/* Main Large Image */}
                 <div className="flex-1 relative aspect-[3/4] bg-[#f9f9f9] overflow-hidden">
                     <Image
-                        src={activeImage || fallbackImage}
+                        src={optimizeImageUrl(activeImage, { width: 800, quality: 80, format: 'webp' })}
                         alt={product.name}
                         fill
                         priority
                         className="object-cover"
-                        unoptimized={!!activeImage?.startsWith('http')}
                     />
                     {product.activeDiscount && (
                         <div className="absolute top-4 left-0 z-10">

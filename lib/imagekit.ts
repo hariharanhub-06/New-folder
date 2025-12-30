@@ -6,23 +6,25 @@ const safeInit = (publicKey?: string, privateKey?: string, urlEndpoint?: string)
     return new ImageKit({ publicKey, privateKey, urlEndpoint });
 };
 
+// NEW ACCOUNT (6k5vfwl1j) - Now PRIMARY for all new uploads
 const imagekit = safeInit(
-    process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
-    process.env.IMAGEKIT_PRIVATE_KEY,
-    process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
+    process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_PUBLIC_KEY,
+    process.env.SECONDARY_IMAGEKIT_PRIVATE_KEY,
+    process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_URL_ENDPOINT
 ) || new ImageKit({
     publicKey: "placeholder",
     privateKey: "placeholder",
     urlEndpoint: "https://ik.imagekit.io/placeholder"
 });
 
-export const imagekitSecondary = safeInit(
-    process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_PUBLIC_KEY,
-    process.env.SECONDARY_IMAGEKIT_PRIVATE_KEY,
-    process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_URL_ENDPOINT
+// OLD ACCOUNT (lzmpwlx08) - Keep as legacy fallback for existing images
+export const imagekitLegacy = safeInit(
+    process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
+    process.env.IMAGEKIT_PRIVATE_KEY,
+    process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
 );
 
-// Helper to optimize ImageKit URLs with transformations (bandwidth savings)
+// Helper to optimize ImageKit URLs with transformations (aggressive bandwidth savings)
 export function optimizeImageUrl(url: string | null | undefined, options: {
     width?: number;
     height?: number;
@@ -34,19 +36,23 @@ export function optimizeImageUrl(url: string | null | undefined, options: {
         return url || "https://images.unsplash.com/photo-1552066344-24632e509613?q=80&w=1000&auto=format&fit=crop";
     }
 
-    // Build transformation string
+    // Build transformation string with aggressive optimization defaults
     const transformations = [];
     if (options.width) transformations.push(`w-${options.width}`);
     if (options.height) transformations.push(`h-${options.height}`);
-    if (options.quality) transformations.push(`q-${options.quality || 75}`);
-    if (options.format) transformations.push(`f-${options.format}`);
 
-    if (transformations.length === 0) return url;
+    // Default to quality 75 for significant bandwidth savings
+    const quality = options.quality !== undefined ? options.quality : 75;
+    transformations.push(`q-${quality}`);
+
+    // Default to webp format for best compression
+    const format = options.format || 'webp';
+    transformations.push(`f-${format}`);
 
     const tr = transformations.join(',');
 
     // Insert transformation before the filename
-    // Example: /products/image.jpg -> /products/tr:w-400,q-75/image.jpg
+    // Example: /products/image.jpg -> /products/tr:w-400,q-75,f-webp/image.jpg
     const parts = url.split('/');
     const filename = parts.pop();
     return `${parts.join('/')}/tr:${tr}/${filename}`;
