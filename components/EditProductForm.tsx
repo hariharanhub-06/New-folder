@@ -486,7 +486,7 @@ export default function EditProductForm({
                             <label className="flex items-center justify-between cursor-pointer group">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-bold text-slate-900 group-hover:text-black transition-colors">Hot Offer</span>
-                                    <span className="text-[10px] text-slate-500 font-medium">Show in "Best Offers"</span>
+                                    <span className="text-[10px] text-slate-500 font-medium">Show in &quot;Best Offers&quot;</span>
                                 </div>
                                 <div className="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" checked={isOffer} onChange={(e) => setIsOffer(e.target.checked)} className="sr-only peer" />
