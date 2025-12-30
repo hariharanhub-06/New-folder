@@ -558,17 +558,27 @@ export async function getFullCategories() {
 }
 
 export async function upsertCategory(category: { id?: string, name: string, image_url?: string, display_order?: number, is_active?: boolean, title?: string }) {
-    const id = category.id || category.name.toLowerCase().replace(/\s+/g, '-');
+    const safeName = category.name.trim();
+    // Default ID generation
+    let id = category.id || safeName.toLowerCase().replace(/\s+/g, '-');
+
+    // Check if name already exists to avoid unique constraint violation on 'name'
+    // If it exists, we MUST use that ID to trigger the ON CONFLICT(id) clause
+    const existing = await pool.query('SELECT id FROM categories WHERE lower(name) = lower($1)', [safeName]);
+    if (existing.rows.length > 0) {
+        id = existing.rows[0].id;
+    }
+
     await pool.query(`
         INSERT INTO categories(id, name, image_url, display_order, is_active, title)
             VALUES($1, $2, $3, $4, $5, $6)
         ON CONFLICT(id) DO UPDATE SET
             name = EXCLUDED.name,
-                image_url = EXCLUDED.image_url,
-                display_order = EXCLUDED.display_order,
-                is_active = EXCLUDED.is_active,
-                title = EXCLUDED.title
-                    `, [id, category.name, category.image_url, category.display_order || 0, category.is_active !== undefined ? category.is_active : true, category.title || null]);
+            image_url = COALESCE(EXCLUDED.image_url, categories.image_url),
+            display_order = COALESCE(EXCLUDED.display_order, categories.display_order),
+            is_active = EXCLUDED.is_active,
+            title = COALESCE(EXCLUDED.title, categories.title)
+                    `, [id, safeName, category.image_url || null, category.display_order || 0, category.is_active !== undefined ? category.is_active : true, category.title || null]);
     return { success: true, id };
 }
 

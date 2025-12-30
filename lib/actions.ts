@@ -105,49 +105,58 @@ export async function addProduct(formData: FormData, redirectTo?: string) {
 }
 
 export async function editProduct(id: string, formData: FormData, redirectTo?: string) {
-    const productData = parseProductFormData(formData);
+    try {
+        const productData = parseProductFormData(formData);
 
-    // Auto-create category if it doesn't exist
-    if (productData.category) {
-        await upsertCategory({
-            name: productData.category,
-            is_active: true
-        });
+        // Auto-create category if it doesn't exist
+        if (productData.category) {
+            await upsertCategory({
+                name: productData.category,
+                is_active: true
+            });
+        }
+
+        // We need to keep the existing isActive status and createdAt
+        const existingProduct = await getProduct(id);
+
+        await saveProduct({
+            id, // Ensure ID is passed
+            ...productData,
+            isActive: existingProduct?.isActive ?? true,
+            createdAt: existingProduct?.createdAt,
+        } as Product);
+
+        revalidatePath("/admin/products");
+        revalidatePath(`/admin/products/${id}`);
+        revalidatePath("/shop");
+        revalidatePath("/");
+        revalidatePath(`/product/${id}`);
+
+        if (redirectTo) {
+            redirect(redirectTo);
+        }
+
+        // Return updated product for immediate client-side update
+        // We already have the new data in productData, just combine with existing meta
+        const updatedProduct = {
+            id,
+            ...productData,
+            isActive: existingProduct?.isActive ?? true,
+            createdAt: existingProduct?.createdAt,
+            updatedAt: new Date().toISOString() // Approximate
+        };
+
+        // Or better, fetch fresh from DB to be 100% sure
+        const freshProduct = await getProduct(id);
+        return { success: true, product: freshProduct };
+    } catch (error) {
+        if ((error as any)?.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
+        console.error("❌ ERROR IN EDIT_PRODUCT:", error);
+        // Throw a simple error message that can be serialized to client
+        throw new Error((error as any).message || "Failed to edit product");
     }
-
-    // We need to keep the existing isActive status and createdAt
-    const existingProduct = await getProduct(id);
-
-    await saveProduct({
-        id, // Ensure ID is passed
-        ...productData,
-        isActive: existingProduct?.isActive ?? true,
-        createdAt: existingProduct?.createdAt,
-    } as Product);
-
-    revalidatePath("/admin/products");
-    revalidatePath(`/admin/products/${id}`);
-    revalidatePath("/shop");
-    revalidatePath("/");
-    revalidatePath(`/product/${id}`);
-
-    if (redirectTo) {
-        redirect(redirectTo);
-    }
-
-    // Return updated product for immediate client-side update
-    // We already have the new data in productData, just combine with existing meta
-    const updatedProduct = {
-        id,
-        ...productData,
-        isActive: existingProduct?.isActive ?? true,
-        createdAt: existingProduct?.createdAt,
-        updatedAt: new Date().toISOString() // Approximate
-    };
-
-    // Or better, fetch fresh from DB to be 100% sure
-    const freshProduct = await getProduct(id);
-    return { success: true, product: freshProduct };
 }
 
 export async function removeProduct(id: string) {
