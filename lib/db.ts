@@ -341,7 +341,7 @@ export async function saveProduct(product: Product) {
                 product.category,
                 totalStock,
                 product.imageUrl,
-                JSON.stringify(product.images || []),
+                (console.log('DB UPDATE IMAGES:', JSON.stringify(product.images || [])), JSON.stringify(product.images || [])),
                 product.size,
                 product.isActive !== undefined ? product.isActive : true,
                 product.weight || 750,

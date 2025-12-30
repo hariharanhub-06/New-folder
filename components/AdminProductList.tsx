@@ -33,7 +33,9 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
 
     // Sync products if prop changes (e.g. after refresh/edit)
     useEffect(() => {
+        // When initialProducts changes (due to router.refresh()), we must update displayProducts
         setDisplayProducts(initialProducts);
+        // Also ensure editingProduct is closed if it refers to a stale object, though we handle that in handleSuccess
     }, [initialProducts]);
 
     const handleSuccess = useCallback(() => {
