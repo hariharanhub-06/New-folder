@@ -58,12 +58,14 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
         return displayProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     }, [displayProducts, currentPage]);
 
-    const handleFilterSort = useCallback((products: Product[]) => {
+    const handleFilterSort = useCallback((products: Product[], resetPage: boolean = true) => {
         startTransition(() => {
             setDisplayProducts(products);
-            const params = new URLSearchParams(searchParams);
-            params.set('page', '1');
-            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            if (resetPage) {
+                const params = new URLSearchParams(searchParams);
+                params.set('page', '1');
+                router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            }
         });
     }, [router, pathname, searchParams]);
 

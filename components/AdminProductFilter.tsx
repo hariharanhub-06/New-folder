@@ -1,13 +1,13 @@
 "use client";
 
 import { Product } from '@/lib/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Filter, SortAsc } from 'lucide-react';
 
 interface FilterSortProps {
     products: Product[];
     availableCategories: string[];
-    onFilterSort: (filtered: Product[]) => void;
+    onFilterSort: (filtered: Product[], resetPage?: boolean) => void;
 }
 
 const VISIBILITY_TAGS = [
@@ -31,8 +31,18 @@ export default function AdminProductFilter({ products, availableCategories, onFi
     const [attributeFilter, setAttributeFilter] = useState<string>("All");
     const [visibilityFilter, setVisibilityFilter] = useState<string>("All");
 
+    // Track mount state and previous products to prevent infinite loops/unwanted resets
+    const isMounted = useRef(false);
+    const prevProductsRef = useRef(products);
+
     // Apply filters whenever filter options change
     useEffect(() => {
+        // Skip logic on strict initial mount
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+
         let filtered = [...products];
 
         // Filter by category
@@ -81,7 +91,12 @@ export default function AdminProductFilter({ products, availableCategories, onFi
             filtered.sort((a, b) => a.stock - b.stock);
         }
 
-        onFilterSort(filtered);
+        // Check if the update was caused ONLY by products changing (data refresh)
+        // If so, do NOT reset the page.
+        const productsChanged = products !== prevProductsRef.current;
+        prevProductsRef.current = products;
+
+        onFilterSort(filtered, !productsChanged);
     }, [category, sortBy, status, stockFilter, attributeFilter, visibilityFilter, products, onFilterSort]);
 
     return (
