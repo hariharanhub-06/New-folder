@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const filename = uniqueSuffix + '-' + file.name.replace(/[^a-zA-Z0-9.-]/g, '');
 
-        // Upload to NEW ImageKit account (6k5vfwl1j)
+        // Upload to PRIMARY ImageKit account (lzmpwlx08)
         const result = await imagekit.upload({
             file: buffer,
             fileName: filename,

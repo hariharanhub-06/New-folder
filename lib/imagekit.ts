@@ -6,23 +6,16 @@ const safeInit = (publicKey?: string, privateKey?: string, urlEndpoint?: string)
     return new ImageKit({ publicKey, privateKey, urlEndpoint });
 };
 
-// NEW ACCOUNT (6k5vfwl1j) - Now PRIMARY for all new uploads
+// PRIMARY ACCOUNT (lzmpwlx08)
 const imagekit = safeInit(
-    process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_PUBLIC_KEY,
-    process.env.SECONDARY_IMAGEKIT_PRIVATE_KEY,
-    process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_URL_ENDPOINT
+    process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
+    process.env.IMAGEKIT_PRIVATE_KEY,
+    process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
 ) || new ImageKit({
     publicKey: "placeholder",
     privateKey: "placeholder",
     urlEndpoint: "https://ik.imagekit.io/placeholder"
 });
-
-// OLD ACCOUNT (lzmpwlx08) - Keep as legacy fallback for existing images
-export const imagekitLegacy = safeInit(
-    process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
-    process.env.IMAGEKIT_PRIVATE_KEY,
-    process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
-);
 
 // Helper to optimize ImageKit URLs with transformations (aggressive bandwidth savings)
 export function optimizeImageUrl(url: string | null | undefined, options: {
