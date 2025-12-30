@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Plus, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Pencil, X } from 'lucide-react';
 import { Product } from '@/lib/types';
 import DeleteProductButton from '@/components/DeleteProductButton';
 import ToggleStatusButton from '@/components/ToggleStatusButton';
