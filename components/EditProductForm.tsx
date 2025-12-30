@@ -28,7 +28,7 @@ export default function EditProductForm({
 }: {
     product: Product,
     initialPage?: string,
-    onSuccess?: () => void
+    onSuccess?: (updatedProduct?: Product) => void
 }) {
     const [imageOption, setImageOption] = useState<'url' | 'upload'>('url');
     // Initialize images from product.images if available, otherwise fallback to [product.imageUrl]
@@ -197,8 +197,12 @@ export default function EditProductForm({
         formData.set('visibilityTags', JSON.stringify(visibilityTags));
 
         try {
-            await editProduct(product.id, formData, onSuccess ? undefined : `/admin/products?page=${initialPage}`);
-            if (onSuccess) onSuccess();
+            const result = await editProduct(product.id, formData, onSuccess ? undefined : `/admin/products?page=${initialPage}`);
+            if (onSuccess) {
+                // Pass back the updated product if available
+                // We cast the result to any because Server Actions types can be tricky with return values vs redirects
+                onSuccess((result as any)?.product);
+            }
         } catch (error) {
             if ((error as any)?.digest?.startsWith('NEXT_REDIRECT')) {
                 throw error;

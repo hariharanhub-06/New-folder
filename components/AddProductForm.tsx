@@ -19,7 +19,9 @@ const VISIBILITY_HEADERS = [
     { id: 'accessories', label: 'Accessories' },
 ];
 
-export default function AddProductForm({ onSuccess, onCancel }: { onSuccess: () => void, onCancel: () => void }) {
+import { Product } from '@/lib/types';
+
+export default function AddProductForm({ onSuccess, onCancel }: { onSuccess: (product?: Product) => void, onCancel: () => void }) {
     const [imageOption, setImageOption] = useState<'url' | 'upload'>('url');
     const [images, setImages] = useState<string[]>([]);
     const [mainImageIndex, setMainImageIndex] = useState<number>(0);

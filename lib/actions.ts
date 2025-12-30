@@ -106,11 +106,6 @@ export async function addProduct(formData: FormData, redirectTo?: string) {
 
 export async function editProduct(id: string, formData: FormData, redirectTo?: string) {
     const productData = parseProductFormData(formData);
-    console.log('--- ADMIN EDIT PRODUCT DEBUG ---');
-    console.log('ID:', id);
-    console.log('Images Array:', productData.images);
-    console.log('Main Image URL:', productData.imageUrl);
-
 
     // Auto-create category if it doesn't exist
     if (productData.category) {
@@ -135,9 +130,24 @@ export async function editProduct(id: string, formData: FormData, redirectTo?: s
     revalidatePath("/shop");
     revalidatePath("/");
     revalidatePath(`/product/${id}`);
+
     if (redirectTo) {
         redirect(redirectTo);
     }
+
+    // Return updated product for immediate client-side update
+    // We already have the new data in productData, just combine with existing meta
+    const updatedProduct = {
+        id,
+        ...productData,
+        isActive: existingProduct?.isActive ?? true,
+        createdAt: existingProduct?.createdAt,
+        updatedAt: new Date().toISOString() // Approximate
+    };
+
+    // Or better, fetch fresh from DB to be 100% sure
+    const freshProduct = await getProduct(id);
+    return { success: true, product: freshProduct };
 }
 
 export async function removeProduct(id: string) {

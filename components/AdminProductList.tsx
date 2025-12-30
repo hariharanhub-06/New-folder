@@ -38,9 +38,16 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
         // Also ensure editingProduct is closed if it refers to a stale object, though we handle that in handleSuccess
     }, [initialProducts]);
 
-    const handleSuccess = useCallback(() => {
+    const handleSuccess = useCallback((updatedProduct?: Product) => {
         setIsAddModalOpen(false);
         setEditingProduct(null);
+
+        if (updatedProduct) {
+            setDisplayProducts(current =>
+                current.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+            );
+        }
+
         router.refresh();
     }, [router]);
 
