@@ -69,7 +69,7 @@ function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'created
     };
 }
 
-export async function addProduct(formData: FormData) {
+export async function addProduct(formData: FormData, redirectTo?: string) {
     try {
         const productData = parseProductFormData(formData);
 
@@ -90,7 +90,7 @@ export async function addProduct(formData: FormData) {
         revalidatePath("/admin/products");
         revalidatePath("/shop");
         revalidatePath("/");
-        redirect("/admin/products");
+        redirect(redirectTo || "/admin/products");
     } catch (error) {
         console.error('❌ Add Product Error:', error);
         console.error('Error details:', {
@@ -102,7 +102,7 @@ export async function addProduct(formData: FormData) {
     }
 }
 
-export async function editProduct(id: string, formData: FormData) {
+export async function editProduct(id: string, formData: FormData, redirectTo?: string) {
     const productData = parseProductFormData(formData);
 
     // Auto-create category if it doesn't exist
@@ -128,7 +128,7 @@ export async function editProduct(id: string, formData: FormData) {
     revalidatePath("/shop");
     revalidatePath("/");
     revalidatePath(`/product/${id}`);
-    redirect("/admin/products");
+    redirect(redirectTo || "/admin/products");
 }
 
 export async function removeProduct(id: string) {

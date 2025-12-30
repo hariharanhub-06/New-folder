@@ -28,40 +28,52 @@ export function optimizeImageUrl(url: string | null | undefined, options: {
     quality?: number;
     format?: 'webp' | 'avif' | 'auto';
 } = {}): string {
-    // Return fallback if no URL or not an ImageKit URL
-    if (!url || !url.includes('imagekit.io')) {
-        return url || "https://images.unsplash.com/photo-1552066344-24632e509613?q=80&w=1000&auto=format&fit=crop";
+    // Return fallback if no URL
+    if (!url) {
+        return "https://images.unsplash.com/photo-1552066344-24632e509613?q=80&w=1000&auto=format&fit=crop";
     }
 
-    // Build transformation string with aggressive optimization defaults
-    const transformations = [];
-    if (options.width) transformations.push(`w-${options.width}`);
-    if (options.height) transformations.push(`h-${options.height}`);
+    // Handle ImageKit (Primary)
+    if (url.includes('imagekit.io')) {
+        const transformations = [];
+        if (options.width) transformations.push(`w-${options.width}`);
+        if (options.height) transformations.push(`h-${options.height}`);
+        const quality = options.quality !== undefined ? options.quality : 75;
+        transformations.push(`q-${quality}`);
+        const format = options.format || 'auto';
+        transformations.push(`f-${format}`);
 
-    // Default to quality 75 for significant bandwidth savings
-    const quality = options.quality !== undefined ? options.quality : 75;
-    transformations.push(`q-${quality}`);
+        const tr = transformations.join(',');
+        const endpoint = process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT;
 
-    // Default to 'auto' format which serves AVIF to supported browsers, then WebP
-    const format = options.format || 'auto';
-    transformations.push(`f-${format}`);
+        if (endpoint && url.startsWith(endpoint)) {
+            const path = url.replace(endpoint, '');
+            return `${endpoint}/tr:${tr}${path}`;
+        }
 
-    const tr = transformations.join(',');
-
-    // Insert transformation after the endpoint
-    // Example: https://ik.imagekit.io/6k5vfwl1j/products/image.jpg -> https://ik.imagekit.io/6k5vfwl1j/tr:w-400/products/image.jpg
-    const endpoint = process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT;
-
-    if (endpoint && url.startsWith(endpoint)) {
-        const path = url.replace(endpoint, '');
-        return `${endpoint}/tr:${tr}${path}`;
+        const parts = url.split('/');
+        const domain = parts.slice(0, 4).join('/');
+        const rest = '/' + parts.slice(4).join('/');
+        return `${domain}/tr:${tr}${rest}`;
     }
 
-    // Fallback if endpoint doesn't match
-    const parts = url.split('/');
-    const domain = parts.slice(0, 4).join('/'); // https://ik.imagekit.io/endpoint
-    const rest = '/' + parts.slice(4).join('/');
-    return `${domain}/tr:${tr}${rest}`;
+    // Handle Cloudinary (Secondary/Fallback)
+    if (url.includes('cloudinary.com')) {
+        const transformations = [];
+        if (options.width) transformations.push(`c_limit,w_${options.width}`);
+        if (options.height) transformations.push(`c_limit,h_${options.height}`);
+        const quality = options.quality !== undefined ? options.quality : 'auto';
+        transformations.push(`q_${quality}`);
+        const format = options.format || 'auto';
+        transformations.push(`f_${format}`);
+
+        const tr = transformations.join(',');
+        if (url.includes('/upload/')) {
+            return url.replace('/upload/', `/upload/${tr}/`);
+        }
+    }
+
+    return url;
 }
 
 export default imagekit;

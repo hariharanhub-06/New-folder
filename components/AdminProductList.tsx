@@ -8,6 +8,7 @@ import ToggleStatusButton from '@/components/ToggleStatusButton';
 import ToggleOfferDropButton from '@/components/ToggleOfferDropButton';
 import AdminProductFilter from '@/components/AdminProductFilter';
 import { useState, useMemo, useTransition, useCallback, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 interface AdminProductListProps {
     initialProducts: Product[];
@@ -17,8 +18,11 @@ interface AdminProductListProps {
 const ITEMS_PER_PAGE = 25;
 
 export default function AdminProductList({ initialProducts, categories }: AdminProductListProps) {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
     const [displayProducts, setDisplayProducts] = useState<Product[]>(initialProducts);
-    const [currentPage, setCurrentPage] = useState(1);
+    const currentPage = Number(searchParams.get('page')) || 1;
     const [isPending, startTransition] = useTransition();
 
     // Sync products if prop changes (e.g. after refresh/edit)
@@ -46,15 +50,17 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
     const handleFilterSort = useCallback((products: Product[]) => {
         startTransition(() => {
             setDisplayProducts(products);
-            setCurrentPage(1);
+            const params = new URLSearchParams(searchParams);
+            params.set('page', '1');
+            router.push(`${pathname}?${params.toString()}`);
         });
-    }, []);
+    }, [router, pathname, searchParams]);
 
     const handlePageChange = useCallback((page: number) => {
-        startTransition(() => {
-            setCurrentPage(page);
-        });
-    }, []);
+        const params = new URLSearchParams(searchParams);
+        params.set('page', page.toString());
+        router.push(`${pathname}?${params.toString()}`);
+    }, [router, pathname, searchParams]);
 
     return (
         <div className="space-y-6 font-jost">
@@ -120,7 +126,7 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end space-x-2">
-                                        <Link href={`/admin/products/${product.id}/edit`} className="text-gray-400 hover:text-brand-red p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90" title="Edit Product">
+                                        <Link href={`/admin/products/${product.id}/edit?page=${currentPage}`} className="text-gray-400 hover:text-brand-red p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90" title="Edit Product">
                                             <Pencil className="w-4.5 h-4.5" />
                                         </Link>
                                         <ToggleStatusButton

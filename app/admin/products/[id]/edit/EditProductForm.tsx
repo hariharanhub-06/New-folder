@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { editProduct } from '@/lib/actions';
 import { Upload, X, Star, Image as ImageIcon, Loader2, Plus } from 'lucide-react';
 import { Product } from '@/lib/types';
@@ -144,6 +145,9 @@ export default function EditProductForm({ product }: { product: Product }) {
         }
     };
 
+    const searchParams = useSearchParams();
+    const returnPage = searchParams.get('page') || '1';
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (isSubmitting) return;
@@ -188,7 +192,7 @@ export default function EditProductForm({ product }: { product: Product }) {
         formData.set('visibilityTags', JSON.stringify(visibilityTags));
 
         try {
-            await editProduct(product.id, formData);
+            await editProduct(product.id, formData, `/admin/products?page=${returnPage}`);
             // If we get here without redirect, something went wrong
         } catch (error) {
             // Re-throw redirect errors (Next.js uses these internally)

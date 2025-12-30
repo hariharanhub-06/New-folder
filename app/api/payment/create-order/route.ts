@@ -71,24 +71,10 @@ export async function POST(request: Request) {
                     totalStock = stockRes.rows[0]?.stock || 0;
                 }
 
-                // 2. Get Reserved Stock (Active Pending Orders < 2 mins old)
-                const reservedRes = await client.query(`
-                    SELECT SUM(oi.quantity) as reserved
-                    FROM order_items oi
-                    JOIN orders o ON o.id = oi.order_id
-                    WHERE oi.product_id = $1
-                    AND ($2::text IS NULL OR oi.size = $2)
-                    AND o.status = 'Pending Payment'
-                    AND o.created_at > NOW() - INTERVAL '2 minutes'
-                `, [productId, item.selectedSize || null]);
+                console.log(`Stock Check for ${item.name} (${item.selectedSize || 'Base'}): Total=${totalStock}, Req=${requestedQty}`);
 
-                const reservedStock = parseInt(reservedRes.rows[0]?.reserved || '0');
-                const availableStock = totalStock - reservedStock;
-
-                console.log(`Stock Check for ${item.name} (${item.selectedSize || 'Base'}): Total=${totalStock}, Reserved=${reservedStock}, Req=${requestedQty}`);
-
-                if (availableStock < requestedQty) {
-                    throw new Error(`Item '${item.name}' is currently reserved by others. Please try again in 2 minutes.`);
+                if (totalStock < requestedQty) {
+                    throw new Error(`Item '${item.name}' is currently out of stock.`);
                 }
             }));
         } finally {
@@ -114,19 +100,8 @@ export async function POST(request: Request) {
                 const stockRes = await trxClient.query(stockQuery, stockParams);
                 const totalStock = stockRes.rows[0]?.stock || 0;
 
-                const reservedRes = await trxClient.query(`
-                    SELECT COALESCE(SUM(oi.quantity), 0) as reserved
-                    FROM order_items oi
-                    JOIN orders o ON o.id = oi.order_id
-                    WHERE oi.product_id = $1
-                    AND ($2::text IS NULL OR oi.size = $2)
-                    AND o.status = 'Pending Payment'
-                    AND o.created_at > NOW() - INTERVAL '2 minutes'
-                `, [item.id, item.selectedSize || null]);
-
-                const availableStock = totalStock - parseInt(reservedRes.rows[0]?.reserved || '0');
-                if (availableStock < item.quantity) {
-                    throw new Error(`Item '${item.name}' is currently reserved. Try again in 2 minutes.`);
+                if (totalStock < item.quantity) {
+                    throw new Error(`Item '${item.name}' just went out of stock.`);
                 }
             }));
 
