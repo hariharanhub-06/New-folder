@@ -6,8 +6,12 @@ const safeInit = (publicKey?: string, privateKey?: string, urlEndpoint?: string)
     return new ImageKit({ publicKey, privateKey, urlEndpoint });
 };
 
-// PRIMARY ACCOUNT (lzmpwlx08)
+// SECONDARY ACCOUNT (6k5vfwl1j) - Used because primary is out of bandwidth
 const imagekit = safeInit(
+    process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_PUBLIC_KEY,
+    process.env.SECONDARY_IMAGEKIT_PRIVATE_KEY,
+    process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_URL_ENDPOINT
+) || safeInit(
     process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
     process.env.IMAGEKIT_PRIVATE_KEY,
     process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
@@ -44,10 +48,20 @@ export function optimizeImageUrl(url: string | null | undefined, options: {
 
     const tr = transformations.join(',');
 
-    // Insert transformation before the filename
+    // Insert transformation after the endpoint
+    // Example: https://ik.imagekit.io/6k5vfwl1j/products/image.jpg -> https://ik.imagekit.io/6k5vfwl1j/tr:w-400/products/image.jpg
+    const endpoint = process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT;
+
+    if (endpoint && url.startsWith(endpoint)) {
+        const path = url.replace(endpoint, '');
+        return `${endpoint}/tr:${tr}${path}`;
+    }
+
+    // Fallback if endpoint doesn't match
     const parts = url.split('/');
-    const filename = parts.pop();
-    return `${parts.join('/')}/tr:${tr}/${filename}`;
+    const domain = parts.slice(0, 4).join('/'); // https://ik.imagekit.io/endpoint
+    const rest = '/' + parts.slice(4).join('/');
+    return `${domain}/tr:${tr}${rest}`;
 }
 
 export default imagekit;
