@@ -29,7 +29,7 @@ export function optimizeImageUrl(url: string | null | undefined, options: {
     width?: number;
     height?: number;
     quality?: number;
-    format?: 'webp' | 'auto';
+    format?: 'webp' | 'avif' | 'auto';
 } = {}): string {
     // Return fallback if no URL or not an ImageKit URL
     if (!url || !url.includes('imagekit.io')) {
@@ -45,14 +45,13 @@ export function optimizeImageUrl(url: string | null | undefined, options: {
     const quality = options.quality !== undefined ? options.quality : 75;
     transformations.push(`q-${quality}`);
 
-    // Default to webp format for best compression
-    const format = options.format || 'webp';
+    // Default to 'auto' format which serves AVIF to supported browsers, then WebP
+    const format = options.format || 'auto';
     transformations.push(`f-${format}`);
 
     const tr = transformations.join(',');
 
     // Insert transformation before the filename
-    // Example: /products/image.jpg -> /products/tr:w-400,q-75,f-webp/image.jpg
     const parts = url.split('/');
     const filename = parts.pop();
     return `${parts.join('/')}/tr:${tr}/${filename}`;
