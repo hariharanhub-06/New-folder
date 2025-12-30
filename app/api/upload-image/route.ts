@@ -1,6 +1,5 @@
-
 import { NextResponse } from 'next/server';
-import imagekit from '@/lib/imagekit';
+import imagekit, { imagekitSecondary } from '@/lib/imagekit';
 
 export async function POST(request: Request) {
     try {
@@ -15,8 +14,10 @@ export async function POST(request: Request) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const filename = uniqueSuffix + '-' + file.name.replace(/[^a-zA-Z0-9.-]/g, '');
 
-        // Upload to ImageKit
-        const result = await imagekit.upload({
+        // Upload to ImageKit (Use Secondary if available, else Primary)
+        const uploader = process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_PUBLIC_KEY ? imagekitSecondary : imagekit;
+
+        const result = await uploader.upload({
             file: buffer,
             fileName: filename,
             folder: '/products',
