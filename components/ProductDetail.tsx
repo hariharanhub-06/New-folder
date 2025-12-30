@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Product } from '@/lib/types';
-import { X, ArrowLeft, ShoppingBag, Check, Plus, Minus, Truck, CreditCard, RotateCcw, Pencil } from 'lucide-react';
+import { X, ArrowLeft, ShoppingBag, Check, Plus, Minus, Truck, CreditCard, RotateCcw } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { getProduct } from '@/lib/api';
 import { optimizeImageUrl } from '@/lib/imagekit';
@@ -122,13 +122,6 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black leading-tight uppercase tracking-tight">
                                 {product.name}
                             </h1>
-                            <Link
-                                href={`/admin/products/${product.id}/edit`}
-                                className="p-2 mb-2 text-gray-400 hover:text-brand-red border border-gray-100 hover:border-brand-red rounded-full transition-all active:scale-95"
-                                title="Edit Product"
-                            >
-                                <Pencil className="w-4 h-4 md:w-5 md:h-5" />
-                            </Link>
                         </div>
                     </div>
 
