@@ -15,7 +15,7 @@ export async function POST(request: Request) {
         const filename = uniqueSuffix + '-' + file.name.replace(/[^a-zA-Z0-9.-]/g, '');
 
         // Upload to ImageKit (Use Secondary if available, else Primary)
-        const uploader = process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_PUBLIC_KEY ? imagekitSecondary : imagekit;
+        const uploader = imagekitSecondary || imagekit;
 
         const result = await uploader.upload({
             file: buffer,
