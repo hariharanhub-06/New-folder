@@ -241,19 +241,26 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
                     />
 
                     {/* Modal Content */}
-                    <div className="relative bg-white w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
-                        <div className="flex justify-between items-center p-6 border-b border-gray-100 flex-shrink-0 bg-white z-10">
-                            <h2 className="text-xl font-bold text-black uppercase tracking-tighter italic">
-                                {isAddModalOpen ? 'Create New Product' : `Edit: ${editingProduct?.name}`}
-                            </h2>
+                    <div className="relative bg-white w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col rounded-2xl ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center px-8 py-6 border-b border-gray-100 flex-shrink-0 bg-white/80 backdrop-blur-md z-10 sticky top-0">
+                            <div>
+                                <h2 className="text-2xl font-black text-black uppercase tracking-tighter italic">
+                                    {isAddModalOpen ? 'Create New Product' : `Edit Product`}
+                                </h2>
+                                {!isAddModalOpen && editingProduct && (
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">
+                                        Ref: {editingProduct.name}
+                                    </p>
+                                )}
+                            </div>
                             <button
                                 onClick={() => {
                                     setIsAddModalOpen(false);
                                     setEditingProduct(null);
                                 }}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                className="p-2 hover:bg-slate-100 rounded-full transition-colors group"
                             >
-                                <X className="w-6 h-6 text-gray-400 hover:text-black" />
+                                <X className="w-6 h-6 text-slate-400 group-hover:text-black transition-colors" />
                             </button>
                         </div>
 

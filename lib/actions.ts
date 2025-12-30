@@ -106,6 +106,11 @@ export async function addProduct(formData: FormData, redirectTo?: string) {
 
 export async function editProduct(id: string, formData: FormData, redirectTo?: string) {
     const productData = parseProductFormData(formData);
+    console.log('--- ADMIN EDIT PRODUCT DEBUG ---');
+    console.log('ID:', id);
+    console.log('Images Array:', productData.images);
+    console.log('Main Image URL:', productData.imageUrl);
+
 
     // Auto-create category if it doesn't exist
     if (productData.category) {
