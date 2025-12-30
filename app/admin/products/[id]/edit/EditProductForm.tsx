@@ -87,9 +87,10 @@ export default function EditProductForm({ product }: { product: Product }) {
 
                 // Compress image
                 const options = {
-                    maxSizeMB: 1, // Increased to 1MB since we are uploading to cloud, not base64 DB
-                    maxWidthOrHeight: 1920, // Better quality for cloud
+                    maxSizeMB: 0.5, // Reduced for better optimization while maintaining web quality
+                    maxWidthOrHeight: 1920,
                     useWebWorker: true,
+                    initialQuality: 0.8, // Explicitly set quality target
                     fileType: 'image/jpeg'
                 };
 
