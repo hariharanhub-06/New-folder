@@ -66,11 +66,7 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
             {/* Image Section */}
             <div className="relative aspect-[3/4] w-full bg-[#f9f9f9] overflow-hidden">
                 <Image
-                    src={optimizeImageUrl(product.imageUrl, {
-                        width: variant === 'small' ? 200 : 400,
-                        quality: 75,
-                        format: 'webp'
-                    })}
+                    src={optimizeImageUrl(product.imageUrl)}
                     alt={product.name}
                     fill
                     sizes={variant === 'small' ? "120px" : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"}

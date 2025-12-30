@@ -84,7 +84,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                             className={`relative aspect-[3/4] w-16 md:w-full flex-shrink-0 border-2 transition-all ${activeImage === img ? 'border-brand-red' : 'border-transparent hover:border-gray-200'}`}
                         >
                             <Image
-                                src={optimizeImageUrl(img, { width: 150, quality: 75, format: 'webp' })}
+                                src={optimizeImageUrl(img)}
                                 alt={product.name}
                                 fill
                                 className="object-cover"
@@ -97,7 +97,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                 {/* Main Large Image */}
                 <div className="flex-1 relative aspect-[3/4] bg-[#f9f9f9] overflow-hidden">
                     <Image
-                        src={optimizeImageUrl(activeImage, { width: 800, quality: 80, format: 'webp' })}
+                        src={optimizeImageUrl(activeImage)}
                         alt={product.name}
                         fill
                         priority
