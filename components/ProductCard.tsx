@@ -3,6 +3,7 @@
 import { Product } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
 import { useWishlist } from '@/lib/wishlist-context';
+import { optimizeImageUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import { ShoppingBag, Search, Plus, ArrowRight, Share2, Check, Heart } from 'lucide-react';
 import { memo, useState } from 'react';
@@ -65,12 +66,16 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
             {/* Image Section */}
             <div className="relative aspect-[3/4] w-full bg-[#f9f9f9] overflow-hidden">
                 <Image
-                    src={product.imageUrl || "https://images.unsplash.com/photo-1552066344-24632e509613?q=80&w=1000&auto=format&fit=crop"}
+                    src={optimizeImageUrl(product.imageUrl, {
+                        width: variant === 'small' ? 200 : 400,
+                        quality: 75,
+                        format: 'webp'
+                    })}
                     alt={product.name}
                     fill
                     sizes={variant === 'small' ? "120px" : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"}
                     className="object-cover group-hover:scale-110 transition-transform duration-700"
-                    unoptimized={!!product.imageUrl?.startsWith('http')}
+                    loading="lazy"
                 />
 
                 {/* Vertical Icon Stack (Top Right) */}

@@ -85,13 +85,13 @@ export default function EditProductForm({ product }: { product: Product }) {
                     }
                 }
 
-                // Compress image
+                // Compress image - optimized for bandwidth
                 const options = {
-                    maxSizeMB: 0.5, // Reduced for better optimization while maintaining web quality
+                    maxSizeMB: 0.3, // Further reduced for ImageKit bandwidth savings
                     maxWidthOrHeight: 1920,
                     useWebWorker: true,
-                    initialQuality: 0.8, // Explicitly set quality target
-                    fileType: 'image/jpeg'
+                    initialQuality: 0.75, // Balanced quality/size
+                    fileType: 'image/webp' // WebP offers 25-35% better compression than JPEG
                 };
 
                 try {

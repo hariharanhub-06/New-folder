@@ -49,8 +49,8 @@ export async function POST(request: Request) {
         const client = await db.connect();
 
         try {
-            for (const item of items) {
-                // Determine if we are checking a specific variant size or base product
+            // Parallelize stock checks for faster response
+            await Promise.all(items.map(async (item) => {
                 const isSizeVariant = !!item.selectedSize;
                 const productId = item.id;
                 const requestedQty = item.quantity;
@@ -72,9 +72,6 @@ export async function POST(request: Request) {
                 }
 
                 // 2. Get Reserved Stock (Active Pending Orders < 2 mins old)
-                // We sum up items from other users who are currently in the payment screen.
-                // We exclude 'Payment Failed' and 'Cancelled'.
-                // We only care about 'Pending Payment' created recently.
                 const reservedRes = await client.query(`
                     SELECT SUM(oi.quantity) as reserved
                     FROM order_items oi
@@ -91,60 +88,69 @@ export async function POST(request: Request) {
                 console.log(`Stock Check for ${item.name} (${item.selectedSize || 'Base'}): Total=${totalStock}, Reserved=${reservedStock}, Req=${requestedQty}`);
 
                 if (availableStock < requestedQty) {
-                    // Block the order
                     throw new Error(`Item '${item.name}' is currently reserved by others. Please try again in 2 minutes.`);
                 }
-            }
+            }));
         } finally {
             client.release(); // Quick release before main transaction
         }
-        // ------------------------------------
 
-        // 4. Create Shadow Order in Database (Pending Payment)
-        // const db = require('@/lib/db').default; // Already imported above
+        // 4. Create Shadow Order in Single Transaction with Stock Check
         const crypto = require('crypto');
         const dbOrderId = crypto.randomUUID();
 
-        // Re-connect for Transaction
-        // Re-connect for Transaction
         const trxClient = await db.connect();
         try {
             await trxClient.query('BEGIN');
 
-            // Insert Order with 'Pending Payment' status
-            // Note: We do NOT decrement stock here. Stock is only reserved upon payment confirmation.
+            // Validate stock is still available (inside transaction for consistency)
+            await Promise.all(items.map(async (item) => {
+                const isSizeVariant = !!item.selectedSize;
+                const stockQuery = isSizeVariant
+                    ? 'SELECT stock FROM product_sizes WHERE product_id = $1 AND size = $2'
+                    : 'SELECT stock FROM products WHERE id = $1';
+                const stockParams = isSizeVariant ? [item.id, item.selectedSize] : [item.id];
+
+                const stockRes = await trxClient.query(stockQuery, stockParams);
+                const totalStock = stockRes.rows[0]?.stock || 0;
+
+                const reservedRes = await trxClient.query(`
+                    SELECT COALESCE(SUM(oi.quantity), 0) as reserved
+                    FROM order_items oi
+                    JOIN orders o ON o.id = oi.order_id
+                    WHERE oi.product_id = $1
+                    AND ($2::text IS NULL OR oi.size = $2)
+                    AND o.status = 'Pending Payment'
+                    AND o.created_at > NOW() - INTERVAL '2 minutes'
+                `, [item.id, item.selectedSize || null]);
+
+                const availableStock = totalStock - parseInt(reservedRes.rows[0]?.reserved || '0');
+                if (availableStock < item.quantity) {
+                    throw new Error(`Item '${item.name}' is currently reserved. Try again in 2 minutes.`);
+                }
+            }));
+
+            // Insert shadow order
             await trxClient.query(`
                 INSERT INTO orders (
                     id, customer_name, customer_email, customer_mobile,
                     shipping_address, total_amount, shipping_cost, status
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             `, [
-                dbOrderId,
-                customerName,
-                customerEmail,
-                customerMobile || '',
-                JSON.stringify(address), // Initial address
-                grandTotal,
-                shippingCost,
-                'Pending Payment'
+                dbOrderId, customerName, customerEmail, customerMobile || '',
+                JSON.stringify(address), grandTotal, shippingCost, 'Pending Payment'
             ]);
 
-            // Insert Items (for record keeping, but no stock decrement yet)
-            for (const item of items) {
-                await trxClient.query(`
+            // Insert order items (parallel for speed)
+            await Promise.all(items.map(item =>
+                trxClient.query(`
                     INSERT INTO order_items (id, order_id, product_id, name, quantity, price, size, image_url)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 `, [
-                    crypto.randomUUID(),
-                    dbOrderId,
-                    item.id,
-                    item.name,
-                    item.quantity,
-                    item.price,
-                    item.selectedSize || null,
-                    item.imageUrl || null
-                ]);
-            }
+                    crypto.randomUUID(), dbOrderId, item.id, item.name,
+                    item.quantity, item.price, item.selectedSize || null, item.imageUrl || null
+                ])
+            ));
 
             await trxClient.query('COMMIT');
         } catch (dbError) {
