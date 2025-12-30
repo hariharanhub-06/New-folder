@@ -90,7 +90,9 @@ export async function addProduct(formData: FormData, redirectTo?: string) {
         revalidatePath("/admin/products");
         revalidatePath("/shop");
         revalidatePath("/");
-        redirect(redirectTo || "/admin/products");
+        if (redirectTo) {
+            redirect(redirectTo);
+        }
     } catch (error) {
         console.error('❌ Add Product Error:', error);
         console.error('Error details:', {
@@ -128,7 +130,9 @@ export async function editProduct(id: string, formData: FormData, redirectTo?: s
     revalidatePath("/shop");
     revalidatePath("/");
     revalidatePath(`/product/${id}`);
-    redirect(redirectTo || "/admin/products");
+    if (redirectTo) {
+        redirect(redirectTo);
+    }
 }
 
 export async function removeProduct(id: string) {

@@ -21,7 +21,15 @@ const VISIBILITY_HEADERS = [
     { id: 'accessories', label: 'Accessories' },
 ];
 
-export default function EditProductForm({ product }: { product: Product }) {
+export default function EditProductForm({
+    product,
+    initialPage = '1',
+    onSuccess
+}: {
+    product: Product,
+    initialPage?: string,
+    onSuccess?: () => void
+}) {
     const [imageOption, setImageOption] = useState<'url' | 'upload'>('url');
     // Initialize images from product.images if available, otherwise fallback to [product.imageUrl]
     const [images, setImages] = useState<string[]>(product.images && product.images.length > 0 ? product.images : [product.imageUrl]);
@@ -145,9 +153,6 @@ export default function EditProductForm({ product }: { product: Product }) {
         }
     };
 
-    const searchParams = useSearchParams();
-    const returnPage = searchParams.get('page') || '1';
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (isSubmitting) return;
@@ -192,11 +197,9 @@ export default function EditProductForm({ product }: { product: Product }) {
         formData.set('visibilityTags', JSON.stringify(visibilityTags));
 
         try {
-            await editProduct(product.id, formData, `/admin/products?page=${returnPage}`);
-            // If we get here without redirect, something went wrong
+            await editProduct(product.id, formData, onSuccess ? undefined : `/admin/products?page=${initialPage}`);
+            if (onSuccess) onSuccess();
         } catch (error) {
-            // Re-throw redirect errors (Next.js uses these internally)
-            // eslint-disable-next-line
             if ((error as any)?.digest?.startsWith('NEXT_REDIRECT')) {
                 throw error;
             }

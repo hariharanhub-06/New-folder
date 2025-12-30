@@ -9,6 +9,8 @@ import ToggleOfferDropButton from '@/components/ToggleOfferDropButton';
 import AdminProductFilter from '@/components/AdminProductFilter';
 import { useState, useMemo, useTransition, useCallback, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import AddProductForm from './AddProductForm';
+import EditProductForm from './EditProductForm';
 
 interface AdminProductListProps {
     initialProducts: Product[];
@@ -25,13 +27,22 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
     const currentPage = Number(searchParams.get('page')) || 1;
     const [isPending, startTransition] = useTransition();
 
+    // Modal States
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
     // Sync products if prop changes (e.g. after refresh/edit)
     useEffect(() => {
         setDisplayProducts(initialProducts);
     }, [initialProducts]);
 
-    // Extract unique categories - if categories prop is provided, use that (canonical list)
-    // otherwise fallback to derivation from products
+    const handleSuccess = useCallback(() => {
+        setIsAddModalOpen(false);
+        setEditingProduct(null);
+        router.refresh();
+    }, [router]);
+
+    // ... availableCategories calculation remains same ...
     const availableCategories = useMemo(
         () => {
             if (categories && categories.length > 0) return categories;
@@ -52,27 +63,27 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
             setDisplayProducts(products);
             const params = new URLSearchParams(searchParams);
             params.set('page', '1');
-            router.push(`${pathname}?${params.toString()}`);
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
         });
     }, [router, pathname, searchParams]);
 
     const handlePageChange = useCallback((page: number) => {
         const params = new URLSearchParams(searchParams);
         params.set('page', page.toString());
-        router.push(`${pathname}?${params.toString()}`);
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
     }, [router, pathname, searchParams]);
 
     return (
         <div className="space-y-6 font-jost">
             <div className="flex justify-between items-center px-2">
                 <h1 className="text-3xl font-bold text-black uppercase tracking-tighter italic">Products</h1>
-                <Link
-                    href="/admin/products/new"
+                <button
+                    onClick={() => setIsAddModalOpen(true)}
                     className="inline-flex items-center px-6 py-2.5 border border-transparent shadow-sm text-xs font-bold uppercase tracking-widest text-white bg-black hover:bg-brand-red focus:outline-none active:scale-95 transition-all"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     New Product
-                </Link>
+                </button>
             </div>
 
             <AdminProductFilter
@@ -126,9 +137,13 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end space-x-2">
-                                        <Link href={`/admin/products/${product.id}/edit?page=${currentPage}`} className="text-gray-400 hover:text-brand-red p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90" title="Edit Product">
+                                        <button
+                                            onClick={() => setEditingProduct(product)}
+                                            className="text-gray-400 hover:text-brand-red p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90"
+                                            title="Edit Product"
+                                        >
                                             <Pencil className="w-4.5 h-4.5" />
-                                        </Link>
+                                        </button>
                                         <ToggleStatusButton
                                             id={product.id}
                                             isActive={product.isActive}
@@ -210,6 +225,54 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
                     </div>
                 )}
             </div>
+
+            {/* Modals */}
+            {(isAddModalOpen || editingProduct) && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+                        onClick={() => {
+                            setIsAddModalOpen(false);
+                            setEditingProduct(null);
+                        }}
+                    />
+
+                    {/* Modal Content */}
+                    <div className="relative bg-white w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100 flex-shrink-0 bg-white z-10">
+                            <h2 className="text-xl font-bold text-black uppercase tracking-tighter italic">
+                                {isAddModalOpen ? 'Create New Product' : `Edit: ${editingProduct?.name}`}
+                            </h2>
+                            <button
+                                onClick={() => {
+                                    setIsAddModalOpen(false);
+                                    setEditingProduct(null);
+                                }}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <X className="w-6 h-6 text-gray-400 hover:text-black" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto custom-scrollbar">
+                            {isAddModalOpen && (
+                                <AddProductForm
+                                    onSuccess={handleSuccess}
+                                    onCancel={() => setIsAddModalOpen(false)}
+                                />
+                            )}
+                            {editingProduct && (
+                                <EditProductForm
+                                    product={editingProduct}
+                                    onSuccess={handleSuccess}
+                                    initialPage={currentPage.toString()}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
