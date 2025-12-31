@@ -639,7 +639,7 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                             alt={item.name}
                                                             fill
                                                             className="object-cover"
-                                                            unoptimized={!!item.imageUrl?.startsWith('http')}
+                                                        // Loader handles optimization
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-slate-300">

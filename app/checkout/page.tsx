@@ -304,7 +304,7 @@ export default function CheckoutPage() {
                                             alt={item.name}
                                             fill
                                             className="object-cover"
-                                            unoptimized={!!item.imageUrl?.startsWith('http')}
+                                        // Loader handles optimization
                                         />
                                     </div>
                                     <div>
