@@ -44,44 +44,7 @@ export async function POST(request: Request) {
         // 3. Calculate Grand Total
         const grandTotal = subtotal + shippingCost;
 
-        // --- NEW: STOCK RESERVATION CHECK ---
-        // const db = require('@/lib/db').default; // REMOVE: Use top-level import
-        const client = await db.connect();
-
-        try {
-            // Parallelize stock checks for faster response
-            await Promise.all(items.map(async (item) => {
-                const isSizeVariant = !!item.selectedSize;
-                const productId = item.id;
-                const requestedQty = item.quantity;
-
-                // 1. Get Total Real Stock
-                let totalStock = 0;
-                if (isSizeVariant) {
-                    const stockRes = await client.query(
-                        'SELECT stock FROM product_sizes WHERE product_id = $1 AND size = $2',
-                        [productId, item.selectedSize]
-                    );
-                    totalStock = stockRes.rows[0]?.stock || 0;
-                } else {
-                    const stockRes = await client.query(
-                        'SELECT stock FROM products WHERE id = $1',
-                        [productId]
-                    );
-                    totalStock = stockRes.rows[0]?.stock || 0;
-                }
-
-                console.log(`Stock Check for ${item.name} (${item.selectedSize || 'Base'}): Total=${totalStock}, Req=${requestedQty}`);
-
-                if (totalStock < requestedQty) {
-                    throw new Error(`Item '${item.name}' is currently out of stock.`);
-                }
-            }));
-        } finally {
-            client.release(); // Quick release before main transaction
-        }
-
-        // 4. Create Shadow Order in Single Transaction with Stock Check
+        // 4. Create Shadow Order in Single Transaction (Optimized: Stock checked inside transaction)
         const crypto = require('crypto');
         const dbOrderId = crypto.randomUUID();
 
