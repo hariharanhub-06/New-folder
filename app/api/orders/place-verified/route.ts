@@ -74,36 +74,31 @@ export async function POST(request: Request) {
                 // Fetch items to know what to decrement
                 const itemsRes = await client.query('SELECT product_id, size, quantity FROM order_items WHERE order_id = $1', [orderId]);
 
-                const updatePromises = itemsRes.rows.map(async (item) => {
-                    if (item.product_id) {
-                        const queries = [];
+                // STRICT SEQUENTIAL UPDATE (Safer for Transaction Clients)
+                for (const item of itemsRes.rows) {
+                    if (!item.product_id) continue;
 
-                        if (item.size) {
-                            // Decrement stock for specific size variant
-                            queries.push(client.query(`
-                                UPDATE product_sizes 
-                                SET stock = GREATEST(0, stock - $1)
-                                WHERE product_id = $2 AND size = $3
-                            `, [item.quantity, item.product_id, item.size]));
+                    if (item.size) {
+                        // Decrement stock for specific size variant
+                        await client.query(`
+                            UPDATE product_sizes 
+                            SET stock = GREATEST(0, stock - $1)
+                            WHERE product_id = $2 AND size = $3
+                        `, [item.quantity, item.product_id, item.size]);
 
-                            // Also decrement main product stock
-                            queries.push(client.query(`
-                                UPDATE products SET stock = GREATEST(0, stock - $1) WHERE id = $2
-                            `, [item.quantity, item.product_id]));
-                        } else {
-                            // For products without sizes, just decrement product stock
-                            queries.push(client.query(`
-                                UPDATE products 
-                                SET stock = GREATEST(0, stock - $1)
-                                WHERE id = $2
-                            `, [item.quantity, item.product_id]));
-                        }
-
-                        return Promise.all(queries);
+                        // Also decrement main product stock
+                        await client.query(`
+                            UPDATE products SET stock = GREATEST(0, stock - $1) WHERE id = $2
+                        `, [item.quantity, item.product_id]);
+                    } else {
+                        // For products without sizes, just decrement product stock
+                        await client.query(`
+                            UPDATE products 
+                            SET stock = GREATEST(0, stock - $1)
+                            WHERE id = $2
+                        `, [item.quantity, item.product_id]);
                     }
-                });
-
-                await Promise.all(updatePromises);
+                }
             }
 
             await client.query('COMMIT');
