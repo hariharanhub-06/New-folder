@@ -353,6 +353,14 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
                                                 {order.status}
                                             </span>
+                                            {order.dropReason && (order.status === 'Pending Payment' || order.status === 'Payment Failed') && (
+                                                <div className="mt-1 flex flex-col gap-1">
+                                                    <div className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">Drop Reason:</div>
+                                                    <div className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100 italic leading-tight max-w-[150px] whitespace-normal">
+                                                        {order.dropReason}
+                                                    </div>
+                                                </div>
+                                            )}
                                             {order.logisticsId && (
                                                 <div className="text-xs text-gray-500 mt-1 font-mono bg-gray-100 px-2 py-0.5 rounded block w-fit">
                                                     TR: {order.logisticsId}

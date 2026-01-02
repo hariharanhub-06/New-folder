@@ -202,8 +202,11 @@ export default function CheckoutPage() {
                 name: "Startup Men's Wear",
                 description: "Payment for Order",
                 order_id: razorpayOrder.razorpayOrderId,
+                callback_url: `${window.location.origin}/api/payment/callback?dbOrderId=${shadowOrderId}`,
+                redirect: true,
                 handler: async function (response: any) {
-                    // 3. Payment Success -> Place Order
+                    // This remains as a fallback for some browsers or older versions
+                    // but redirect: true + callback_url will handle most cases.
                     try {
                         const verifiedOrderPayload = {
                             paymentDetails: {
@@ -211,7 +214,7 @@ export default function CheckoutPage() {
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature
                             },
-                            orderId: shadowOrderId, // Pass Shadow ID for promotion
+                            orderId: shadowOrderId,
                             customerDetails: {
                                 name: formData.name,
                                 email: formData.email,
@@ -230,12 +233,12 @@ export default function CheckoutPage() {
                             clearCart();
                             router.push(`/payment/success?orderId=${placeOrderData.orderId}`);
                         } else {
-                            throw new Error('Order verification failed. Use the Chat support if amount was deducted.');
+                            throw new Error('Order verification failed.');
                         }
 
                     } catch (verifyError: any) {
                         console.error(verifyError);
-                        setError('Order creation failed but payment was taken. Please contact support immediately.');
+                        setError('Order creation failed. Please contact support.');
                     }
                 },
                 prefill: {
@@ -247,17 +250,35 @@ export default function CheckoutPage() {
                     color: "#4f46e5"
                 },
                 modal: {
-                    ondismiss: function () {
+                    ondismiss: async function () {
                         setIsProcessing(false);
+                        // Log user cancellation
+                        if (shadowOrderId) {
+                            fetch('/api/orders/update-drop-reason', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ orderId: shadowOrderId, reason: 'User dismissed Razorpay modal' })
+                            }).catch(console.error);
+                        }
                     }
                 }
             };
 
             const rzp1 = new window.Razorpay(options);
-            rzp1.on('payment.failed', function (response: any) {
+            rzp1.on('payment.failed', async function (response: any) {
                 console.error(response.error);
-                setError(`Payment Failed: ${response.error.description}`);
+                const errorMsg = `Payment Failed: ${response.error.description} (Code: ${response.error.code})`;
+                setError(errorMsg);
                 setIsProcessing(false);
+
+                // Log payment failure
+                if (shadowOrderId) {
+                    fetch('/api/orders/update-drop-reason', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderId: shadowOrderId, reason: errorMsg })
+                    }).catch(console.error);
+                }
             });
             rzp1.open();
 

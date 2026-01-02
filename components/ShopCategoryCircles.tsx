@@ -51,6 +51,7 @@ export default function ShopCategoryCircles({ categories, selectedCategory, onSe
                                         alt={cat.name}
                                         fill
                                         className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                        sizes="(max-width: 768px) 100px, 150px"
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs uppercase font-bold">

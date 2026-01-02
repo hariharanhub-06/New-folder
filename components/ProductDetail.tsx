@@ -89,6 +89,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                                 fill
                                 className="object-cover"
                                 loading="lazy"
+                                sizes="80px"
                             />
                         </button>
                     ))}
@@ -102,6 +103,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                         fill
                         priority
                         className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 60vw"
                     />
                     {product.activeDiscount && (
                         <div className="absolute top-4 left-0 z-10">

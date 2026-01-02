@@ -38,7 +38,7 @@ export function optimizeImageUrl(url: string | null | undefined, options: {
         const transformations = [];
         if (options.width) transformations.push(`w-${options.width}`);
         if (options.height) transformations.push(`h-${options.height}`);
-        const quality = options.quality !== undefined ? options.quality : 75;
+        const quality = options.quality !== undefined ? options.quality : 60;
         transformations.push(`q-${quality}`);
         const format = options.format || 'auto';
         transformations.push(`f-${format}`);

@@ -61,6 +61,7 @@ export interface Order {
     cashfreePaymentId?: string;
     logisticsId?: string;
     courierName?: string;
+    dropReason?: string;
     createdAt?: string;
     updatedAt?: string;
 }

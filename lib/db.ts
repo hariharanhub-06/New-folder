@@ -498,6 +498,7 @@ export async function getOrderById(id: string): Promise<Order | null> {
         cashfreePaymentId: order.cashfree_payment_id,
         logisticsId: order.logistics_id,
         courierName: order.courier_name,
+        dropReason: order.drop_reason,
         createdAt: order.created_at,
         updatedAt: order.updated_at,
         items: items.map((item: any): OrderItem => ({
