@@ -16,6 +16,8 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
     const [logisticsId, setLogisticsId] = useState('');
     const [courierName, setCourierName] = useState('');
     const [showLogisticsModal, setShowLogisticsModal] = useState<string | null>(null);
+    const [showLogisticsModal, setShowLogisticsModal] = useState<string | null>(null);
+    const [viewAddressOrder, setViewAddressOrder] = useState<Order | null>(null);
     const [editOrder, setEditOrder] = useState<Order | null>(null);
     const [generatingLinkId, setGeneratingLinkId] = useState<string | null>(null);
 
