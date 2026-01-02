@@ -16,8 +16,8 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
     const [logisticsId, setLogisticsId] = useState('');
     const [courierName, setCourierName] = useState('');
     const [showLogisticsModal, setShowLogisticsModal] = useState<string | null>(null);
-    const [viewAddressOrder, setViewAddressOrder] = useState<Order | null>(null);
     const [editOrder, setEditOrder] = useState<Order | null>(null);
+    const [generatingLinkId, setGeneratingLinkId] = useState<string | null>(null);
 
     // Filters
     const [searchId, setSearchId] = useState('');
@@ -346,6 +346,44 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                     >
                                                         <MessageCircle className="w-4 h-4" />
                                                     </a>
+                                                )}
+                                            </div>
+                                            <div className="mt-2 text-xs flex gap-2">
+                                                {order.status === 'Pending Payment' && (
+                                                    <button
+                                                        onClick={async () => {
+                                                            setGeneratingLinkId(order.id);
+                                                            try {
+                                                                const res = await fetch('/api/admin/generate-payment-link', {
+                                                                    method: 'POST',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({ orderId: order.id }),
+                                                                });
+                                                                const data = await res.json();
+                                                                if (data.success) {
+                                                                    const message = `Hello ${order.customerName}, please complete your payment of ₹${order.totalAmount} for order #${order.id.slice(0, 8)} using this secure link: ${data.short_url}`;
+                                                                    window.open(`https://wa.me/91${order.customerMobile}?text=${encodeURIComponent(message)}`, '_blank');
+                                                                } else {
+                                                                    alert('Failed to generate link: ' + data.error);
+                                                                }
+                                                            } catch (err) {
+                                                                console.error(err);
+                                                                alert('Error generating link');
+                                                            } finally {
+                                                                setGeneratingLinkId(null);
+                                                            }
+                                                        }}
+                                                        disabled={generatingLinkId === order.id}
+                                                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded text-[10px] font-bold transition-colors disabled:opacity-50"
+                                                        title="Send Payment Link via WhatsApp"
+                                                    >
+                                                        {generatingLinkId === order.id ? (
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        ) : (
+                                                            <MessageCircle className="w-3 h-3" />
+                                                        )}
+                                                        WhatsApp Link
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
