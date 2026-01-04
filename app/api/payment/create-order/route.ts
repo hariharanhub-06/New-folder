@@ -52,23 +52,35 @@ export async function POST(request: Request) {
         try {
             await trxClient.query('BEGIN');
 
-            // Validate stock is still available (inside transaction for consistency)
-            await Promise.all(items.map(async (item) => {
-                const isSizeVariant = !!item.selectedSize;
-                const stockQuery = isSizeVariant
-                    ? 'SELECT stock FROM product_sizes WHERE product_id = $1 AND size = $2'
-                    : 'SELECT stock FROM products WHERE id = $1';
-                const stockParams = isSizeVariant ? [item.id, item.selectedSize] : [item.id];
+            // 4a. Batch Stock Validation (Reduced round-trips)
+            // Separate items into those with sizes and those without
+            const sizeItems = items.filter(i => !!i.selectedSize);
+            const standardItems = items.filter(i => !i.selectedSize);
 
-                const stockRes = await trxClient.query(stockQuery, stockParams);
-                const totalStock = stockRes.rows[0]?.stock || 0;
+            if (standardItems.length > 0) {
+                const ids = standardItems.map(i => i.id);
+                const stockRes = await trxClient.query('SELECT id, name, stock FROM products WHERE id = ANY($1)', [ids]);
+                const stockMap = new Map(stockRes.rows.map(r => [r.id, r.stock]));
 
-                if (totalStock < item.quantity) {
-                    throw new Error(`Item '${item.name}' just went out of stock.`);
+                for (const item of standardItems) {
+                    const available = stockMap.get(item.id) || 0;
+                    if (available < item.quantity) throw new Error(`Item '${item.name}' just went out of stock.`);
                 }
-            }));
+            }
 
-            // Insert shadow order
+            if (sizeItems.length > 0) {
+                // Check each size variant (usually few items so small number of queries is okay, or use a complex join)
+                await Promise.all(sizeItems.map(async (item) => {
+                    const stockRes = await trxClient.query(
+                        'SELECT stock FROM product_sizes WHERE product_id = $1 AND size = $2',
+                        [item.id, item.selectedSize]
+                    );
+                    const available = stockRes.rows[0]?.stock || 0;
+                    if (available < item.quantity) throw new Error(`Item '${item.name}' (${item.selectedSize}) just went out of stock.`);
+                }));
+            }
+
+            // 4b. Insert shadow order
             await trxClient.query(`
                 INSERT INTO orders (
                     id, customer_name, customer_email, customer_mobile,
@@ -79,16 +91,21 @@ export async function POST(request: Request) {
                 JSON.stringify(address), grandTotal, shippingCost, 'Pending Payment'
             ]);
 
-            // Insert order items (parallel for speed)
-            await Promise.all(items.map(item =>
-                trxClient.query(`
-                    INSERT INTO order_items (id, order_id, product_id, name, quantity, price, size, image_url)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                `, [
+            // 4c. Batch insert order items (Single multi-row INSERT)
+            const itemValues: any[] = [];
+            const placeholders = items.map((item, i) => {
+                const start = i * 8;
+                itemValues.push(
                     crypto.randomUUID(), dbOrderId, item.id, item.name,
                     item.quantity, item.price, item.selectedSize || null, item.imageUrl || null
-                ])
-            ));
+                );
+                return `($${start + 1}, $${start + 2}, $${start + 3}, $${start + 4}, $${start + 5}, $${start + 6}, $${start + 7}, $${start + 8})`;
+            }).join(', ');
+
+            await trxClient.query(`
+                INSERT INTO order_items (id, order_id, product_id, name, quantity, price, size, image_url)
+                VALUES ${placeholders}
+            `, itemValues);
 
             await trxClient.query('COMMIT');
         } catch (dbError) {
@@ -99,6 +116,7 @@ export async function POST(request: Request) {
         }
 
         // 5. Create Razorpay Order
+        console.log("Creating Razorpay Order with options:", { amount: Math.round(grandTotal * 100), currency: 'INR' });
         const options = {
             amount: Math.round(grandTotal * 100), // in paise
             currency: 'INR',
@@ -113,9 +131,11 @@ export async function POST(request: Request) {
         };
 
         const order = await razorpay.orders.create(options);
+        console.log("Razorpay Order Created Successfully:", order.id);
 
         // 6. Update Shadow Order with Razorpay Order ID (For Admin Visibility)
         await db.query(`UPDATE orders SET razorpay_order_id = $1 WHERE id = $2`, [order.id, dbOrderId]);
+        console.log("Shadow Order Updated with Razorpay ID");
 
         // Return the Razorpay Order ID and calculated values
         return NextResponse.json({
@@ -132,7 +152,11 @@ export async function POST(request: Request) {
         });
 
     } catch (error: any) {
-        console.error('Razorpay Order Creation Error:', error);
+        console.error('❌ Razorpay Order Creation Error:', {
+            message: error.message,
+            stack: error.stack,
+            details: error
+        });
         return NextResponse.json({ error: error.message || 'Failed to initiate payment' }, { status: 500 });
     }
 }

@@ -185,6 +185,7 @@ export default function CheckoutPage() {
             });
 
             const razorpayOrder = await razorpayRes.json();
+            console.log("✅ Razorpay Order Initiation Result:", razorpayOrder);
             if (razorpayOrder.error) throw new Error(razorpayOrder.error);
 
             // Capture Shadow Order ID
@@ -192,8 +193,11 @@ export default function CheckoutPage() {
 
             // 2. Open Razorpay Checkout
             if (!window.Razorpay) {
-                throw new Error("Razorpay SDK failed to load. Please check your connection.");
+                console.error("❌ Razorpay SDK not found on window object");
+                throw new Error("Razorpay SDK failed to load. Please check your connection or try refreshing the page.");
             }
+
+            console.log("🚀 Initializing Razorpay modal with Key:", razorpayOrder.keyId);
 
             const options = {
                 key: razorpayOrder.keyId,
@@ -205,6 +209,7 @@ export default function CheckoutPage() {
                 callback_url: `${window.location.origin}/api/payment/callback?dbOrderId=${shadowOrderId}`,
                 redirect: true,
                 handler: async function (response: any) {
+                    console.log("✅ Payment Success Handler Triggered:", response);
                     // This remains as a fallback for some browsers or older versions
                     // but redirect: true + callback_url will handle most cases.
                     try {
@@ -237,7 +242,7 @@ export default function CheckoutPage() {
                         }
 
                     } catch (verifyError: any) {
-                        console.error(verifyError);
+                        console.error("❌ Verification Error:", verifyError);
                         setError('Order creation failed. Please contact support.');
                     }
                 },
@@ -251,6 +256,7 @@ export default function CheckoutPage() {
                 },
                 modal: {
                     ondismiss: async function () {
+                        console.log("ℹ️ Payment modal dismissed by user");
                         setIsProcessing(false);
                         // Log user cancellation
                         if (shadowOrderId) {
@@ -266,7 +272,7 @@ export default function CheckoutPage() {
 
             const rzp1 = new window.Razorpay(options);
             rzp1.on('payment.failed', async function (response: any) {
-                console.error(response.error);
+                console.error("❌ Payment Failed Event:", response.error);
                 const errorMsg = `Payment Failed: ${response.error.description} (Code: ${response.error.code})`;
                 setError(errorMsg);
                 setIsProcessing(false);
@@ -280,11 +286,14 @@ export default function CheckoutPage() {
                     }).catch(console.error);
                 }
             });
+
+            console.log("📢 Attempting to open Razorpay modal...");
             rzp1.open();
 
         } catch (err: any) {
-            console.error('❌ Payment Error:', err);
+            console.error('❌ Final Catch - Payment Error:', err);
             setError(err.message || 'Payment failed. Please try again.');
+            alert("Error: " + (err.message || 'Failed to open payment gateway'));
             setIsProcessing(false);
         }
     };
