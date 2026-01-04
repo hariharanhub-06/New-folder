@@ -8,8 +8,15 @@ async function checkRazorpay() {
 
     if (!key_id || !key_secret) {
         console.log("RAZORPAY_KEYS: MISSING");
+        console.log("Details:", {
+            hasId: !!key_id,
+            hasSecret: !!key_secret,
+            idPrefix: key_id ? key_id.substring(0, 8) : 'N/A'
+        });
         return;
     }
+
+    console.log("Testing with Key ID:", key_id.substring(0, 10) + "...");
 
     const rzp = new Razorpay({
         key_id,
@@ -21,7 +28,8 @@ async function checkRazorpay() {
         console.log("RAZORPAY_AUTH: SUCCESS");
         console.log("RECENT_PAYMENT:", JSON.stringify(payments.items[0], null, 2));
     } catch (e) {
-        console.error("RAZORPAY_AUTH: FAILED", e.message);
+        console.error("RAZORPAY_AUTH: FAILED", JSON.stringify(e, null, 2));
+        console.error(e);
     }
 }
 
