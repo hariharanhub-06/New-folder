@@ -12,19 +12,21 @@ if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.POSTG
 
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL;
 
-// Use global singleton for dev environment to prevent pool exhaustion
+// Use global singleton to prevent pool exhaustion (critical for serverless environments)
 declare global {
     var postgresPool: Pool | undefined;
 }
 
-if (process.env.NODE_ENV === 'production') {
-    pool = new Pool({ connectionString, ssl: true });
-} else {
-    if (!global.postgresPool) {
-        global.postgresPool = new Pool({ connectionString, ssl: true });
-    }
-    pool = global.postgresPool;
+if (!global.postgresPool) {
+    global.postgresPool = new Pool({
+        connectionString,
+        ssl: true,
+        max: 10, // Maintain a stable pool size
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+    });
 }
+pool = global.postgresPool;
 
 export default pool;
 

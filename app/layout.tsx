@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import { Analytics } from "@vercel/analytics/next";
 import { Instagram } from "lucide-react";
 import ScrollFix from "@/components/ScrollFix";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const jost = Jost({
     subsets: ["latin"],
@@ -100,6 +101,7 @@ export default function RootLayout({
                 </CartProvider >
                 <ScrollFix />
                 <Analytics />
+                <SpeedInsights />
             </body >
         </html >
     );
