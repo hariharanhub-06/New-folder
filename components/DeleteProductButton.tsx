@@ -3,6 +3,7 @@
 import { removeProduct } from '@/lib/actions';
 import { Trash2 } from 'lucide-react';
 import { useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface DeleteProductButtonProps {
     id: string;
@@ -11,6 +12,7 @@ interface DeleteProductButtonProps {
 
 export default function DeleteProductButton({ id, onDelete }: DeleteProductButtonProps) {
     const [isPending, startTransition] = useTransition();
+    const router = useRouter();
 
     const handleDelete = async () => {
         if (!confirm('Are you sure you want to delete this product?')) {
@@ -23,7 +25,7 @@ export default function DeleteProductButton({ id, onDelete }: DeleteProductButto
                 if (onDelete) {
                     onDelete();
                 } else {
-                    window.location.reload();
+                    router.refresh();
                 }
             } else {
                 alert(`Error: ${result?.error || 'Failed to delete product'}`);

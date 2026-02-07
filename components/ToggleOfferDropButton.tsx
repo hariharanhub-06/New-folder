@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Star } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface ToggleOfferDropButtonProps {
     productId: string;
@@ -11,6 +12,7 @@ interface ToggleOfferDropButtonProps {
 export default function ToggleOfferDropButton({ productId, currentStatus }: ToggleOfferDropButtonProps) {
     const [isOfferDrop, setIsOfferDrop] = useState(currentStatus);
     const [loading, setLoading] = useState(false);
+    const router = useRouter();
 
     const handleToggle = async () => {
         setLoading(true);
@@ -20,6 +22,7 @@ export default function ToggleOfferDropButton({ productId, currentStatus }: Togg
             });
             if (response.ok) {
                 setIsOfferDrop(!isOfferDrop);
+                router.refresh();
             }
         } catch (error) {
             console.error("Failed to toggle offer drop status", error);

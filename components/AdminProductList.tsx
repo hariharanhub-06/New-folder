@@ -164,12 +164,14 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
                                                         p.id === product.id ? { ...p, isActive: !p.isActive } : p
                                                     )
                                                 );
+                                                router.refresh();
                                             }}
                                         />
                                         <DeleteProductButton
                                             id={product.id}
                                             onDelete={() => {
                                                 setDisplayProducts(current => current.filter(p => p.id !== product.id));
+                                                router.refresh();
                                             }}
                                         />
                                     </td>
