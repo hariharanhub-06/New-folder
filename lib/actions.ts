@@ -27,9 +27,11 @@ import { Product } from "./types";
 function parseProductFormData(formData: FormData): Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'isActive'> {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
-    const price = parseFloat(formData.get("price") as string);
+    const priceRaw = formData.get("price") as string;
+    const price = isNaN(parseFloat(priceRaw)) ? 0 : parseFloat(priceRaw);
     const category = formData.get("category") as string;
-    const stock = parseInt(formData.get("stock") as string);
+    const stockRaw = formData.get("stock") as string;
+    const stock = isNaN(parseInt(stockRaw)) ? 0 : parseInt(stockRaw);
     const size = formData.get("size") as string;
     const imageUrl = formData.get("imageUrl") as string;
     const imagesStr = formData.get("images") as string;

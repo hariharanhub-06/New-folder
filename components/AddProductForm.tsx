@@ -136,8 +136,15 @@ export default function AddProductForm({ onSuccess, onCancel }: { onSuccess: (pr
         const formData = new FormData(e.currentTarget);
 
         // Prepare data for server action
-        formData.set('imageUrl', images[mainImageIndex]);
-        formData.set('images', JSON.stringify(images));
+        const mainImg = images[mainImageIndex] || images[0] || '';
+        if (!mainImg) {
+            alert('Images are missing or invalid');
+            setIsSubmitting(false);
+            return;
+        }
+
+        formData.set('imageUrl', mainImg);
+        formData.set('images', JSON.stringify(images.filter(img => typeof img === 'string' && img.trim() !== '')));
 
         const validSizes = sizes.filter(s => s.size.trim() !== '');
         if (validSizes.length > 0) {
@@ -147,9 +154,9 @@ export default function AddProductForm({ onSuccess, onCancel }: { onSuccess: (pr
         }
 
         const weightInGrams = weightValue ?
-            (weightUnit === 'kg' ? parseFloat(weightValue) * 1000 : parseFloat(weightValue))
+            (weightUnit === 'kg' ? (parseFloat(weightValue) || 0) * 1000 : (parseFloat(weightValue) || 0))
             : 750;
-        formData.set('weight', Math.round(weightInGrams).toString());
+        formData.set('weight', Math.round(weightInGrams || 750).toString());
         formData.set('isOffer', isOffer.toString());
         formData.set('isTrending', isTrending.toString());
         formData.set('isNewArrival', isNewArrival.toString());

@@ -167,9 +167,10 @@ export default function EditProductForm({
         const formData = new FormData(e.currentTarget);
 
         // Set the main image as imageUrl
-        formData.set('imageUrl', images[mainImageIndex]);
-        // Set all images as JSON string
-        formData.set('images', JSON.stringify(images));
+        const mainImg = images[mainImageIndex] || images[0] || product.imageUrl;
+        formData.set('imageUrl', mainImg);
+        // Set all images as JSON string, filtering out empty entries
+        formData.set('images', JSON.stringify(images.filter(img => typeof img === 'string' && img.trim() !== '')));
 
         // Remove empty size rows and set sizes
         const validSizes = sizes.filter(s => s.size.trim() !== '');
@@ -188,9 +189,9 @@ export default function EditProductForm({
 
         // Convert weight to grams
         const weightInGrams = weightValue ?
-            (weightUnit === 'kg' ? parseFloat(weightValue) * 1000 : parseFloat(weightValue))
-            : 750;
-        formData.set('weight', Math.round(weightInGrams).toString());
+            (weightUnit === 'kg' ? (parseFloat(weightValue) || 0) * 1000 : (parseFloat(weightValue) || 0))
+            : (product.weight || 750);
+        formData.set('weight', Math.round(weightInGrams || 750).toString());
         formData.set('isOffer', isOffer.toString());
         formData.set('isTrending', isTrending.toString());
         formData.set('isNewArrival', isNewArrival.toString());

@@ -123,13 +123,13 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
                                         <div className="text-sm text-slate-500">{product.category}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                        ₹{product.price.toFixed(2)}
+                                        ₹{typeof product.price === 'number' && !isNaN(product.price) ? product.price.toFixed(2) : '0.00'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                        <div className="font-medium">{product.stock}</div>
-                                        {product.sizes && product.sizes.length > 0 && (
+                                        <div className="font-medium">{product.stock ?? 0}</div>
+                                        {product.sizes && Array.isArray(product.sizes) && product.sizes.length > 0 && (
                                             <div className="text-xs text-slate-400 max-w-[150px] truncate" title={product.sizes.map(s => `${s.size}: ${s.stock}`).join(', ')}>
-                                                {product.sizes.map(s => `${s.size}:${s.stock}`).join(', ')}
+                                                {product.sizes.filter(s => s && s.size).map(s => `${s.size}:${s.stock}`).join(', ')}
                                             </div>
                                         )}
                                     </td>
