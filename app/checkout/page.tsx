@@ -195,7 +195,7 @@ export default function CheckoutPage() {
         // Save address if checkbox checked and no saved address selected
         if (saveAddress && customer && !selectedAddressId) {
             try {
-                await fetch('/api/customer/addresses', {
+                const res = await fetch('/api/customer/addresses', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -204,6 +204,9 @@ export default function CheckoutPage() {
                         country: formData.country, pincode: formData.zipCode, isDefault: savedAddresses.length === 0,
                     }),
                 });
+                const data = await res.json();
+                if (data?.id) setSelectedAddressId(data.id);
+                setSaveAddress(false);
             } catch { /* non-fatal */ }
         }
 
