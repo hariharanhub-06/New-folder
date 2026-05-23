@@ -4,7 +4,7 @@ import { useCart } from '@/lib/cart-context';
 import { useCustomer } from '@/lib/customer-context';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Tag, MapPin, Check, Smartphone, CreditCard, Building2, Wallet, ShieldCheck, Lock } from 'lucide-react';
+import { Trash2, Tag, MapPin, Check, Lock, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import { calculateShipping, calculateTotalWeight, calculateShippingByPincode } from '@/lib/shipping';
 import { calculateDiscount } from '@/lib/discount';
@@ -46,13 +46,6 @@ export default function CheckoutPage() {
     const [shippingDetails, setShippingDetails] = useState<{ zone: string; actualWeight: number; billableWeight: number } | null>(null);
     const pincodeAbortRef = useRef<AbortController | null>(null);
 
-    type CheckoutStep = 'details' | 'payment-selection';
-    const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('details');
-    type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet' | null;
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(null);
-    const [upiId, setUpiId] = useState('');
-    const [selectedBank, setSelectedBank] = useState('');
-    const [selectedWallet, setSelectedWallet] = useState('');
 
     // Mark page as ready + pre-fill customer data + load saved addresses
     useEffect(() => {
@@ -269,14 +262,6 @@ export default function CheckoutPage() {
                 name: "Startup Men's Wear",
                 description: "Payment for Order",
                 order_id: razorpayOrder.razorpayOrderId,
-                config: {
-                    display: {
-                        sequence: selectedPaymentMethod
-                            ? [selectedPaymentMethod, ...(['upi','card','netbanking','wallet'].filter(m => m !== selectedPaymentMethod))]
-                            : ['upi', 'card', 'netbanking', 'wallet'],
-                        preferences: { show_default_blocks: true }
-                    }
-                },
                 callback_url: `${window.location.origin}/api/payment/callback?dbOrderId=${shadowOrderId}`,
                 redirect: true,
                 handler: async function (response: any) {
@@ -324,9 +309,6 @@ export default function CheckoutPage() {
                     name: formData.name,
                     email: formData.email,
                     contact: formData.mobile,
-                    ...(selectedPaymentMethod === 'upi' && upiId ? { vpa: upiId } : {}),
-                    ...(selectedPaymentMethod === 'netbanking' && selectedBank ? { bank: selectedBank } : {}),
-                    ...(selectedPaymentMethod === 'wallet' && selectedWallet ? { wallet: selectedWallet } : {}),
                 },
                 theme: {
                     color: "#4f46e5"
@@ -620,209 +602,40 @@ export default function CheckoutPage() {
                         )}
 
                         <div className="mt-8">
-                            {checkoutStep === 'details' ? (
-                                <button
-                                    type="button"
-                                    onClick={() => isFormValid() && setCheckoutStep('payment-selection')}
-                                    disabled={!isFormValid()}
-                                    className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all ${!isFormValid()
-                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-xl'
-                                        }`}
-                                >
-                                    Continue to Payment →
-                                </button>
-                            ) : (
-                                <div className="space-y-5">
-                                    <button
-                                        type="button"
-                                        onClick={() => setCheckoutStep('details')}
-                                        className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors"
-                                    >
-                                        ← Back to Details
-                                    </button>
-
-                                    {/* Section header */}
-                                    <div>
-                                        <p className="text-base font-bold text-slate-900">Choose Payment Method</p>
-                                        <p className="text-xs text-slate-400 mt-0.5">All transactions are secure and encrypted</p>
-                                    </div>
-
-                                    {/* Payment method cards */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {([
-                                            {
-                                                id: 'upi' as const,
-                                                label: 'UPI',
-                                                sub: 'GPay · PhonePe · Paytm',
-                                                Icon: Smartphone,
-                                                iconBg: 'bg-violet-100',
-                                                iconColor: 'text-violet-600',
-                                            },
-                                            {
-                                                id: 'card' as const,
-                                                label: 'Credit / Debit Card',
-                                                sub: 'Visa · Mastercard · RuPay',
-                                                Icon: CreditCard,
-                                                iconBg: 'bg-blue-100',
-                                                iconColor: 'text-blue-600',
-                                            },
-                                            {
-                                                id: 'netbanking' as const,
-                                                label: 'Net Banking',
-                                                sub: 'SBI · HDFC · ICICI & more',
-                                                Icon: Building2,
-                                                iconBg: 'bg-amber-100',
-                                                iconColor: 'text-amber-600',
-                                            },
-                                            {
-                                                id: 'wallet' as const,
-                                                label: 'Wallet',
-                                                sub: 'Paytm · Mobikwik',
-                                                Icon: Wallet,
-                                                iconBg: 'bg-emerald-100',
-                                                iconColor: 'text-emerald-600',
-                                            },
-                                        ] as const).map(({ id, label, sub, Icon, iconBg, iconColor }) => {
-                                            const selected = selectedPaymentMethod === id;
-                                            return (
-                                                <button
-                                                    key={id}
-                                                    type="button"
-                                                    onClick={() => setSelectedPaymentMethod(id)}
-                                                    className={`relative text-left p-4 rounded-xl border-2 transition-all duration-150 ${
-                                                        selected
-                                                            ? 'border-indigo-600 bg-indigo-50 shadow-sm'
-                                                            : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm'
-                                                    }`}
-                                                >
-                                                    {/* Selected checkmark */}
-                                                    {selected && (
-                                                        <span className="absolute top-2.5 right-2.5 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
-                                                            <Check className="w-3 h-3 text-white stroke-[3]" />
-                                                        </span>
-                                                    )}
-                                                    <div className={`w-9 h-9 rounded-lg ${iconBg} flex items-center justify-center mb-3`}>
-                                                        <Icon className={`w-5 h-5 ${iconColor}`} />
-                                                    </div>
-                                                    <p className={`font-bold text-sm leading-tight ${selected ? 'text-indigo-700' : 'text-slate-800'}`}>{label}</p>
-                                                    <p className="text-[11px] text-slate-400 mt-0.5 leading-tight">{sub}</p>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* Method-specific sub-form */}
-                                    {selectedPaymentMethod === 'upi' && (
-                                        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-violet-700 mb-2">UPI ID</label>
-                                            <input
-                                                type="text"
-                                                value={upiId}
-                                                onChange={e => setUpiId(e.target.value)}
-                                                placeholder="yourname@paytm / @gpay / @ybl"
-                                                className="w-full border border-violet-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
-                                            />
-                                            <p className="text-[11px] text-violet-500 mt-1.5">Optional — pre-fills your UPI ID in the payment screen</p>
-                                        </div>
-                                    )}
-
-                                    {selectedPaymentMethod === 'card' && (
-                                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-                                            <CreditCard className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                                            <div>
-                                                <p className="text-sm font-semibold text-blue-800">Card details entered securely</p>
-                                                <p className="text-xs text-blue-600 mt-0.5">Your card number, expiry and CVV are entered in Razorpay&apos;s encrypted payment screen — never stored on our servers.</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {selectedPaymentMethod === 'netbanking' && (
-                                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-amber-700 mb-2">Select Your Bank</label>
-                                            <select
-                                                value={selectedBank}
-                                                onChange={e => setSelectedBank(e.target.value)}
-                                                className="w-full border border-amber-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
-                                            >
-                                                <option value="">-- Choose a bank --</option>
-                                                <option value="SBIN">State Bank of India (SBI)</option>
-                                                <option value="HDFC">HDFC Bank</option>
-                                                <option value="ICIC">ICICI Bank</option>
-                                                <option value="UTIB">Axis Bank</option>
-                                                <option value="KKBK">Kotak Mahindra Bank</option>
-                                                <option value="PUNB">Punjab National Bank</option>
-                                                <option value="BKID">Bank of India</option>
-                                                <option value="CNRB">Canara Bank</option>
-                                            </select>
-                                            <p className="text-[11px] text-amber-600 mt-1.5">You&apos;ll be redirected to your bank&apos;s secure login page</p>
-                                        </div>
-                                    )}
-
-                                    {selectedPaymentMethod === 'wallet' && (
-                                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-emerald-700 mb-2">Select Wallet</label>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {[
-                                                    { id: 'paytm', label: 'Paytm' },
-                                                    { id: 'mobikwik', label: 'Mobikwik' },
-                                                    { id: 'freecharge', label: 'Freecharge' },
-                                                ].map(w => (
-                                                    <button
-                                                        key={w.id}
-                                                        type="button"
-                                                        onClick={() => setSelectedWallet(w.id)}
-                                                        className={`py-2 rounded-lg border-2 text-xs font-bold transition-all ${selectedWallet === w.id ? 'border-emerald-500 bg-emerald-100 text-emerald-700' : 'border-slate-200 text-slate-600 hover:border-emerald-300'}`}
-                                                    >
-                                                        {w.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Security badge */}
-                                    <div className="flex items-center gap-2 py-2.5 px-3 bg-slate-50 rounded-lg border border-slate-100">
-                                        <ShieldCheck className="w-4 h-4 text-green-500 flex-shrink-0" />
-                                        <p className="text-[11px] text-slate-500">Payments are <span className="font-semibold text-slate-700">100% secure</span> · Powered by <span className="font-semibold text-slate-700">Razorpay</span></p>
-                                    </div>
-
-                                    {/* Pay button */}
-                                    <button
-                                        type="button"
-                                        onClick={handlePayment}
-                                        disabled={!selectedPaymentMethod || isProcessing}
-                                        className={`w-full py-4 px-6 rounded-xl font-bold text-base tracking-wide transition-all flex items-center justify-center gap-2 ${
-                                            !selectedPaymentMethod || isProcessing
-                                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                                : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 hover:shadow-xl active:scale-[0.99]'
-                                        }`}
-                                    >
-                                        {isProcessing ? (
-                                            <>
-                                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                                </svg>
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Lock className="w-4 h-4" />
-                                                Pay ₹{grandTotal.toFixed(2)}
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            )}
+                            <button
+                                type="button"
+                                onClick={() => isFormValid() && handlePayment()}
+                                disabled={!isFormValid() || isProcessing}
+                                className={`w-full py-4 px-6 rounded-xl font-bold text-base tracking-wide transition-all flex items-center justify-center gap-2 ${
+                                    !isFormValid() || isProcessing
+                                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 hover:shadow-xl active:scale-[0.99]'
+                                }`}
+                            >
+                                {isProcessing ? (
+                                    <>
+                                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock className="w-4 h-4" />
+                                        Pay ₹{grandTotal.toFixed(2)}
+                                    </>
+                                )}
+                            </button>
                             {!isFormValid() && (
                                 <p className="text-xs text-center text-red-500 mt-2">
                                     Please fill all details correctly to proceed
                                 </p>
                             )}
-                            <p className="text-xs text-center text-slate-400 mt-4">
-                                Secure payment via Razorpay (UPI, Cards, Netbanking)
-                            </p>
+                            <div className="flex items-center justify-center gap-1.5 mt-3">
+                                <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
+                                <p className="text-xs text-slate-400">100% secure · UPI · Cards · Netbanking · Wallets</p>
+                            </div>
                             {error && <p className="text-center text-red-500 text-sm mt-2">{error}</p>}
                         </div>
                     </form>
