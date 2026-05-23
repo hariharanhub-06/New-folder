@@ -75,6 +75,24 @@ export default function AdminCategories() {
         }
     }
 
+    async function handleDeleteAll() {
+        if (!confirm("DANGER: This will permanently hard-delete ALL categories. Are you sure?")) return;
+        if (!confirm("Final confirmation: delete every category?")) return;
+        setLoading(true);
+        try {
+            const res = await fetch('/api/categories?all=true', { method: 'DELETE' });
+            if (res.ok) {
+                setCategories([]);
+            } else {
+                alert("Delete all failed");
+            }
+        } catch {
+            alert("Delete all failed");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     function startEdit(cat: any) {
         setEditingId(cat.id);
         setEditForm({ name: cat.name, title: cat.title || "", image_url: cat.image_url || "", is_active: cat.is_active });
@@ -89,12 +107,20 @@ export default function AdminCategories() {
                     <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-2">Control how drops are organized</p>
                 </div>
                 {!isAdding && !editingId && (
-                    <button
-                        onClick={() => { setIsAdding(true); setEditForm({ name: "", title: "", image_url: "", is_active: true }); }}
-                        className="flex items-center gap-2 bg-brand-red text-white px-6 py-3 font-bold uppercase tracking-widest text-xs hover:scale-105 transition-transform"
-                    >
-                        <Plus className="w-4 h-4" /> Add Category
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleDeleteAll}
+                            className="flex items-center gap-2 border border-red-300 text-red-600 bg-white px-5 py-3 font-bold uppercase tracking-widest text-xs hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" /> Delete All
+                        </button>
+                        <button
+                            onClick={() => { setIsAdding(true); setEditForm({ name: "", title: "", image_url: "", is_active: true }); }}
+                            className="flex items-center gap-2 bg-brand-red text-white px-6 py-3 font-bold uppercase tracking-widest text-xs hover:scale-105 transition-transform"
+                        >
+                            <Plus className="w-4 h-4" /> Add Category
+                        </button>
+                    </div>
                 )}
             </div>
 

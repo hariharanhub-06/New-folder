@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUniqueCategories, getFullCategories, upsertCategory, deleteCategory } from '@/lib/db';
+import db, { getUniqueCategories, getFullCategories, upsertCategory, deleteCategory } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,8 +35,18 @@ export async function DELETE(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
-        if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+        const deleteAll = searchParams.get('all') === 'true';
 
+        if (deleteAll) {
+            const cookieHeader = request.headers.get('cookie') || '';
+            if (!cookieHeader.includes('admin_session=true')) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+            await db.query('DELETE FROM categories');
+            return NextResponse.json({ success: true });
+        }
+
+        if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
         const result = await deleteCategory(id);
         return NextResponse.json(result);
     } catch (error: any) {

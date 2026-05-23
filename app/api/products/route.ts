@@ -89,10 +89,33 @@ export async function PUT(request: Request) {
     }
 }
 
-// DELETE: Delete a product
+// DELETE: Delete a product (or all products with ?all=true)
 export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const deleteAll = searchParams.get('all') === 'true';
+
+    if (deleteAll) {
+        const cookieHeader = request.headers.get('cookie') || '';
+        if (!cookieHeader.includes('admin_session=true')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            await client.query('UPDATE order_items SET product_id = NULL WHERE product_id IS NOT NULL');
+            await client.query('DELETE FROM product_sizes');
+            await client.query('DELETE FROM products');
+            await client.query('COMMIT');
+            return NextResponse.json({ success: true });
+        } catch (error: any) {
+            await client.query('ROLLBACK');
+            console.error('Error deleting all products:', error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        } finally {
+            client.release();
+        }
+    }
 
     if (!id) {
         return NextResponse.json({ error: 'Product ID required' }, { status: 400 });

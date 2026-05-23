@@ -151,7 +151,6 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
             if (res.success) {
                 alert(`Sync complete! ${res.count} new orders recovered.`);
                 router.refresh();
-                // Optionally reload window to get fresh orders from server
                 window.location.reload();
             }
         } catch (error) {
@@ -159,6 +158,27 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
             alert("Sync failed. Check console for details.");
         } finally {
             setIsSyncing(false);
+        }
+    };
+
+    const [isDeletingAll, setIsDeletingAll] = useState(false);
+
+    const handleDeleteAllOrders = async () => {
+        if (!confirm("This will permanently hard-delete all Pending Payment and Payment Failed (shadow) orders.\n\nCompleted orders will NOT be affected.\n\nAre you sure?")) return;
+        setIsDeletingAll(true);
+        try {
+            const res = await fetch('/api/orders', { method: 'DELETE' });
+            if (res.ok) {
+                const data = await res.json();
+                setOrders(prev => prev.filter(o => o.status !== 'Pending Payment' && o.status !== 'Payment Failed'));
+                alert(`Deleted ${data.deleted} pending/failed orders.`);
+            } else {
+                alert('Delete failed');
+            }
+        } catch {
+            alert('Delete failed');
+        } finally {
+            setIsDeletingAll(false);
         }
     };
 
@@ -196,13 +216,23 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                     <RefreshCw className={`w-5 h-5 ${isSyncing ? 'animate-spin text-indigo-500' : 'text-slate-400'}`} />
                     Razorpay Sync
                 </h2>
-                <button
-                    onClick={handleSync}
-                    disabled={isSyncing}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-                >
-                    {isSyncing ? 'Syncing...' : 'Sync Razorpay Orders'}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleDeleteAllOrders}
+                        disabled={isDeletingAll}
+                        className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 bg-white hover:bg-red-600 hover:text-white hover:border-red-600 disabled:opacity-50 rounded-lg text-sm font-medium transition-colors"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        {isDeletingAll ? 'Deleting...' : 'Clear Pending Payments'}
+                    </button>
+                    <button
+                        onClick={handleSync}
+                        disabled={isSyncing}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                    >
+                        {isSyncing ? 'Syncing...' : 'Sync Razorpay Orders'}
+                    </button>
+                </div>
             </div>
 
             {/* Filters & Search Bar */}

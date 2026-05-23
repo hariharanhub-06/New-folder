@@ -131,6 +131,38 @@ export async function POST(request: Request) {
     }
 }
 
+// DELETE: Hard delete all Pending Payment + Payment Failed (shadow) orders
+export async function DELETE(request: Request) {
+    const cookieHeader = request.headers.get('cookie') || '';
+    if (!cookieHeader.includes('admin_session=true')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const client = await db.connect();
+    try {
+        await client.query('BEGIN');
+        await client.query(`
+            DELETE FROM order_items
+            WHERE order_id IN (
+                SELECT id FROM orders
+                WHERE status IN ('Pending Payment', 'Payment Failed')
+            )
+        `);
+        const result = await client.query(`
+            DELETE FROM orders
+            WHERE status IN ('Pending Payment', 'Payment Failed')
+            RETURNING id
+        `);
+        await client.query('COMMIT');
+        return NextResponse.json({ success: true, deleted: result.rowCount });
+    } catch (error: any) {
+        await client.query('ROLLBACK');
+        console.error('Error deleting pending orders:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    } finally {
+        client.release();
+    }
+}
+
 // PUT: Update order status
 export async function PUT(request: Request) {
     try {

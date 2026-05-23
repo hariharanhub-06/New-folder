@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Plus, ChevronLeft, ChevronRight, Pencil, X } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Pencil, X, Trash2 } from 'lucide-react';
 import { Product } from '@/lib/types';
 import DeleteProductButton from '@/components/DeleteProductButton';
 import ToggleStatusButton from '@/components/ToggleStatusButton';
@@ -37,6 +37,22 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
         setDisplayProducts(initialProducts);
         // Also ensure editingProduct is closed if it refers to a stale object, though we handle that in handleSuccess
     }, [initialProducts]);
+
+    const handleDeleteAll = async () => {
+        if (!confirm("DANGER: This will permanently hard-delete ALL products from the database. This cannot be undone.\n\nAre you sure?")) return;
+        if (!confirm("Final confirmation: delete every product?")) return;
+        try {
+            const res = await fetch('/api/products?all=true', { method: 'DELETE' });
+            if (res.ok) {
+                setDisplayProducts([]);
+                router.refresh();
+            } else {
+                alert('Delete all failed');
+            }
+        } catch {
+            alert('Delete all failed');
+        }
+    };
 
     const handleSuccess = useCallback((updatedProduct?: Product) => {
         setIsAddModalOpen(false);
@@ -88,13 +104,22 @@ export default function AdminProductList({ initialProducts, categories }: AdminP
         <div className="space-y-6 font-jost">
             <div className="flex justify-between items-center px-2">
                 <h1 className="text-3xl font-bold text-black uppercase tracking-tighter italic">Products</h1>
-                <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="inline-flex items-center px-6 py-2.5 border border-transparent shadow-sm text-xs font-bold uppercase tracking-widest text-white bg-black hover:bg-brand-red focus:outline-none active:scale-95 transition-all"
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Product
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleDeleteAll}
+                        className="inline-flex items-center px-4 py-2.5 border border-red-300 shadow-sm text-xs font-bold uppercase tracking-widest text-red-600 bg-white hover:bg-red-600 hover:text-white hover:border-red-600 focus:outline-none active:scale-95 transition-all"
+                    >
+                        <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                        Delete All
+                    </button>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="inline-flex items-center px-6 py-2.5 border border-transparent shadow-sm text-xs font-bold uppercase tracking-widest text-white bg-black hover:bg-brand-red focus:outline-none active:scale-95 transition-all"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        New Product
+                    </button>
+                </div>
             </div>
 
             <AdminProductFilter
