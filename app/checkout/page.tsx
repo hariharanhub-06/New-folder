@@ -50,6 +50,9 @@ export default function CheckoutPage() {
     const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('details');
     type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet' | null;
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(null);
+    const [upiId, setUpiId] = useState('');
+    const [selectedBank, setSelectedBank] = useState('');
+    const [selectedWallet, setSelectedWallet] = useState('');
 
     // Mark page as ready + pre-fill customer data + load saved addresses
     useEffect(() => {
@@ -266,7 +269,14 @@ export default function CheckoutPage() {
                 name: "Startup Men's Wear",
                 description: "Payment for Order",
                 order_id: razorpayOrder.razorpayOrderId,
-                ...(selectedPaymentMethod ? { method: selectedPaymentMethod } : {}),
+                config: {
+                    display: {
+                        sequence: selectedPaymentMethod
+                            ? [selectedPaymentMethod, ...(['upi','card','netbanking','wallet'].filter(m => m !== selectedPaymentMethod))]
+                            : ['upi', 'card', 'netbanking', 'wallet'],
+                        preferences: { show_default_blocks: true }
+                    }
+                },
                 callback_url: `${window.location.origin}/api/payment/callback?dbOrderId=${shadowOrderId}`,
                 redirect: true,
                 handler: async function (response: any) {
@@ -313,7 +323,10 @@ export default function CheckoutPage() {
                 prefill: {
                     name: formData.name,
                     email: formData.email,
-                    contact: formData.mobile
+                    contact: formData.mobile,
+                    ...(selectedPaymentMethod === 'upi' && upiId ? { vpa: upiId } : {}),
+                    ...(selectedPaymentMethod === 'netbanking' && selectedBank ? { bank: selectedBank } : {}),
+                    ...(selectedPaymentMethod === 'wallet' && selectedWallet ? { wallet: selectedWallet } : {}),
                 },
                 theme: {
                     color: "#4f46e5"
@@ -698,6 +711,75 @@ export default function CheckoutPage() {
                                             );
                                         })}
                                     </div>
+
+                                    {/* Method-specific sub-form */}
+                                    {selectedPaymentMethod === 'upi' && (
+                                        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-violet-700 mb-2">UPI ID</label>
+                                            <input
+                                                type="text"
+                                                value={upiId}
+                                                onChange={e => setUpiId(e.target.value)}
+                                                placeholder="yourname@paytm / @gpay / @ybl"
+                                                className="w-full border border-violet-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                                            />
+                                            <p className="text-[11px] text-violet-500 mt-1.5">Optional — pre-fills your UPI ID in the payment screen</p>
+                                        </div>
+                                    )}
+
+                                    {selectedPaymentMethod === 'card' && (
+                                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+                                            <CreditCard className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-sm font-semibold text-blue-800">Card details entered securely</p>
+                                                <p className="text-xs text-blue-600 mt-0.5">Your card number, expiry and CVV are entered in Razorpay&apos;s encrypted payment screen — never stored on our servers.</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {selectedPaymentMethod === 'netbanking' && (
+                                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-amber-700 mb-2">Select Your Bank</label>
+                                            <select
+                                                value={selectedBank}
+                                                onChange={e => setSelectedBank(e.target.value)}
+                                                className="w-full border border-amber-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                                            >
+                                                <option value="">-- Choose a bank --</option>
+                                                <option value="SBIN">State Bank of India (SBI)</option>
+                                                <option value="HDFC">HDFC Bank</option>
+                                                <option value="ICIC">ICICI Bank</option>
+                                                <option value="UTIB">Axis Bank</option>
+                                                <option value="KKBK">Kotak Mahindra Bank</option>
+                                                <option value="PUNB">Punjab National Bank</option>
+                                                <option value="BKID">Bank of India</option>
+                                                <option value="CNRB">Canara Bank</option>
+                                            </select>
+                                            <p className="text-[11px] text-amber-600 mt-1.5">You&apos;ll be redirected to your bank&apos;s secure login page</p>
+                                        </div>
+                                    )}
+
+                                    {selectedPaymentMethod === 'wallet' && (
+                                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-emerald-700 mb-2">Select Wallet</label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {[
+                                                    { id: 'paytm', label: 'Paytm' },
+                                                    { id: 'mobikwik', label: 'Mobikwik' },
+                                                    { id: 'freecharge', label: 'Freecharge' },
+                                                ].map(w => (
+                                                    <button
+                                                        key={w.id}
+                                                        type="button"
+                                                        onClick={() => setSelectedWallet(w.id)}
+                                                        className={`py-2 rounded-lg border-2 text-xs font-bold transition-all ${selectedWallet === w.id ? 'border-emerald-500 bg-emerald-100 text-emerald-700' : 'border-slate-200 text-slate-600 hover:border-emerald-300'}`}
+                                                    >
+                                                        {w.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Security badge */}
                                     <div className="flex items-center gap-2 py-2.5 px-3 bg-slate-50 rounded-lg border border-slate-100">
