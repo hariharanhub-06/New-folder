@@ -31,18 +31,20 @@ export async function POST(request: Request) {
                 await pool.query('UPDATE admins SET password = $1 WHERE id = $2', [hashed, adminUser.id]);
             }
 
-            // Set session cookie
+            // Set session cookie — SameSite=None required so cookies work inside
+            // cross-origin iframes (e.g. Harishblog Platform Hub Data tab)
             const oneDay = 24 * 60 * 60 * 1000;
             cookies().set('admin_session', 'true', {
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 httpOnly: true,
+                sameSite: 'none',
                 path: '/',
                 maxAge: oneDay
             });
-            // Store admin ID in cookie for updates if needed, but session is simple for now
             cookies().set('admin_id', adminUser.id, {
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 httpOnly: true,
+                sameSite: 'none',
                 path: '/',
                 maxAge: oneDay
             });

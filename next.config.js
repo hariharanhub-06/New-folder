@@ -10,8 +10,8 @@ const nextConfig = {
     async headers() {
         return [
             {
-                // Allow Harishblog admin portal to embed the admin login page in an iframe
-                source: '/admin/login',
+                // Allow Harishblog admin portal to embed any page in an iframe
+                source: '/:path*',
                 headers: [
                     {
                         key: 'Content-Security-Policy',
