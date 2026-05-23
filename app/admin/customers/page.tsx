@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Users, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
+import { Search, Users, CheckCircle, XCircle, ChevronRight, TrendingUp, UserCheck } from 'lucide-react';
 
 interface CustomerRow {
     id: string;
@@ -43,84 +43,97 @@ export default function AdminCustomersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-white uppercase tracking-[0.3em]">Customers</h1>
-            </div>
+            <h1 className="text-2xl font-bold text-slate-900">Customers</h1>
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-black border border-gray-800 rounded-xl p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Total Customers</p>
-                    <p className="text-3xl font-bold text-white mt-1">{customers.length}</p>
+                <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 shadow-sm">
+                    <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Customers</p>
+                        <p className="text-2xl font-bold text-slate-900 mt-0.5">{customers.length}</p>
+                    </div>
                 </div>
-                <div className="bg-black border border-gray-800 rounded-xl p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Verified</p>
-                    <p className="text-3xl font-bold text-white mt-1">{verifiedCount}</p>
+                <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 shadow-sm">
+                    <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center">
+                        <UserCheck className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Verified</p>
+                        <p className="text-2xl font-bold text-slate-900 mt-0.5">{verifiedCount}</p>
+                    </div>
                 </div>
-                <div className="bg-black border border-gray-800 rounded-xl p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Total Revenue</p>
-                    <p className="text-3xl font-bold text-white mt-1">₹{totalSpent.toLocaleString('en-IN')}</p>
+                <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 shadow-sm">
+                    <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Revenue</p>
+                        <p className="text-2xl font-bold text-slate-900 mt-0.5">₹{totalSpent.toLocaleString('en-IN')}</p>
+                    </div>
                 </div>
             </div>
 
             {/* Search */}
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                     type="text"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder="Search by name, mobile, or email..."
-                    className="w-full bg-black border border-gray-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
                 />
             </div>
 
             {/* Table */}
-            <div className="bg-black border border-gray-800 rounded-xl overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                 {loading ? (
                     <div className="flex items-center justify-center py-16">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="text-center py-16">
-                        <Users className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                        <p className="text-gray-500 font-medium">{search ? 'No customers found' : 'No customers yet'}</p>
+                        <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="text-slate-400 font-medium">{search ? 'No customers found' : 'No customers yet'}</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b border-gray-800">
-                                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-500">Customer</th>
-                                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Mobile</th>
-                                    <th className="text-left px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-500 hidden lg:table-cell">Email</th>
-                                    <th className="text-center px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-500">Verified</th>
-                                    <th className="text-center px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-500 hidden md:table-cell">Orders</th>
-                                    <th className="text-right px-5 py-3 text-xs font-bold uppercase tracking-wider text-gray-500">Spent</th>
+                                <tr className="border-b border-slate-100 bg-slate-50">
+                                    <th className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Customer</th>
+                                    <th className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 hidden sm:table-cell">Mobile</th>
+                                    <th className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 hidden lg:table-cell">Email</th>
+                                    <th className="text-center px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Verified</th>
+                                    <th className="text-center px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 hidden md:table-cell">Orders</th>
+                                    <th className="text-right px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Spent</th>
                                     <th className="px-5 py-3" />
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-slate-100">
                                 {filtered.map(customer => (
-                                    <tr key={customer.id} className="border-b border-gray-900 hover:bg-white/5 transition-colors">
+                                    <tr key={customer.id} className="hover:bg-slate-50 transition-colors">
                                         <td className="px-5 py-4">
-                                            <p className="font-bold text-white text-sm">{customer.name}</p>
-                                            <p className="text-xs text-gray-500 mt-0.5">
+                                            <p className="font-semibold text-slate-900 text-sm">{customer.name}</p>
+                                            <p className="text-xs text-slate-400 mt-0.5">
                                                 Joined {new Date(customer.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                                             </p>
                                         </td>
-                                        <td className="px-5 py-4 text-sm text-gray-300 hidden sm:table-cell">{customer.mobile}</td>
-                                        <td className="px-5 py-4 text-sm text-gray-300 hidden lg:table-cell truncate max-w-[200px]">{customer.email}</td>
+                                        <td className="px-5 py-4 text-sm text-slate-600 hidden sm:table-cell">{customer.mobile}</td>
+                                        <td className="px-5 py-4 text-sm text-slate-600 hidden lg:table-cell truncate max-w-[200px]">{customer.email}</td>
                                         <td className="px-5 py-4 text-center">
                                             {customer.isVerified
                                                 ? <CheckCircle className="w-4 h-4 text-green-500 inline" />
-                                                : <XCircle className="w-4 h-4 text-gray-600 inline" />
+                                                : <XCircle className="w-4 h-4 text-slate-300 inline" />
                                             }
                                         </td>
-                                        <td className="px-5 py-4 text-center text-sm font-bold text-white hidden md:table-cell">{customer.orderCount}</td>
-                                        <td className="px-5 py-4 text-right text-sm font-bold text-white">₹{customer.totalSpent.toLocaleString('en-IN')}</td>
+                                        <td className="px-5 py-4 text-center text-sm font-semibold text-slate-700 hidden md:table-cell">{customer.orderCount}</td>
+                                        <td className="px-5 py-4 text-right text-sm font-semibold text-slate-900">₹{customer.totalSpent.toLocaleString('en-IN')}</td>
                                         <td className="px-5 py-4">
-                                            <Link href={`/admin/customers/${customer.id}`} className="flex items-center justify-end text-gray-500 hover:text-white transition-colors">
+                                            <Link href={`/admin/customers/${customer.id}`} className="flex items-center justify-end text-slate-400 hover:text-indigo-600 transition-colors">
                                                 <ChevronRight className="w-4 h-4" />
                                             </Link>
                                         </td>
