@@ -27,12 +27,13 @@ export async function verifyAndPromoteOrder(
     // 2. Promote Shadow Order
     const client = await db.connect();
     let isAlreadyPromoted = false;
+    let emailPayload: { items: any[]; total_amount: string; shipping_cost: string } | null = null;
 
     try {
         await client.query('BEGIN');
 
         const updateRes = await client.query(`
-            UPDATE orders 
+            UPDATE orders
             SET status = 'Payment Confirmed',
                 razorpay_order_id = $1,
                 razorpay_payment_id = $2,
@@ -61,7 +62,7 @@ export async function verifyAndPromoteOrder(
 
                 if (item.size) {
                     await client.query(`
-                        UPDATE product_sizes 
+                        UPDATE product_sizes
                         SET stock = GREATEST(0, stock - $1)
                         WHERE product_id = $2 AND size = $3
                     `, [item.quantity, item.product_id, item.size]);
@@ -71,7 +72,7 @@ export async function verifyAndPromoteOrder(
                     `, [item.quantity, item.product_id]);
                 } else {
                     await client.query(`
-                        UPDATE products 
+                        UPDATE products
                         SET stock = GREATEST(0, stock - $1)
                         WHERE id = $2
                     `, [item.quantity, item.product_id]);
@@ -79,18 +80,34 @@ export async function verifyAndPromoteOrder(
             }
         }
 
+        // Fetch email data inside transaction — before releasing the connection
+        if (!isAlreadyPromoted && customerEmail) {
+            const itemsFullRes = await client.query('SELECT * FROM order_items WHERE order_id = $1', [dbOrderId]);
+            const orderRes = await client.query('SELECT total_amount, shipping_cost FROM orders WHERE id = $1', [dbOrderId]);
+            if (orderRes.rows[0]) {
+                emailPayload = {
+                    items: itemsFullRes.rows,
+                    total_amount: orderRes.rows[0].total_amount,
+                    shipping_cost: orderRes.rows[0].shipping_cost,
+                };
+            }
+        }
+
         await client.query('COMMIT');
 
-        // 4. Send Confirmation Email (Async)
-        if (!isAlreadyPromoted && customerEmail) {
-            (async () => {
-                try {
-                    // Fetch full item details for the invoice
-                    const itemsFullRes = await client.query('SELECT * FROM order_items WHERE order_id = $1', [dbOrderId]);
-                    const orderRes = await client.query('SELECT total_amount, shipping_cost FROM orders WHERE id = $1', [dbOrderId]);
-                    const { total_amount, shipping_cost } = orderRes.rows[0];
+    } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+    } finally {
+        client.release();
+    }
 
-                    const itemsHtml = itemsFullRes.rows.map(item => `
+    // 4. Send Confirmation Email — connection is released, safe to fire-and-forget
+    if (!isAlreadyPromoted && customerEmail && emailPayload) {
+        const payload = emailPayload;
+        (async () => {
+            try {
+                const itemsHtml = payload.items.map(item => `
                         <tr>
                             <td style="padding: 12px; border-bottom: 1px solid #edf2f7; font-size: 14px; color: #1a202c;">
                                 <div style="display: flex; align-items: center;">
@@ -99,26 +116,26 @@ export async function verifyAndPromoteOrder(
                                 </div>
                             </td>
                             <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: center; font-size: 14px; color: #1a202c;">${item.quantity}</td>
-                            <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: right; font-size: 14px; color: #1a202c;">₹${item.price.toFixed(2)}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: right; font-size: 14px; color: #1a202c;">₹${parseFloat(String(item.price ?? 0)).toFixed(2)}</td>
                         </tr>
                     `).join('');
 
-                    const whatsappMsg = encodeURIComponent(`Hi Startup Mens Wear! My order #${dbOrderId.slice(0, 8)} is confirmed. Total: ₹${total_amount}`);
-                    const whatsappUrl = `https://wa.me/918015103119?text=${whatsappMsg}`;
+                const whatsappMsg = encodeURIComponent(`Hi Startup Mens Wear! My order #${dbOrderId.slice(0, 8)} is confirmed. Total: ₹${payload.total_amount}`);
+                const whatsappUrl = `https://wa.me/918015103119?text=${whatsappMsg}`;
 
-                    const invoiceHtml = `
+                const invoiceHtml = `
                         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                             <div style="background-color: #1a1a1a; padding: 30px; text-align: center; color: #ffffff;">
                                 <h1 style="margin: 0; font-size: 24px; letter-spacing: 2px;">STARTUP MENS WEAR</h1>
                                 <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.8;">ORDER CONFIRMED</p>
                             </div>
-                            
+
                             <div style="padding: 30px;">
                                 <p style="font-size: 16px; color: #2d3748; margin-bottom: 20px;">Hi <b>${customerName || 'Customer'}</b>,</p>
                                 <p style="font-size: 14px; color: #4a5568; line-height: 1.6; margin-bottom: 30px;">
                                     Your order <b>#${dbOrderId.slice(0, 8)}</b> has been successfully verified and is now being prepared for shipping.
                                 </p>
-                                
+
                                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
                                     <thead>
                                         <tr style="background-color: #f8fafc;">
@@ -133,22 +150,22 @@ export async function verifyAndPromoteOrder(
                                     <tfoot>
                                         <tr>
                                             <td colspan="2" style="padding: 12px; text-align: right; font-size: 14px; color: #718096;">Shipping</td>
-                                            <td style="padding: 12px; text-align: right; font-size: 14px; color: #1a202c;">₹${shipping_cost.toFixed(2)}</td>
+                                            <td style="padding: 12px; text-align: right; font-size: 14px; color: #1a202c;">₹${parseFloat(payload.shipping_cost || '0').toFixed(2)}</td>
                                         </tr>
                                         <tr style="font-weight: bold;">
                                             <td colspan="2" style="padding: 12px; text-align: right; font-size: 16px; color: #1a202c; border-top: 2px solid #e2e8f0;">Total</td>
-                                            <td style="padding: 12px; text-align: right; font-size: 16px; color: #4f46e5; border-top: 2px solid #e2e8f0;">₹${total_amount.toFixed(2)}</td>
+                                            <td style="padding: 12px; text-align: right; font-size: 16px; color: #4f46e5; border-top: 2px solid #e2e8f0;">₹${parseFloat(payload.total_amount || '0').toFixed(2)}</td>
                                         </tr>
                                     </tfoot>
                                 </table>
-                                
+
                                 <div style="text-align: center; margin-top: 40px;">
                                     <a href="${whatsappUrl}" style="display: inline-block; padding: 14px 28px; background-color: #25D366; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                         Confirm on WhatsApp
                                     </a>
                                 </div>
                             </div>
-                            
+
                             <div style="background-color: #f7fafc; padding: 20px; text-align: center; border-top: 1px solid #edf2f7;">
                                 <p style="margin: 0; font-size: 12px; color: #a0aec0;">Questions? Contact us at +91 80151 03119</p>
                                 <p style="margin: 5px 0 0 0; font-size: 12px; color: #a0aec0;">&copy; ${new Date().getFullYear()} Startup Mens Wear</p>
@@ -156,23 +173,16 @@ export async function verifyAndPromoteOrder(
                         </div>
                     `;
 
-                    await sendMail(
-                        customerEmail,
-                        `Invoice for Order #${dbOrderId.slice(0, 8)} - Startup Mens Wear`,
-                        invoiceHtml
-                    );
-                } catch (emailErr) {
-                    console.error("Email error:", emailErr);
-                }
-            })();
-        }
-
-        return { success: true, orderId: dbOrderId };
-
-    } catch (e) {
-        await client.query('ROLLBACK');
-        throw e;
-    } finally {
-        client.release();
+                await sendMail(
+                    customerEmail,
+                    `Invoice for Order #${dbOrderId.slice(0, 8)} - Startup Mens Wear`,
+                    invoiceHtml
+                );
+            } catch (emailErr) {
+                console.error("Email error:", emailErr);
+            }
+        })();
     }
+
+    return { success: true, orderId: dbOrderId };
 }

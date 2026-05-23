@@ -38,8 +38,25 @@ export interface OrderItem {
     size?: string;
 }
 
+export interface Customer {
+    id: string;
+    name: string;
+    mobile: string;
+    email: string;
+    isVerified: boolean;
+    createdAt?: string;
+}
+
+export interface CustomerSession {
+    id: string;
+    name: string;
+    mobile: string;
+    email: string;
+}
+
 export interface Order {
     id: string;
+    customerId?: string;
     customerName: string;
     customerEmail: string;
     customerMobile: string;

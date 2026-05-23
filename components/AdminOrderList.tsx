@@ -1,7 +1,8 @@
 import { Order } from '@/lib/types';
 import { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import { updateOrderStatus, removeOrder, updateOrderDetails, syncRazorpayPayments } from '@/lib/actions';
-import { Loader2, Search, Calendar, Download, Filter, Eye, X, Edit2, Trash2, RefreshCw, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
+import { Loader2, Search, Calendar, Download, Filter, Eye, X, Edit2, Trash2, RefreshCw, ChevronLeft, ChevronRight, MessageCircle, UserCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -333,6 +334,11 @@ export default function AdminOrderList({ orders: initialOrders }: { orders: Orde
                                                 </button>
                                             </div>
                                             <div className="text-xs text-gray-400">{order.customerEmail}</div>
+                                            {order.customerId && (
+                                                <Link href={`/admin/customers/${order.customerId}`} className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-400 mt-0.5 transition-colors">
+                                                    <UserCircle className="w-3 h-3" /> View Profile
+                                                </Link>
+                                            )}
                                             <div className="flex items-center gap-2 mt-0.5">
                                                 <div className="text-xs text-gray-400">{order.customerMobile}</div>
                                                 {order.status === 'Couried' && (

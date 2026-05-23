@@ -3,11 +3,12 @@
 import { Product } from '@/lib/types';
 import { useCart } from '@/lib/cart-context';
 import { useWishlist } from '@/lib/wishlist-context';
+import { useCustomer } from '@/lib/customer-context';
 import { optimizeImageUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import { ShoppingBag, Search, Plus, ArrowRight, Share2, Check, Heart } from 'lucide-react';
 import { memo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface ProductCardProps {
     product: Product;
@@ -17,8 +18,10 @@ interface ProductCardProps {
 
 const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'default' }: ProductCardProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const { addToCart, items } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
+    const { customer } = useCustomer();
 
     const hasSizes = product.sizes && product.sizes.length > 0;
     const cartItems = items.filter(item => item.id === product.id);
@@ -29,6 +32,10 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (!customer) {
+            router.push(`/login?next=${encodeURIComponent(pathname || '/shop')}`);
+            return;
+        }
         if (quantityInCart > 0 && !hasSizes) {
             router.push('/checkout');
         } else if (hasSizes) {

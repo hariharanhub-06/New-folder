@@ -24,7 +24,7 @@ export async function getProduct(id: string): Promise<Product | null> {
 
 export async function getProducts(includeInactive: boolean = false): Promise<Product[]> {
     const url = includeInactive ? `${API_ENDPOINTS.products}?admin=true` : API_ENDPOINTS.products;
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: 'no-store' });
     if (!response.ok) throw new Error('Failed to fetch products');
     const result = await response.json();
     return result.data || result; // Handle both paginated and legacy array response just in case

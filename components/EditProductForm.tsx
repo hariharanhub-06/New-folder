@@ -94,13 +94,12 @@ export default function EditProductForm({
                     }
                 }
 
-                // Compress image - optimized for bandwidth
                 const options = {
-                    maxSizeMB: 0.3, // Further reduced for ImageKit bandwidth savings
-                    maxWidthOrHeight: 1920,
+                    maxSizeMB: 5,
+                    maxWidthOrHeight: 2400,
                     useWebWorker: true,
-                    initialQuality: 0.75, // Balanced quality/size
-                    fileType: 'image/webp' // WebP offers 25-35% better compression than JPEG
+                    initialQuality: 0.95,
+                    fileType: 'image/webp'
                 };
 
                 try {
@@ -145,12 +144,17 @@ export default function EditProductForm({
     };
 
     const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
-        if (index === mainImageIndex) {
-            setMainImageIndex(0);
-        } else if (index < mainImageIndex) {
-            setMainImageIndex(prev => prev - 1);
-        }
+        setImages(prev => {
+            const updated = prev.filter((_, i) => i !== index);
+            if (index === mainImageIndex) {
+                setMainImageIndex(0);
+            } else if (index < mainImageIndex) {
+                setMainImageIndex(prev => Math.max(0, prev - 1));
+            } else {
+                setMainImageIndex(prev => Math.min(prev, Math.max(0, updated.length - 1)));
+            }
+            return updated;
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

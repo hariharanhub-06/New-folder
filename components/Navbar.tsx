@@ -1,12 +1,13 @@
 "use client";
 
 import Link from 'next/link';
-import { ShoppingCart, Menu, X, Search, Heart } from 'lucide-react';
+import { ShoppingCart, Menu, X, Search, Heart, User, LogOut, Package } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useWishlist } from '@/lib/wishlist-context';
+import { useCustomer } from '@/lib/customer-context';
 import { useState, useEffect, useRef } from 'react';
 import { getSettings } from '@/lib/api';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { UnifrakturMaguntia } from "next/font/google";
 
 const gothic = UnifrakturMaguntia({
@@ -17,15 +18,36 @@ const gothic = UnifrakturMaguntia({
 export default function Navbar() {
     const { items, total } = useCart();
     const { items: wishlistItems } = useWishlist();
+    const { customer, refresh: refreshCustomer } = useCustomer();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [announcement, setAnnouncement] = useState('SPECIAL OFFER: ENJOY 40% OFF ON TWO HOT-SELLING PRODUCTS! SHOP NOW');
+    const [showAccountMenu, setShowAccountMenu] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
     const menuRef = useRef<HTMLDivElement>(null);
+    const accountMenuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+                setShowAccountMenu(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    async function handleLogout() {
+        await fetch('/api/customer/logout', { method: 'POST' });
+        await refreshCustomer();
+        setShowAccountMenu(false);
+        router.push('/');
+    }
 
     useEffect(() => {
         async function loadSettings() {
@@ -118,6 +140,46 @@ export default function Navbar() {
                                     </span>
                                 )}
                             </Link>
+
+                            {/* Customer Account */}
+                            {mounted && (
+                                <div className="relative" ref={accountMenuRef}>
+                                    {customer ? (
+                                        <>
+                                            <button
+                                                onClick={() => setShowAccountMenu(p => !p)}
+                                                className="flex items-center gap-1.5 p-1 hover:text-indigo-600 transition-colors"
+                                            >
+                                                <User className="w-5 h-5" />
+                                                <span className="hidden md:block text-xs font-bold uppercase tracking-wide max-w-[80px] truncate">{customer.name.split(' ')[0]}</span>
+                                            </button>
+                                            {showAccountMenu && (
+                                                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-[100] py-1">
+                                                    <div className="px-4 py-2 border-b border-gray-100">
+                                                        <p className="text-xs font-bold text-gray-900 truncate">{customer.name}</p>
+                                                        <p className="text-[11px] text-gray-500 truncate">{customer.mobile}</p>
+                                                    </div>
+                                                    <Link href="/account" onClick={() => setShowAccountMenu(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">
+                                                        <User className="w-4 h-4" /> My Account
+                                                    </Link>
+                                                    <Link href="/account/orders" onClick={() => setShowAccountMenu(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">
+                                                        <Package className="w-4 h-4" /> My Orders
+                                                    </Link>
+                                                    <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 w-full text-left text-red-600">
+                                                        <LogOut className="w-4 h-4" /> Logout
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <Link href="/login" className="flex items-center gap-1.5 p-1 hover:text-indigo-600 transition-colors">
+                                            <User className="w-5 h-5" />
+                                            <span className="hidden md:block text-xs font-bold uppercase tracking-wide">Login</span>
+                                        </Link>
+                                    )}
+                                </div>
+                            )}
+
                             <Link href="/checkout" className="relative p-1 hover:text-brand-red transition-colors flex items-center gap-2">
                                 <div className="relative">
                                     <ShoppingCart className="w-6 h-6" />

@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
+import { cookies } from 'next/headers';
 import { razorpay } from '@/lib/razorpay';
 import { calculateTotalWeight, calculateShipping } from '@/lib/shipping';
 import db from '@/lib/db';
@@ -45,7 +47,6 @@ export async function POST(request: Request) {
         const grandTotal = subtotal + shippingCost;
 
         // 4. Create Shadow Order in Single Transaction (Optimized: Stock checked inside transaction)
-        const crypto = require('crypto');
         const dbOrderId = crypto.randomUUID();
 
         const trxClient = await db.connect();
@@ -80,15 +81,16 @@ export async function POST(request: Request) {
                 }));
             }
 
-            // 4b. Insert shadow order
+            // 4b. Insert shadow order (include customer_id if logged in)
+            const customerId = cookies().get('customer_session')?.value || null;
             await trxClient.query(`
                 INSERT INTO orders (
                     id, customer_name, customer_email, customer_mobile,
-                    shipping_address, total_amount, shipping_cost, status
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    shipping_address, total_amount, shipping_cost, status, customer_id
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             `, [
                 dbOrderId, customerName, customerEmail, customerMobile || '',
-                JSON.stringify(address), grandTotal, shippingCost, 'Pending Payment'
+                JSON.stringify(address), grandTotal, shippingCost, 'Pending Payment', customerId
             ]);
 
             // 4c. Batch insert order items (Single multi-row INSERT)

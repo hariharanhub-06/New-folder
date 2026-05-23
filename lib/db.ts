@@ -1,6 +1,7 @@
 
+import crypto from 'crypto';
 import { Pool } from 'pg';
-import { Product, Order, OrderItem, Discount } from './types';
+import { Product, Order, OrderItem, Discount, Customer } from './types';
 
 let pool: Pool;
 
@@ -274,7 +275,7 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
             category: row.category,
             stock: row.stock,
             imageUrl: row.image_url,
-            images: row.images ? JSON.parse(row.images) : [],
+            images: (() => { try { return row.images ? JSON.parse(row.images) : []; } catch { return []; } })(),
             isActive: row.is_active,
             isOffer: row.is_offer,
             isTrending: row.is_trending,
@@ -305,12 +306,6 @@ export async function getPaginatedProducts(filters: import('./types').ProductFil
 export async function saveProduct(product: Product) {
     const client = await pool.connect();
     try {
-        console.log('--- SAVE PRODUCT DEBUG ---');
-        console.log('ID:', product.id);
-        console.log('Name:', product.name);
-        console.log('Visibility Tags:', product.visibilityTags);
-        console.log('Is Active:', product.isActive);
-
         await client.query('BEGIN');
 
         // Determine Final ID
@@ -343,7 +338,7 @@ export async function saveProduct(product: Product) {
                 product.category,
                 totalStock,
                 product.imageUrl,
-                (console.log('DB UPDATE IMAGES:', JSON.stringify(product.images || [])), JSON.stringify(product.images || [])),
+                JSON.stringify(product.images || []),
                 product.size,
                 product.isActive !== undefined ? product.isActive : true,
                 product.weight || 750,
@@ -484,6 +479,7 @@ export async function getOrderById(id: string): Promise<Order | null> {
 
     return {
         id: order.id,
+        customerId: order.customer_id,
         customerName: order.customer_name,
         customerEmail: order.customer_email,
         customerMobile: order.customer_mobile,
@@ -644,4 +640,198 @@ export async function toggleProductOfferDrop(id: string) {
         return { success: true };
     }
     return { success: false };
+}
+
+// --- CUSTOMER FUNCTIONS ---
+
+export async function createCustomer(data: {
+    id: string;
+    name: string;
+    mobile: string;
+    email: string;
+    passwordHash: string;
+    otpCode: string;
+    otpExpiresAt: Date;
+}): Promise<void> {
+    await pool.query(`
+        INSERT INTO customers (id, name, mobile, email, password_hash, is_verified, otp_code, otp_expires_at)
+        VALUES ($1, $2, $3, $4, $5, false, $6, $7)
+        ON CONFLICT (mobile) DO UPDATE SET
+            name = EXCLUDED.name,
+            email = EXCLUDED.email,
+            password_hash = EXCLUDED.password_hash,
+            is_verified = false,
+            otp_code = EXCLUDED.otp_code,
+            otp_expires_at = EXCLUDED.otp_expires_at,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE customers.is_verified = false
+    `, [data.id, data.name, data.mobile, data.email, data.passwordHash, data.otpCode, data.otpExpiresAt]);
+}
+
+export async function getCustomerByMobile(mobile: string): Promise<any | null> {
+    const res = await pool.query('SELECT * FROM customers WHERE mobile = $1', [mobile]);
+    return res.rows[0] || null;
+}
+
+export async function getCustomerByEmail(email: string): Promise<any | null> {
+    const res = await pool.query('SELECT * FROM customers WHERE email = $1', [email]);
+    return res.rows[0] || null;
+}
+
+export async function getCustomerById(id: string): Promise<Customer | null> {
+    const res = await pool.query('SELECT id, name, mobile, email, is_verified, created_at FROM customers WHERE id = $1', [id]);
+    const row = res.rows[0];
+    if (!row) return null;
+    return {
+        id: row.id,
+        name: row.name,
+        mobile: row.mobile,
+        email: row.email,
+        isVerified: row.is_verified,
+        createdAt: row.created_at,
+    };
+}
+
+export async function verifyCustomerOtp(mobile: string, otp: string): Promise<boolean> {
+    const res = await pool.query(`
+        UPDATE customers
+        SET is_verified = true, otp_code = NULL, otp_expires_at = NULL, updated_at = CURRENT_TIMESTAMP
+        WHERE mobile = $1
+          AND otp_code = $2
+          AND otp_expires_at > NOW()
+          AND is_verified = false
+    `, [mobile, otp]);
+    return (res.rowCount ?? 0) > 0;
+}
+
+export async function setCustomerOtp(mobile: string, otpCode: string, expiresAt: Date): Promise<void> {
+    await pool.query(`
+        UPDATE customers SET otp_code = $1, otp_expires_at = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE mobile = $3
+    `, [otpCode, expiresAt, mobile]);
+}
+
+export async function getCustomerOrders(customerId: string): Promise<Order[]> {
+    const ordersRes = await pool.query(`
+        SELECT o.*,
+               COALESCE(json_agg(
+                   json_build_object(
+                       'id', oi.id,
+                       'productId', oi.product_id,
+                       'name', oi.name,
+                       'quantity', oi.quantity,
+                       'price', oi.price,
+                       'size', oi.size,
+                       'imageUrl', oi.image_url
+                   )
+               ) FILTER (WHERE oi.id IS NOT NULL), '[]') as items
+        FROM orders o
+        LEFT JOIN order_items oi ON oi.order_id = o.id
+        WHERE o.customer_id = $1
+          AND o.status != 'Pending Payment'
+        GROUP BY o.id
+        ORDER BY o.created_at DESC
+    `, [customerId]);
+
+    return ordersRes.rows.map(order => ({
+        id: order.id,
+        customerId: order.customer_id,
+        customerName: order.customer_name,
+        customerEmail: order.customer_email,
+        customerMobile: order.customer_mobile,
+        shippingAddress: typeof order.shipping_address === 'string'
+            ? JSON.parse(order.shipping_address)
+            : order.shipping_address,
+        totalAmount: parseFloat(order.total_amount),
+        shippingCost: parseFloat(order.shipping_cost),
+        status: order.status,
+        transactionId: order.transaction_id,
+        razorpayOrderId: order.razorpay_order_id,
+        razorpayPaymentId: order.razorpay_payment_id,
+        logisticsId: order.logistics_id,
+        courierName: order.courier_name,
+        createdAt: order.created_at,
+        updatedAt: order.updated_at,
+        items: order.items || [],
+    }));
+}
+
+export async function getAllCustomers(): Promise<(Customer & { orderCount: number; totalSpent: number })[]> {
+    const res = await pool.query(`
+        SELECT c.id, c.name, c.mobile, c.email, c.is_verified, c.created_at,
+               COUNT(o.id)::int as order_count,
+               COALESCE(SUM(o.total_amount), 0)::numeric as total_spent
+        FROM customers c
+        LEFT JOIN orders o ON o.customer_id = c.id AND o.status NOT IN ('Pending Payment', 'Cancelled')
+        GROUP BY c.id
+        ORDER BY c.created_at DESC
+    `);
+    return res.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        mobile: row.mobile,
+        email: row.email,
+        isVerified: row.is_verified,
+        createdAt: row.created_at,
+        orderCount: row.order_count,
+        totalSpent: parseFloat(row.total_spent),
+    }));
+}
+
+export async function getCustomerWithOrders(customerId: string): Promise<{ customer: Customer; orders: Order[] } | null> {
+    const customer = await getCustomerById(customerId);
+    if (!customer) return null;
+    const orders = await getCustomerOrders(customerId);
+    return { customer, orders };
+}
+
+// --- ADDRESS FUNCTIONS ---
+
+export async function getCustomerAddresses(customerId: string) {
+    const res = await pool.query(
+        'SELECT * FROM customer_addresses WHERE customer_id = $1 ORDER BY is_default DESC, created_at DESC',
+        [customerId]
+    );
+    return res.rows;
+}
+
+export async function addCustomerAddress(data: {
+    id: string; customerId: string; label: string; name: string; mobile: string;
+    street: string; city: string; state: string; country: string; pincode: string; isDefault: boolean;
+}) {
+    if (data.isDefault) {
+        await pool.query('UPDATE customer_addresses SET is_default = false WHERE customer_id = $1', [data.customerId]);
+    }
+    await pool.query(
+        `INSERT INTO customer_addresses (id, customer_id, label, name, mobile, street, city, state, country, pincode, is_default)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [data.id, data.customerId, data.label, data.name, data.mobile, data.street, data.city, data.state, data.country, data.pincode, data.isDefault]
+    );
+}
+
+export async function updateCustomerAddress(id: string, customerId: string, data: {
+    label?: string; name?: string; mobile?: string; street?: string;
+    city?: string; state?: string; country?: string; pincode?: string; isDefault?: boolean;
+}) {
+    if (data.isDefault) {
+        await pool.query('UPDATE customer_addresses SET is_default = false WHERE customer_id = $1', [customerId]);
+    }
+    await pool.query(
+        `UPDATE customer_addresses SET
+            label = COALESCE($1, label), name = COALESCE($2, name), mobile = COALESCE($3, mobile),
+            street = COALESCE($4, street), city = COALESCE($5, city), state = COALESCE($6, state),
+            country = COALESCE($7, country), pincode = COALESCE($8, pincode),
+            is_default = COALESCE($9, is_default)
+         WHERE id = $10 AND customer_id = $11`,
+        [data.label, data.name, data.mobile, data.street, data.city, data.state, data.country, data.pincode, data.isDefault, id, customerId]
+    );
+}
+
+export async function deleteCustomerAddress(id: string, customerId: string) {
+    await pool.query('DELETE FROM customer_addresses WHERE id = $1 AND customer_id = $2', [id, customerId]);
+}
+
+export async function setDefaultAddress(id: string, customerId: string) {
+    await pool.query('UPDATE customer_addresses SET is_default = false WHERE customer_id = $1', [customerId]);
+    await pool.query('UPDATE customer_addresses SET is_default = true WHERE id = $1 AND customer_id = $2', [id, customerId]);
 }

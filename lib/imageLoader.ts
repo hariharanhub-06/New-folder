@@ -11,7 +11,7 @@ export default function imageLoader({ src, width, quality }: { src: string, widt
             if (quality) {
                 params.push(`q-${quality}`);
             } else {
-                params.push('q-60'); // Efficient Quality
+                params.push('q-90');
             }
             params.push('f-auto'); // Auto format (AVIF/WebP)
 

@@ -38,7 +38,7 @@ export function optimizeImageUrl(url: string | null | undefined, options: {
         const transformations = [];
         if (options.width) transformations.push(`w-${options.width}`);
         if (options.height) transformations.push(`h-${options.height}`);
-        const quality = options.quality !== undefined ? options.quality : 60;
+        const quality = options.quality !== undefined ? options.quality : 90;
         transformations.push(`q-${quality}`);
         const format = options.format || 'auto';
         transformations.push(`f-${format}`);
@@ -77,3 +77,16 @@ export function optimizeImageUrl(url: string | null | undefined, options: {
 }
 
 export default imagekit;
+
+// Named instances for upload fallback logic
+export const imagekitSecondary = new ImageKit({
+    publicKey: process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_PUBLIC_KEY || 'placeholder',
+    privateKey: process.env.SECONDARY_IMAGEKIT_PRIVATE_KEY || 'placeholder',
+    urlEndpoint: process.env.NEXT_PUBLIC_SECONDARY_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/placeholder',
+});
+
+export const imagekitPrimary = new ImageKit({
+    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || 'placeholder',
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY || 'placeholder',
+    urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/placeholder',
+});

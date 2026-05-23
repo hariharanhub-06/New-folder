@@ -118,10 +118,9 @@ export function calculateShipping(weight: number, country?: string, pincode?: st
         return result.totalCharges;
     }
 
-    // Fallback to simple weight-based calculation
+    // Fallback to simple weight-based calculation (Tamil Nadu base rate)
     const billableUnits = Math.ceil(weight / 1.1);
-    if (billableUnits <= 1) return 40; // Default to TN rate for 1 unit
-    return billableUnits * 40; // Default to TN rate per unit
+    return billableUnits * REGIONAL_RATES.tamilnadu.rate;
 }
 
 /**

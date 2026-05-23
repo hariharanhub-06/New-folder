@@ -36,7 +36,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     }, [items, mounted]);
 
     const addToWishlist = (product: Product) => {
-        console.log("Adding to wishlist:", product.name);
+        if (!product?.id) return;
         setItems(prev => {
             if (prev.some(item => item.id === product.id)) return prev;
             return [...prev, product];

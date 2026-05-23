@@ -1,5 +1,6 @@
 
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import db from '@/lib/db';
 import { OrderItem } from '@/lib/types';
 
@@ -29,6 +30,7 @@ export async function GET() {
 
             return {
                 id: order.id,
+                customerId: order.customer_id,
                 customerName: order.customer_name,
                 customerEmail: order.customer_email,
                 customerMobile: order.customer_mobile,
@@ -68,7 +70,6 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const order = await request.json();
-        const orderId = order.id || crypto.randomUUID();
 
         // Transaction
         const client = await db.connect();

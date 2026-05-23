@@ -90,7 +90,8 @@ export function calculateDiscount(
             const bundles = Math.floor(totalQuantity / productBundleDiscount.quantity);
             const bundleTotal = bundles * productBundleDiscount.price;
             const remainingItems = totalQuantity % productBundleDiscount.quantity;
-            const remainingTotal = remainingItems * productItems[0].price;
+            const avgPrice = productTotal / totalQuantity;
+            const remainingTotal = remainingItems * avgPrice;
 
             const discountedProductTotal = bundleTotal + remainingTotal;
             const savings = productTotal - discountedProductTotal;

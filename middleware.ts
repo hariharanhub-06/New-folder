@@ -4,20 +4,23 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
-    // Check if it's an admin path
     if (path.startsWith('/admin')) {
-        // public admin path (login)
         if (path === '/admin/login') {
-            // If already logged in, redirect to dashboard
             if (request.cookies.has('admin_session')) {
                 return NextResponse.redirect(new URL('/admin', request.url));
             }
             return NextResponse.next();
         }
-
-        // Protected admin paths
         if (!request.cookies.has('admin_session')) {
             return NextResponse.redirect(new URL('/admin/login', request.url));
+        }
+    }
+
+    if (path.startsWith('/account')) {
+        if (!request.cookies.has('customer_session')) {
+            const loginUrl = new URL('/login', request.url);
+            loginUrl.searchParams.set('next', path);
+            return NextResponse.redirect(loginUrl);
         }
     }
 
@@ -25,5 +28,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: '/admin/:path*',
+    matcher: ['/admin/:path*', '/account/:path*'],
 };

@@ -22,14 +22,18 @@ export async function POST(request: Request) {
         const orderRes = await db.query('SELECT customer_email, customer_name, customer_mobile FROM orders WHERE id = $1', [dbOrderId]);
         const orderData = orderRes.rows[0];
 
+        if (!orderData) {
+            return NextResponse.redirect(new URL('/payment/failed?error=order_not_found', request.url), 303);
+        }
+
         await verifyAndPromoteOrder(
             razorpay_order_id,
             razorpay_payment_id,
             razorpay_signature,
             dbOrderId,
-            orderData?.customer_mobile,
-            orderData?.customer_email,
-            orderData?.customer_name
+            orderData.customer_mobile,
+            orderData.customer_email,
+            orderData.customer_name
         );
 
         return NextResponse.redirect(new URL(`/payment/success?orderId=${dbOrderId}`, request.url), 303);
@@ -66,14 +70,18 @@ export async function GET(request: Request) {
         const orderRes = await db.query('SELECT customer_email, customer_name, customer_mobile FROM orders WHERE id = $1', [dbOrderId]);
         const orderData = orderRes.rows[0];
 
+        if (!orderData) {
+            return NextResponse.redirect(new URL('/payment/failed?error=order_not_found', request.url));
+        }
+
         await verifyAndPromoteOrder(
             razorpay_order_id,
             razorpay_payment_id,
             razorpay_signature,
             dbOrderId,
-            orderData?.customer_mobile,
-            orderData?.customer_email,
-            orderData?.customer_name
+            orderData.customer_mobile,
+            orderData.customer_email,
+            orderData.customer_name
         );
 
         return NextResponse.redirect(new URL(`/payment/success?orderId=${dbOrderId}`, request.url));

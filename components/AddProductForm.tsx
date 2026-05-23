@@ -48,6 +48,7 @@ export default function AddProductForm({ onSuccess, onCancel }: { onSuccess: (pr
             const heic2any = (await import('heic2any')).default;
 
             const processedImages: string[] = [];
+            const failedFiles: string[] = [];
 
             for (let i = 0; i < files.length; i++) {
                 let file = files[i];
@@ -63,15 +64,16 @@ export default function AddProductForm({ onSuccess, onCancel }: { onSuccess: (pr
                         file = new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
                     } catch (e) {
                         console.error('Error converting HEIC:', e);
+                        failedFiles.push(file.name);
                         continue;
                     }
                 }
 
                 const options = {
-                    maxSizeMB: 0.3,
-                    maxWidthOrHeight: 1920,
+                    maxSizeMB: 5,
+                    maxWidthOrHeight: 2400,
                     useWebWorker: true,
-                    initialQuality: 0.75,
+                    initialQuality: 0.95,
                     fileType: 'image/webp'
                 };
 
@@ -97,6 +99,9 @@ export default function AddProductForm({ onSuccess, onCancel }: { onSuccess: (pr
             }
 
             setImages(prev => [...prev, ...processedImages]);
+            if (failedFiles.length > 0) {
+                alert(`Could not convert ${failedFiles.length} HEIC file(s): ${failedFiles.join(', ')}. Please convert them to JPG/PNG first.`);
+            }
         } catch (error) {
             console.error('Error processing images:', error);
             alert('Error processing images. Please try again.');

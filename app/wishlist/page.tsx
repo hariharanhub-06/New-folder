@@ -2,11 +2,13 @@
 
 import { useWishlist } from "@/lib/wishlist-context";
 import { useCart } from "@/lib/cart-context";
+import { useCustomer } from "@/lib/customer-context";
 import Link from "next/link";
 import Image from "next/image";
 import { UnifrakturMaguntia } from "next/font/google";
 import { Trash2, ShoppingCart, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const gothic = UnifrakturMaguntia({
     weight: "400",
@@ -16,6 +18,8 @@ const gothic = UnifrakturMaguntia({
 export default function WishlistPage() {
     const { items, removeFromWishlist } = useWishlist();
     const { addToCart } = useCart();
+    const { customer } = useCustomer();
+    const router = useRouter();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -25,9 +29,11 @@ export default function WishlistPage() {
     if (!mounted) return <div className="min-h-screen bg-[#F4F3EF]"></div>;
 
     const handleAddToCart = (product: any) => {
+        if (!customer) {
+            router.push('/login?next=/wishlist');
+            return;
+        }
         addToCart(product);
-        // Optional: Remove from wishlist after adding to cart? User preference varies.
-        // removeFromWishlist(product.id); 
     };
 
     return (

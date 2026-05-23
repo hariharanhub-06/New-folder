@@ -1,7 +1,9 @@
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import bcrypt from 'bcryptjs';
 import { verifyAdmin, createInitialAdmin } from '@/lib/db';
+import pool from '@/lib/db';
 
 export async function POST(request: Request) {
     try {
@@ -16,8 +18,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
-        // Simple direct comparison as requested (for hashing we would use bcrypt.compare)
-        if (adminUser.password === password) {
+        // Check bcrypt hash first; fall back to plain text for existing unhashed passwords
+        const isHashedPassword = adminUser.password?.startsWith('$2');
+        const passwordValid = isHashedPassword
+            ? await bcrypt.compare(password, adminUser.password)
+            : adminUser.password === password;
+
+        if (passwordValid) {
+            // Auto-migrate plain text password to bcrypt hash on first login
+            if (!isHashedPassword) {
+                const hashed = await bcrypt.hash(password, 12);
+                await pool.query('UPDATE admins SET password = $1 WHERE id = $2', [hashed, adminUser.id]);
+            }
+
             // Set session cookie
             const oneDay = 24 * 60 * 60 * 1000;
             cookies().set('admin_session', 'true', {

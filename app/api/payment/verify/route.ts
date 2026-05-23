@@ -8,6 +8,10 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = body;
 
+        if (!orderId) {
+            return NextResponse.json({ error: 'Order ID required' }, { status: 400 });
+        }
+
         const secret = process.env.RAZORPAY_KEY_SECRET;
         if (!secret) throw new Error("Razorpay Secret missing");
 
@@ -30,8 +34,8 @@ export async function POST(request: Request) {
                 UPDATE orders 
                 SET status = 'Payment Confirmed',
                     transaction_id = $1,
-                    cashfree_payment_id = $1, 
-                    cashfree_order_id = $2
+                    razorpay_payment_id = $1,
+                    razorpay_order_id = $2
                 WHERE id = $3
             `, [
                 razorpay_payment_id,

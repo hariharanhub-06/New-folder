@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { Product } from '@/lib/types';
 import { X, ArrowLeft, ShoppingBag, Check, Plus, Minus, Truck, CreditCard, RotateCcw } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
+import { useCustomer } from '@/lib/customer-context';
 import { getProduct } from '@/lib/api';
 import { optimizeImageUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface ProductDetailProps {
     product: Product;
@@ -19,10 +20,12 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ product: initialProduct, initialActiveImage, isModal = false, onClose }: ProductDetailProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const [product, setProduct] = useState<Product>(initialProduct);
     const [activeImage, setActiveImage] = useState(initialActiveImage || initialProduct.imageUrl);
     const [selectedSize, setSelectedSize] = useState<string>('');
     const { addToCart, decrementFromCart, items } = useCart();
+    const { customer } = useCustomer();
 
     const images = (product.images && product.images.length > 0 ? product.images : [product.imageUrl]).filter(Boolean);
     const fallbackImage = "https://images.unsplash.com/photo-1552066344-24632e509613?q=80&w=1000&auto=format&fit=crop";
@@ -189,6 +192,10 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                     <div className="space-y-4 pt-4">
                         <button
                             onClick={() => {
+                                if (!customer) {
+                                    router.push(`/login?next=${encodeURIComponent(pathname || '/shop')}`);
+                                    return;
+                                }
                                 if (quantityInCart > 0) {
                                     router.push('/checkout');
                                 } else {

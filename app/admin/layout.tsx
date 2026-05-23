@@ -11,7 +11,8 @@ import {
     X,
     Loader2,
     Settings,
-    LogOut
+    LogOut,
+    Users
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import AutoRefresh from "@/components/AutoRefresh";
@@ -41,6 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: "/admin/products", label: "Products", icon: Package },
         { href: "/admin/categories", label: "Categories", icon: Layers },
         { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+        { href: "/admin/customers", label: "Customers", icon: Users },
         { href: "/admin/discounts", label: "Discounts", icon: Tag },
         { href: "/admin/settings", label: "Settings", icon: Settings },
     ];

@@ -1,10 +1,10 @@
 "use client";
 
 import { useCart } from '@/lib/cart-context';
-// import { placeOrder as placeOrderAPI } from '@/lib/api'; // Removed as we use direct API calls now
+import { useCustomer } from '@/lib/customer-context';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Trash2, Tag } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Trash2, Tag, MapPin, Check, Smartphone, CreditCard, Building2, Wallet, ShieldCheck, Lock } from 'lucide-react';
 import Image from 'next/image';
 import { calculateShipping, calculateTotalWeight, calculateShippingByPincode } from '@/lib/shipping';
 import { calculateDiscount } from '@/lib/discount';
@@ -18,9 +18,13 @@ declare global {
 
 export default function CheckoutPage() {
     const { items, addToCart, decrementFromCart, removeFromCart, clearCart, total } = useCart();
+    const { customer } = useCustomer();
     const router = useRouter();
     const [isProcessing, setIsProcessing] = useState(false);
     const [pageReady, setPageReady] = useState(false);
+    const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+    const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+    const [saveAddress, setSaveAddress] = useState(false);
 
     const [error, setError] = useState('');
     const [discounts, setDiscounts] = useState<Discount[]>([]);
@@ -40,10 +44,46 @@ export default function CheckoutPage() {
 
     const [shippingCost, setShippingCost] = useState(0);
     const [shippingDetails, setShippingDetails] = useState<{ zone: string; actualWeight: number; billableWeight: number } | null>(null);
+    const pincodeAbortRef = useRef<AbortController | null>(null);
 
-    // Mark page as ready immediately
+    type CheckoutStep = 'details' | 'payment-selection';
+    const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('details');
+    type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet' | null;
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(null);
+
+    // Mark page as ready + pre-fill customer data + load saved addresses
     useEffect(() => {
         setPageReady(true);
+        fetch('/api/customer/me')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data?.customer) {
+                    setFormData(prev => ({
+                        ...prev,
+                        name: prev.name || data.customer.name,
+                        email: prev.email || data.customer.email,
+                        mobile: prev.mobile || data.customer.mobile,
+                    }));
+                }
+            })
+            .catch(() => {});
+        fetch('/api/customer/addresses')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data?.addresses?.length) {
+                    setSavedAddresses(data.addresses);
+                    const def = data.addresses.find((a: any) => a.is_default) || data.addresses[0];
+                    setSelectedAddressId(def.id);
+                    setFormData(prev => ({
+                        ...prev,
+                        name: prev.name || def.name,
+                        mobile: prev.mobile || def.mobile,
+                        street: def.street, city: def.city, state: def.state,
+                        country: def.country, zipCode: def.pincode,
+                    }));
+                }
+            })
+            .catch(() => {});
     }, []);
 
     // Fetch discounts on mount
@@ -125,11 +165,14 @@ export default function CheckoutPage() {
 
                 // Auto-fill address detail when zipCode is 6 digits
                 if (numericValue.length === 6) {
-                    fetch(`https://api.postalpincode.in/pincode/${numericValue}`)
+                    if (pincodeAbortRef.current) pincodeAbortRef.current.abort();
+                    const controller = new AbortController();
+                    pincodeAbortRef.current = controller;
+                    fetch(`https://api.postalpincode.in/pincode/${numericValue}`, { signal: controller.signal })
                         .then(res => res.json())
                         .then(data => {
-                            if (data[0] && data[0].Status === "Success") {
-                                const postOffice = data[0].PostOffice[0];
+                            const postOffice = data[0]?.PostOffice?.[0];
+                            if (data[0]?.Status === "Success" && postOffice) {
                                 setFormData(prev => ({
                                     ...prev,
                                     city: postOffice.District,
@@ -138,7 +181,9 @@ export default function CheckoutPage() {
                                 }));
                             }
                         })
-                        .catch(err => console.error('Pincode fetch failed:', err));
+                        .catch(err => {
+                            if (err.name !== 'AbortError') console.error('Pincode fetch failed:', err);
+                        });
                 }
             }
             return;
@@ -150,6 +195,21 @@ export default function CheckoutPage() {
     const handlePayment = async () => {
         setIsProcessing(true);
         setError('');
+
+        // Save address if checkbox checked and no saved address selected
+        if (saveAddress && customer && !selectedAddressId) {
+            try {
+                await fetch('/api/customer/addresses', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        label: 'Home', name: formData.name, mobile: formData.mobile,
+                        street: formData.street, city: formData.city, state: formData.state,
+                        country: formData.country, pincode: formData.zipCode, isDefault: savedAddresses.length === 0,
+                    }),
+                });
+            } catch { /* non-fatal */ }
+        }
 
         try {
             // Updated Flow:
@@ -199,13 +259,14 @@ export default function CheckoutPage() {
 
             console.log("🚀 Initializing Razorpay modal with Key:", razorpayOrder.keyId);
 
-            const options = {
+            const options: any = {
                 key: razorpayOrder.keyId,
-                amount: razorpayOrder.amount, // Verified server-side amount
+                amount: razorpayOrder.amount,
                 currency: razorpayOrder.currency,
                 name: "Startup Men's Wear",
                 description: "Payment for Order",
                 order_id: razorpayOrder.razorpayOrderId,
+                ...(selectedPaymentMethod ? { method: selectedPaymentMethod } : {}),
                 callback_url: `${window.location.origin}/api/payment/callback?dbOrderId=${shadowOrderId}`,
                 redirect: true,
                 handler: async function (response: any) {
@@ -213,6 +274,9 @@ export default function CheckoutPage() {
                     // This remains as a fallback for some browsers or older versions
                     // but redirect: true + callback_url will handle most cases.
                     try {
+                        if (!response?.razorpay_payment_id || !response?.razorpay_signature) {
+                            throw new Error('Invalid payment response from gateway');
+                        }
                         const verifiedOrderPayload = {
                             paymentDetails: {
                                 razorpay_order_id: response.razorpay_order_id,
@@ -289,6 +353,8 @@ export default function CheckoutPage() {
 
             console.log("📢 Attempting to open Razorpay modal...");
             rzp1.open();
+            // Clear loader once Razorpay modal has taken over
+            setIsProcessing(false);
 
         } catch (err: any) {
             console.error('❌ Final Catch - Payment Error:', err);
@@ -299,13 +365,14 @@ export default function CheckoutPage() {
     };
 
     const isFormValid = () => {
-        return formData.name && formData.email && formData.mobile && formData.mobile.length === 10 &&
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return formData.name && emailRegex.test(formData.email) && formData.mobile && formData.mobile.length === 10 &&
             formData.street && formData.city && formData.state &&
             formData.zipCode && formData.zipCode.length === 6;
     };
 
     const finalSubtotal = discountResult?.discountedTotal || total;
-    const grandTotal = finalSubtotal + shippingCost;
+    const grandTotal = (finalSubtotal || 0) + (shippingCost || 0);
 
     if (items.length === 0) {
         return (
@@ -426,6 +493,45 @@ export default function CheckoutPage() {
                 {/* Customer Details Form */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 h-fit order-1 lg:order-2">
                     <h2 className="text-xl font-bold text-slate-900 mb-6">Customer Details</h2>
+
+                    {/* Saved address selector */}
+                    {savedAddresses.length > 0 && (
+                        <div className="mb-6">
+                            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5" /> Saved Addresses
+                            </p>
+                            <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+                                {savedAddresses.map(addr => (
+                                    <button
+                                        key={addr.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedAddressId(addr.id);
+                                            setFormData(prev => ({ ...prev, name: prev.name, mobile: prev.mobile, street: addr.street, city: addr.city, state: addr.state, country: addr.country, zipCode: addr.pincode }));
+                                        }}
+                                        className={`flex-shrink-0 text-left border-2 rounded-xl p-3 w-52 transition-all ${selectedAddressId === addr.id ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}
+                                    >
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-[10px] font-bold uppercase text-slate-400">{addr.label}</span>
+                                            {selectedAddressId === addr.id && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                                        </div>
+                                        <p className="text-xs font-semibold text-slate-800 truncate">{addr.name}</p>
+                                        <p className="text-[11px] text-slate-500 truncate">{addr.street}</p>
+                                        <p className="text-[11px] text-slate-500">{addr.city} – {addr.pincode}</p>
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedAddressId(null)}
+                                    className={`flex-shrink-0 text-left border-2 rounded-xl p-3 w-44 transition-all flex flex-col items-center justify-center gap-1 ${selectedAddressId === null ? 'border-indigo-600 bg-indigo-50' : 'border-dashed border-slate-300 hover:border-slate-400'}`}
+                                >
+                                    <MapPin className="w-5 h-5 text-slate-400" />
+                                    <span className="text-xs font-bold text-slate-500">Use new address</span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -492,28 +598,141 @@ export default function CheckoutPage() {
                             </div>
                         </div>
 
+                        {/* Save address checkbox — only for logged in users with no saved address selected */}
+                        {customer && selectedAddressId === null && (
+                            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                                <input type="checkbox" checked={saveAddress} onChange={e => setSaveAddress(e.target.checked)} className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                <span className="text-sm text-slate-600">Save this address for future orders</span>
+                            </label>
+                        )}
+
                         <div className="mt-8">
-                            <button
-                                type="button"
-                                onClick={handlePayment}
-                                disabled={!isFormValid() || isProcessing}
-                                className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all ${!isFormValid() || isProcessing
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-xl'
-                                    }`}
-                            >
-                                {isProcessing ? (
-                                    <span className="flex items-center justify-center">
-                                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        Processing...
-                                    </span>
-                                ) : (
-                                    `Pay ₹${grandTotal.toFixed(2)}`
-                                )}
-                            </button>
+                            {checkoutStep === 'details' ? (
+                                <button
+                                    type="button"
+                                    onClick={() => isFormValid() && setCheckoutStep('payment-selection')}
+                                    disabled={!isFormValid()}
+                                    className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all ${!isFormValid()
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-xl'
+                                        }`}
+                                >
+                                    Continue to Payment →
+                                </button>
+                            ) : (
+                                <div className="space-y-5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCheckoutStep('details')}
+                                        className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors"
+                                    >
+                                        ← Back to Details
+                                    </button>
+
+                                    {/* Section header */}
+                                    <div>
+                                        <p className="text-base font-bold text-slate-900">Choose Payment Method</p>
+                                        <p className="text-xs text-slate-400 mt-0.5">All transactions are secure and encrypted</p>
+                                    </div>
+
+                                    {/* Payment method cards */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {([
+                                            {
+                                                id: 'upi' as const,
+                                                label: 'UPI',
+                                                sub: 'GPay · PhonePe · Paytm',
+                                                Icon: Smartphone,
+                                                iconBg: 'bg-violet-100',
+                                                iconColor: 'text-violet-600',
+                                            },
+                                            {
+                                                id: 'card' as const,
+                                                label: 'Credit / Debit Card',
+                                                sub: 'Visa · Mastercard · RuPay',
+                                                Icon: CreditCard,
+                                                iconBg: 'bg-blue-100',
+                                                iconColor: 'text-blue-600',
+                                            },
+                                            {
+                                                id: 'netbanking' as const,
+                                                label: 'Net Banking',
+                                                sub: 'SBI · HDFC · ICICI & more',
+                                                Icon: Building2,
+                                                iconBg: 'bg-amber-100',
+                                                iconColor: 'text-amber-600',
+                                            },
+                                            {
+                                                id: 'wallet' as const,
+                                                label: 'Wallet',
+                                                sub: 'Paytm · Mobikwik',
+                                                Icon: Wallet,
+                                                iconBg: 'bg-emerald-100',
+                                                iconColor: 'text-emerald-600',
+                                            },
+                                        ] as const).map(({ id, label, sub, Icon, iconBg, iconColor }) => {
+                                            const selected = selectedPaymentMethod === id;
+                                            return (
+                                                <button
+                                                    key={id}
+                                                    type="button"
+                                                    onClick={() => setSelectedPaymentMethod(id)}
+                                                    className={`relative text-left p-4 rounded-xl border-2 transition-all duration-150 ${
+                                                        selected
+                                                            ? 'border-indigo-600 bg-indigo-50 shadow-sm'
+                                                            : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm'
+                                                    }`}
+                                                >
+                                                    {/* Selected checkmark */}
+                                                    {selected && (
+                                                        <span className="absolute top-2.5 right-2.5 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
+                                                            <Check className="w-3 h-3 text-white stroke-[3]" />
+                                                        </span>
+                                                    )}
+                                                    <div className={`w-9 h-9 rounded-lg ${iconBg} flex items-center justify-center mb-3`}>
+                                                        <Icon className={`w-5 h-5 ${iconColor}`} />
+                                                    </div>
+                                                    <p className={`font-bold text-sm leading-tight ${selected ? 'text-indigo-700' : 'text-slate-800'}`}>{label}</p>
+                                                    <p className="text-[11px] text-slate-400 mt-0.5 leading-tight">{sub}</p>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Security badge */}
+                                    <div className="flex items-center gap-2 py-2.5 px-3 bg-slate-50 rounded-lg border border-slate-100">
+                                        <ShieldCheck className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                        <p className="text-[11px] text-slate-500">Payments are <span className="font-semibold text-slate-700">100% secure</span> · Powered by <span className="font-semibold text-slate-700">Razorpay</span></p>
+                                    </div>
+
+                                    {/* Pay button */}
+                                    <button
+                                        type="button"
+                                        onClick={handlePayment}
+                                        disabled={!selectedPaymentMethod || isProcessing}
+                                        className={`w-full py-4 px-6 rounded-xl font-bold text-base tracking-wide transition-all flex items-center justify-center gap-2 ${
+                                            !selectedPaymentMethod || isProcessing
+                                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                                : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 hover:shadow-xl active:scale-[0.99]'
+                                        }`}
+                                    >
+                                        {isProcessing ? (
+                                            <>
+                                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Lock className="w-4 h-4" />
+                                                Pay ₹{grandTotal.toFixed(2)}
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                             {!isFormValid() && (
                                 <p className="text-xs text-center text-red-500 mt-2">
                                     Please fill all details correctly to proceed
