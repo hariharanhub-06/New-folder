@@ -98,8 +98,8 @@ function VerifyOtpContent() {
                 <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
                     <span className="text-amber-500 text-lg mt-0.5">💡</span>
                     <div className="text-xs text-amber-800 leading-relaxed">
-                        <p className="font-bold mb-0.5">Can't find the OTP?</p>
-                        <p>Check your <span className="font-semibold">Spam / Junk</span> folder — automated emails sometimes land there. Mark it as <span className="font-semibold">"Not Spam"</span> to receive future OTPs in your inbox.</p>
+                        <p className="font-bold mb-0.5">Can&apos;t find the OTP?</p>
+                        <p>Check your <span className="font-semibold">Spam / Junk</span> folder — automated emails sometimes land there. Mark it as <span className="font-semibold">&quot;Not Spam&quot;</span> to receive future OTPs in your inbox.</p>
                     </div>
                 </div>
 
