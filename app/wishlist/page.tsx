@@ -30,7 +30,7 @@ export default function WishlistPage() {
 
     const handleAddToCart = (product: any) => {
         if (!customer) {
-            router.push('/login?next=/wishlist');
+            router.push('/register?next=/wishlist');
             return;
         }
         addToCart(product);

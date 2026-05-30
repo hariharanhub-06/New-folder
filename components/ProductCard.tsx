@@ -33,7 +33,7 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!customer) {
-            router.push(`/login?next=${encodeURIComponent(pathname || '/shop')}`);
+            router.push(`/register?next=${encodeURIComponent(pathname || '/shop')}`);
             return;
         }
         if (quantityInCart > 0 && !hasSizes) {

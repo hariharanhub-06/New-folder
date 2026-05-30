@@ -193,7 +193,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                         <button
                             onClick={() => {
                                 if (!customer) {
-                                    router.push(`/login?next=${encodeURIComponent(pathname || '/shop')}`);
+                                    router.push(`/register?next=${encodeURIComponent(pathname || '/shop')}`);
                                     return;
                                 }
                                 if (quantityInCart > 0) {
