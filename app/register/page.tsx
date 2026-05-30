@@ -4,11 +4,15 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
+import { useCustomer } from '@/lib/customer-context';
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { refresh } = useCustomer();
     const [form, setForm] = useState({ name: '', mobile: '', email: '', password: '' });
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -23,8 +27,13 @@ export default function RegisterPage() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setError('');
-        setLoading(true);
 
+        if (form.password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        setLoading(true);
         try {
             const res = await fetch('/api/customer/register', {
                 method: 'POST',
@@ -33,13 +42,10 @@ export default function RegisterPage() {
             });
 
             const data = await res.json();
+            if (!res.ok) { setError(data.error || 'Registration failed'); return; }
 
-            if (!res.ok) {
-                setError(data.error || 'Registration failed');
-                return;
-            }
-
-            router.push(`/verify-otp?mobile=${encodeURIComponent(form.mobile)}`);
+            await refresh();
+            router.push('/account');
         } catch {
             setError('Something went wrong. Please try again.');
         } finally {
@@ -95,7 +101,6 @@ export default function RegisterPage() {
                                 required
                                 className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                             />
-                            <p className="text-[11px] text-gray-400 mt-1">OTP will be sent to this email</p>
                         </div>
 
                         <div>
@@ -113,6 +118,23 @@ export default function RegisterPage() {
                                 />
                                 <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Confirm Password</label>
+                            <div className="relative">
+                                <input
+                                    type={showConfirm ? 'text' : 'password'}
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    placeholder="Re-enter your password"
+                                    required
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                />
+                                <button type="button" onClick={() => setShowConfirm(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 </button>
                             </div>
                         </div>

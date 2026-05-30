@@ -650,22 +650,20 @@ export async function createCustomer(data: {
     mobile: string;
     email: string;
     passwordHash: string;
-    otpCode: string;
-    otpExpiresAt: Date;
 }): Promise<void> {
     await pool.query(`
-        INSERT INTO customers (id, name, mobile, email, password_hash, is_verified, otp_code, otp_expires_at)
-        VALUES ($1, $2, $3, $4, $5, false, $6, $7)
+        INSERT INTO customers (id, name, mobile, email, password_hash, is_verified)
+        VALUES ($1, $2, $3, $4, $5, true)
         ON CONFLICT (mobile) DO UPDATE SET
             name = EXCLUDED.name,
             email = EXCLUDED.email,
             password_hash = EXCLUDED.password_hash,
-            is_verified = false,
-            otp_code = EXCLUDED.otp_code,
-            otp_expires_at = EXCLUDED.otp_expires_at,
+            is_verified = true,
+            otp_code = NULL,
+            otp_expires_at = NULL,
             updated_at = CURRENT_TIMESTAMP
         WHERE customers.is_verified = false
-    `, [data.id, data.name, data.mobile, data.email, data.passwordHash, data.otpCode, data.otpExpiresAt]);
+    `, [data.id, data.name, data.mobile, data.email, data.passwordHash]);
 }
 
 export async function getCustomerByMobile(mobile: string): Promise<any | null> {
