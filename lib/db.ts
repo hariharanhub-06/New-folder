@@ -642,6 +642,30 @@ export async function toggleProductOfferDrop(id: string) {
     return { success: false };
 }
 
+// --- REGISTRATION RATE LIMITING ---
+
+export async function countRecentRegistrations(ip: string): Promise<number> {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS registration_attempts (
+            id SERIAL PRIMARY KEY,
+            ip TEXT NOT NULL,
+            attempted_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    `);
+    const res = await pool.query(
+        `SELECT COUNT(*) FROM registration_attempts WHERE ip = $1 AND attempted_at > NOW() - INTERVAL '24 hours'`,
+        [ip]
+    );
+    return parseInt(res.rows[0].count, 10);
+}
+
+export async function logRegistrationAttempt(ip: string): Promise<void> {
+    await pool.query(
+        `INSERT INTO registration_attempts (ip) VALUES ($1)`,
+        [ip]
+    );
+}
+
 // --- CUSTOMER FUNCTIONS ---
 
 export async function createCustomer(data: {

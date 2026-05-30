@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Users, CheckCircle, XCircle, ChevronRight, TrendingUp, UserCheck } from 'lucide-react';
+import { Search, Users, CheckCircle, XCircle, ChevronRight, TrendingUp, UserCheck, Trash2 } from 'lucide-react';
 
 interface CustomerRow {
     id: string;
@@ -40,10 +40,39 @@ export default function AdminCustomersPage() {
 
     const totalSpent = customers.reduce((a, c) => a + c.totalSpent, 0);
     const verifiedCount = customers.filter(c => c.isVerified).length;
+    const unverifiedCount = customers.filter(c => !c.isVerified).length;
+
+    async function deleteCustomer(id: string, name: string) {
+        if (!confirm(`Delete ${name}? This cannot be undone.`)) return;
+        await fetch('/api/admin/customers', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+        });
+        setCustomers(prev => prev.filter(c => c.id !== id));
+    }
+
+    async function purgeUnverified() {
+        if (!confirm(`Delete all ${unverifiedCount} unverified accounts? This cannot be undone.`)) return;
+        const res = await fetch('/api/admin/customers?purgeUnverified=true', { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) setCustomers(prev => prev.filter(c => c.isVerified));
+    }
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-slate-900">Customers</h1>
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold text-slate-900">Customers</h1>
+                {unverifiedCount > 0 && (
+                    <button
+                        onClick={purgeUnverified}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold rounded-lg border border-red-200 transition-colors"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        Delete {unverifiedCount} unverified
+                    </button>
+                )}
+            </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -133,9 +162,18 @@ export default function AdminCustomersPage() {
                                         <td className="px-5 py-4 text-center text-sm font-semibold text-slate-700 hidden md:table-cell">{customer.orderCount}</td>
                                         <td className="px-5 py-4 text-right text-sm font-semibold text-slate-900">₹{customer.totalSpent.toLocaleString('en-IN')}</td>
                                         <td className="px-5 py-4">
-                                            <Link href={`/admin/customers/${customer.id}`} className="flex items-center justify-end text-slate-400 hover:text-indigo-600 transition-colors">
-                                                <ChevronRight className="w-4 h-4" />
-                                            </Link>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => deleteCustomer(customer.id, customer.name)}
+                                                    className="text-slate-300 hover:text-red-500 transition-colors p-1"
+                                                    title="Delete customer"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                                <Link href={`/admin/customers/${customer.id}`} className="text-slate-400 hover:text-indigo-600 transition-colors">
+                                                    <ChevronRight className="w-4 h-4" />
+                                                </Link>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

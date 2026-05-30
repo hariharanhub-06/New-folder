@@ -2,10 +2,16 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import { createCustomer, getCustomerByMobile, getCustomerByEmail } from '@/lib/db';
+import { createCustomer, getCustomerByMobile, getCustomerByEmail, countRecentRegistrations, logRegistrationAttempt } from '@/lib/db';
 
 export async function POST(request: Request) {
     try {
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+        const attempts = await countRecentRegistrations(ip);
+        if (attempts >= 3) {
+            return NextResponse.json({ error: 'Too many registrations from this device. Try again after 24 hours.' }, { status: 429 });
+        }
+
         const { name, mobile, email, password } = await request.json();
 
         if (!name || !mobile || !email || !password) {
@@ -39,6 +45,7 @@ export async function POST(request: Request) {
         const id = existingMobile?.id || crypto.randomUUID();
 
         await createCustomer({ id, name, mobile: normalizedMobile, email, passwordHash });
+        await logRegistrationAttempt(ip);
 
         cookies().set('customer_session', id, {
             httpOnly: true,
