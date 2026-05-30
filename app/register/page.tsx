@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { useCustomer } from '@/lib/customer-context';
 
 export default function RegisterPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { refresh } = useCustomer();
     const [form, setForm] = useState({ name: '', mobile: '', email: '', password: '' });
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -45,7 +46,8 @@ export default function RegisterPage() {
             if (!res.ok) { setError(data.error || 'Registration failed'); return; }
 
             await refresh();
-            router.push('/account');
+            const next = searchParams.get('next');
+            router.push(next || '/account');
         } catch {
             setError('Something went wrong. Please try again.');
         } finally {

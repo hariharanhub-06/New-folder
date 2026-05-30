@@ -666,6 +666,21 @@ export async function logRegistrationAttempt(ip: string): Promise<void> {
     );
 }
 
+export async function hasEverRegistered(ip: string): Promise<boolean> {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS registration_attempts (
+            id SERIAL PRIMARY KEY,
+            ip TEXT NOT NULL,
+            attempted_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    `);
+    const res = await pool.query(
+        `SELECT 1 FROM registration_attempts WHERE ip = $1 LIMIT 1`,
+        [ip]
+    );
+    return res.rows.length > 0;
+}
+
 // --- CUSTOMER FUNCTIONS ---
 
 export async function createCustomer(data: {

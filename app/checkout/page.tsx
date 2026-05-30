@@ -4,7 +4,7 @@ import { useCart } from '@/lib/cart-context';
 import { useCustomer } from '@/lib/customer-context';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Tag, MapPin, Check, Lock, ShieldCheck } from 'lucide-react';
+import { Trash2, Tag, MapPin, Check, Lock, ShieldCheck, LogIn, UserPlus } from 'lucide-react';
 import Image from 'next/image';
 import { calculateShipping, calculateTotalWeight, calculateShippingByPincode } from '@/lib/shipping';
 import { calculateDiscount } from '@/lib/discount';
@@ -45,7 +45,18 @@ export default function CheckoutPage() {
     const [shippingCost, setShippingCost] = useState(0);
     const [shippingDetails, setShippingDetails] = useState<{ zone: string; actualWeight: number; billableWeight: number } | null>(null);
     const pincodeAbortRef = useRef<AbortController | null>(null);
+    const [authHint, setAuthHint] = useState<'login' | 'register' | null>(null);
 
+
+    // Fetch auth hint for guest users
+    useEffect(() => {
+        if (!customer) {
+            fetch('/api/customer/auth-hint')
+                .then(r => r.ok ? r.json() : null)
+                .then(data => { if (data?.hint) setAuthHint(data.hint); })
+                .catch(() => {});
+        }
+    }, [customer]);
 
     // Mark page as ready + pre-fill customer data + load saved addresses
     useEffect(() => {
@@ -487,6 +498,35 @@ export default function CheckoutPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Auth suggestion banner for guests */}
+                {!customer && authHint && (
+                    <div className={`order-1 lg:order-2 mb-0 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border ${authHint === 'login' ? 'bg-indigo-50 border-indigo-200' : 'bg-amber-50 border-amber-200'}`}>
+                        <div>
+                            {authHint === 'login' ? (
+                                <>
+                                    <p className="text-sm font-semibold text-indigo-800">Welcome back! Login for faster checkout</p>
+                                    <p className="text-xs text-indigo-600 mt-0.5">Track your order, use saved addresses, and check out faster.</p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-sm font-semibold text-amber-800">Create an account for a better experience</p>
+                                    <p className="text-xs text-amber-700 mt-0.5">Save your address, track orders, and enjoy faster checkouts.</p>
+                                </>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            {authHint === 'register' && (
+                                <a href={`/register?next=${encodeURIComponent('/checkout')}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors">
+                                    <UserPlus className="w-3.5 h-3.5" /> Register
+                                </a>
+                            )}
+                            <a href={`/login?next=${encodeURIComponent('/checkout')}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors">
+                                <LogIn className="w-3.5 h-3.5" /> Login
+                            </a>
+                        </div>
+                    </div>
+                )}
 
                 {/* Customer Details Form */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 h-fit order-1 lg:order-2">

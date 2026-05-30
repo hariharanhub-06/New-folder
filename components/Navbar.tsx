@@ -172,10 +172,16 @@ export default function Navbar() {
                                             )}
                                         </>
                                     ) : (
-                                        <Link href="/login" className="flex items-center gap-1.5 p-1 hover:text-indigo-600 transition-colors">
-                                            <User className="w-5 h-5" />
-                                            <span className="hidden md:block text-xs font-bold uppercase tracking-wide">Login</span>
-                                        </Link>
+                                        <div className="flex items-center gap-1">
+                                            <Link href="/register" className="hidden md:block text-xs font-bold uppercase tracking-wide px-2 py-1 rounded hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                                                Register
+                                            </Link>
+                                            <span className="hidden md:block text-slate-300 text-xs">|</span>
+                                            <Link href="/login" className="flex items-center gap-1.5 p-1 hover:text-indigo-600 transition-colors">
+                                                <User className="w-5 h-5" />
+                                                <span className="hidden md:block text-xs font-bold uppercase tracking-wide">Login</span>
+                                            </Link>
+                                        </div>
                                     )}
                                 </div>
                             )}
