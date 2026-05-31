@@ -8,6 +8,7 @@ import { useCustomer } from '@/lib/customer-context';
 import { useState, useEffect, useRef } from 'react';
 import { getSettings } from '@/lib/api';
 import { usePathname, useRouter } from 'next/navigation';
+import { useSiteSettings } from '@/lib/site-settings-context';
 import { UnifrakturMaguntia } from "next/font/google";
 
 const gothic = UnifrakturMaguntia({
@@ -19,6 +20,7 @@ export default function Navbar() {
     const { items, total } = useCart();
     const { items: wishlistItems } = useWishlist();
     const { customer, refresh: refreshCustomer } = useCustomer();
+    const { settings } = useSiteSettings();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [announcement, setAnnouncement] = useState('SPECIAL OFFER: ENJOY 40% OFF ON TWO HOT-SELLING PRODUCTS! SHOP NOW');
@@ -171,7 +173,7 @@ export default function Navbar() {
                                                 </div>
                                             )}
                                         </>
-                                    ) : (
+                                    ) : settings.requireLogin ? (
                                         <div className="flex items-center gap-1">
                                             <Link href="/register" className="hidden md:block text-xs font-bold uppercase tracking-wide px-2 py-1 rounded hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
                                                 Register
@@ -182,7 +184,7 @@ export default function Navbar() {
                                                 <span className="hidden md:block text-xs font-bold uppercase tracking-wide">Login</span>
                                             </Link>
                                         </div>
-                                    )}
+                                    ) : null}
                                 </div>
                             )}
 
