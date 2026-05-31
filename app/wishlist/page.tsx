@@ -9,6 +9,7 @@ import { UnifrakturMaguntia } from "next/font/google";
 import { Trash2, ShoppingCart, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSiteSettings } from "@/lib/site-settings-context";
 
 const gothic = UnifrakturMaguntia({
     weight: "400",
@@ -20,6 +21,7 @@ export default function WishlistPage() {
     const { addToCart } = useCart();
     const { customer } = useCustomer();
     const router = useRouter();
+    const { settings } = useSiteSettings();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -29,7 +31,7 @@ export default function WishlistPage() {
     if (!mounted) return <div className="min-h-screen bg-[#F4F3EF]"></div>;
 
     const handleAddToCart = (product: any) => {
-        if (!customer) {
+        if (!customer && settings.requireLogin) {
             router.push('/register?next=/wishlist');
             return;
         }

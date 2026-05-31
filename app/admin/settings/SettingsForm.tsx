@@ -1,7 +1,7 @@
 "use client";
 
 import { updateAdminCredentials } from "@/lib/admin-actions";
-import { User, Lock, Save, AlertCircle, CheckCircle, XCircle, Layout, Shield, Bell, Map as MapIcon, Phone, MapPin } from "lucide-react";
+import { User, Lock, Save, AlertCircle, CheckCircle, XCircle, Layout, Shield, Bell, Map as MapIcon, Phone, MapPin, ShoppingBag } from "lucide-react";
 import { useState, useEffect } from "react";
 // @ts-ignore
 import { useFormState } from "react-dom";
@@ -187,6 +187,29 @@ export default function SettingsForm() {
                                 />
                             </div>
                         </div>
+                    </div>
+
+                    {/* Checkout Behavior */}
+                    <div className="bg-white border-2 border-black p-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+                        <div className="flex items-center gap-3 mb-6">
+                            <ShoppingBag className="w-5 h-5 text-brand-red" />
+                            <h3 className="text-sm font-black uppercase tracking-widest italic">Checkout Behavior</h3>
+                        </div>
+                        <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                            <input
+                                type="checkbox"
+                                id="require_login"
+                                checked={settings.require_login !== 'false'}
+                                onChange={(e) => handleUpdateSetting('require_login', e.target.checked ? 'true' : 'false')}
+                                className="w-5 h-5 accent-brand-red cursor-pointer"
+                            />
+                            <label htmlFor="require_login" className="text-[10px] font-bold uppercase tracking-widest cursor-pointer">
+                                Require Login Before Adding to Cart &amp; Checkout
+                            </label>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-3 ml-9">
+                            When ON, guests are redirected to /register before adding items. When OFF, guests can shop and checkout freely.
+                        </p>
                     </div>
 
                     {/* Explicit Save Button for UX */}

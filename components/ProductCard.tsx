@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { ShoppingBag, Search, Plus, ArrowRight, Share2, Check, Heart } from 'lucide-react';
 import { memo, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useSiteSettings } from '@/lib/site-settings-context';
 
 interface ProductCardProps {
     product: Product;
@@ -22,6 +23,7 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
     const { addToCart, items } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const { customer } = useCustomer();
+    const { settings } = useSiteSettings();
 
     const hasSizes = product.sizes && product.sizes.length > 0;
     const cartItems = items.filter(item => item.id === product.id);
@@ -32,7 +34,7 @@ const ProductCard = memo(function ProductCard({ product, onSelect, variant = 'de
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!customer) {
+        if (!customer && settings.requireLogin) {
             router.push(`/register?next=${encodeURIComponent(pathname || '/shop')}`);
             return;
         }

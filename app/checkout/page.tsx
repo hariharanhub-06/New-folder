@@ -2,6 +2,7 @@
 
 import { useCart } from '@/lib/cart-context';
 import { useCustomer } from '@/lib/customer-context';
+import { useSiteSettings } from '@/lib/site-settings-context';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Trash2, Tag, MapPin, Check, Lock, ShieldCheck, LogIn, UserPlus } from 'lucide-react';
@@ -19,6 +20,7 @@ declare global {
 export default function CheckoutPage() {
     const { items, addToCart, decrementFromCart, removeFromCart, clearCart, total } = useCart();
     const { customer } = useCustomer();
+    const { settings } = useSiteSettings();
     const router = useRouter();
     const [isProcessing, setIsProcessing] = useState(false);
     const [pageReady, setPageReady] = useState(false);
@@ -500,7 +502,7 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Auth suggestion banner for guests */}
-                {!customer && authHint && (
+                {!customer && authHint && settings.requireLogin && (
                     <div className={`order-1 lg:order-2 mb-0 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border ${authHint === 'login' ? 'bg-indigo-50 border-indigo-200' : 'bg-amber-50 border-amber-200'}`}>
                         <div>
                             {authHint === 'login' ? (

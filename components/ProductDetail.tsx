@@ -10,6 +10,7 @@ import { optimizeImageUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import { useSiteSettings } from '@/lib/site-settings-context';
 
 interface ProductDetailProps {
     product: Product;
@@ -26,6 +27,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
     const [selectedSize, setSelectedSize] = useState<string>('');
     const { addToCart, decrementFromCart, items } = useCart();
     const { customer } = useCustomer();
+    const { settings } = useSiteSettings();
 
     const images = (product.images && product.images.length > 0 ? product.images : [product.imageUrl]).filter(Boolean);
     const fallbackImage = "https://images.unsplash.com/photo-1552066344-24632e509613?q=80&w=1000&auto=format&fit=crop";
@@ -192,7 +194,7 @@ export default function ProductDetail({ product: initialProduct, initialActiveIm
                     <div className="space-y-4 pt-4">
                         <button
                             onClick={() => {
-                                if (!customer) {
+                                if (!customer && settings.requireLogin) {
                                     router.push(`/register?next=${encodeURIComponent(pathname || '/shop')}`);
                                     return;
                                 }

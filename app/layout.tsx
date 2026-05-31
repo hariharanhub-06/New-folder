@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
 import { CustomerProvider } from "@/lib/customer-context";
+import { SiteSettingsProvider } from "@/lib/site-settings-context";
 import Navbar from "@/components/Navbar";
 import { Analytics } from "@vercel/analytics/next";
 import { Instagram } from "lucide-react";
@@ -59,6 +60,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${jost.className} ${jost.variable} antialiased bg-[#F4F3EF] text-[#000000]`}>
+                <SiteSettingsProvider>
                 <CustomerProvider>
                 <CartProvider>
                     <WishlistProvider>
@@ -102,6 +104,7 @@ export default function RootLayout({
                     </WishlistProvider>
                 </CartProvider>
                 </CustomerProvider>
+                </SiteSettingsProvider>
                 <ScrollFix />
                 <Analytics />
                 <SpeedInsights />
