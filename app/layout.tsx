@@ -10,6 +10,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { Instagram } from "lucide-react";
 import ScrollFix from "@/components/ScrollFix";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { getSiteEnabled } from "@/lib/site-status";
+import AccessDenied403 from "@/components/AccessDenied403";
 
 const jost = Jost({
     subsets: ["latin"],
@@ -52,11 +54,24 @@ export const metadata: Metadata = {
     },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    // Central kill switch: when disabled from the Harish hub, every route shows a 403.
+    const siteEnabled = await getSiteEnabled("startup");
+
+    if (!siteEnabled) {
+        return (
+            <html lang="en">
+                <body className={`${jost.className} ${jost.variable} antialiased bg-[#F4F3EF] text-[#000000]`}>
+                    <AccessDenied403 />
+                </body>
+            </html>
+        );
+    }
+
     return (
         <html lang="en">
             <body className={`${jost.className} ${jost.variable} antialiased bg-[#F4F3EF] text-[#000000]`}>
