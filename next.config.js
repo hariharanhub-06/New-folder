@@ -30,7 +30,7 @@ const nextConfig = {
                             "font-src 'self' data: https://fonts.gstatic.com",
                             "connect-src 'self' https: wss:",
                             "media-src 'self' https: blob:",
-                            "frame-src https://*.razorpay.com",
+                            "frame-src https://*.razorpay.com https://www.google.com https://maps.google.com",
                             "frame-ancestors 'self' https://hariharanhub.com",
                             "object-src 'none'",
                         ].join('; '),
